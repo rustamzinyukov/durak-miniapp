@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auto WebP Distributor</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .card { display: inline-block; margin: 10px; text-align: center; }
+        canvas { border: 2px solid #333; border-radius: 8px; max-width: 100px; }
+        button { background: #4CAF50; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin: 5px; }
+        button:hover { background: #45a049; }
+        .download-all { background: #2196F3; padding: 15px 30px; font-size: 18px; }
+        .download-all:hover { background: #1976D2; }
+        .auto-distribute { background: #FF9800; padding: 15px 30px; font-size: 18px; }
+        .auto-distribute:hover { background: #F57C00; }
+        .status { margin: 10px 0; font-weight: bold; color: #333; }
+        .theme-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 8px; }
+        .error { color: red; }
+        .success { color: green; }
+        .instructions { background: #f0f0f0; padding: 15px; border-radius: 8px; margin: 20px 0; }
+        .progress { background: #ddd; border-radius: 5px; height: 20px; margin: 10px 0; }
+        .progress-bar { background: #4CAF50; height: 100%; border-radius: 5px; transition: width 0.3s; }
+    </style>
+</head>
+<body>
+    <h1>🎨 Auto WebP Distributor</h1>
+    
+    <div class="instructions">
+        <h3>📋 Instructions:</h3>
+        <ol>
+            <li>Click "Convert All Cards" to convert your existing cards to WebP</li>
+            <li>Click "Auto Distribute WebP" to automatically organize and download files by theme</li>
+            <li>The system will automatically create organized downloads for each theme</li>
+        </ol>
+    </div>
+    
+    <div class="status" id="status">Ready to convert and distribute cards...</div>
+    
+    <div class="progress">
+        <div class="progress-bar" id="progressBar" style="width: 0%"></div>
+    </div>
+    
+    <button onclick="convertAllCards()" class="download-all">Convert All Cards</button>
+    <button onclick="autoDistribute()" class="auto-distribute">Auto Distribute WebP</button>
+
+    <div id="casino-section" class="theme-section">
+        <h3>🎰 Casino Theme (SVG → WebP)</h3>
+        <div id="casino-cards"></div>
+    </div>
+
+    <div id="tavern-section" class="theme-section">
+        <h3>🍺 Tavern Theme (PNG → WebP)</h3>
+        <div id="tavern-cards"></div>
+    </div>
+
+    <div id="underground-section" class="theme-section">
+        <h3>🌑 Underground Theme (JPG → WebP)</h3>
+        <div id="underground-cards"></div>
+    </div>
+
+    <script>
+        let allConvertedCards = [];
+        let totalCards = 0;
+        let convertedCount = 0;
+
+        // Автоматически определяем пути к картам
+        const cardPaths = {
+            casino: {
+                basePath: './themes/casino/cards/SVG-cards-1.3/',
+                cards: [
+                    '6_of_clubs.svg', '6_of_diamonds.svg', '6_of_hearts.svg', '6_of_spades.svg',
+                    '7_of_clubs.svg', '7_of_diamonds.svg', '7_of_hearts.svg', '7_of_spades.svg',
+                    '8_of_clubs.svg', '8_of_diamonds.svg', '8_of_hearts.svg', '8_of_spades.svg',
+                    '9_of_clubs.svg', '9_of_diamonds.svg', '9_of_hearts.svg', '9_of_spades.svg',
+                    '10_of_clubs.svg', '10_of_diamonds.svg', '10_of_hearts.svg', '10_of_spades.svg',
+                    'jack_of_clubs.svg', 'jack_of_diamonds.svg', 'jack_of_hearts.svg', 'jack_of_spades.svg',
+                    'queen_of_clubs.svg', 'queen_of_diamonds.svg', 'queen_of_hearts.svg', 'queen_of_spades.svg',
+                    'king_of_clubs.svg', 'king_of_diamonds.svg', 'king_of_hearts.svg', 'king_of_spades.svg',
+                    'ace_of_clubs.svg', 'ace_of_diamonds.svg', 'ace_of_hearts.svg', 'ace_of_spades.svg'
+                ]
+            },
+            tavern: {
+                basePath: './themes/tavern/cards/PNG_cards/',
+                cards: [
+                    '6t.png', '6b.png', '6ch.png', '6p.png',
+                    '7t.png', '7b.png', '7ch.png', '7p.png',
+                    '8t.png', '8b.png', '8ch.png', '8p.png',
+                    '9t.png', '9b.png', '9ch.png', '9p.png',
+                    '10t.png', '10b.png', '10ch.png', '10p.png',
+                    'Jt.png', 'Jb.png', 'Jch.png', 'Jp.png',
+                    'Qt.png', 'Qb.png', 'Qch.png', 'Qp.png',
+                    'Kt.png', 'Kb.png', 'Kch.png', 'Kp.png',
+                    'At.png', 'Ab.png', 'Ach.png', 'Ap.png'
+                ]
+            },
+            underground: {
+                basePath: './themes/underground/cards/JPG_cards/',
+                cards: [
+                    '6t.jpg', '6b.jpg', '6ch.jpg', '6p.jpg',
+                    '7t.jpg', '7b.jpg', '7ch.jpg', '7p.jpg',
+                    '8t.jpg', '8b.jpg', '8ch.jpg', '8p.jpg',
+                    '9t.jpg', '9b.jpg', '9ch.jpg', '9p.jpg',
+                    '10t.jpg', '10b.jpg', '10ch.jpg', '10p.jpg',
+                    'Jt.jpg', 'Jb.jpg', 'Jch.jpg', 'Jp.jpg',
+                    'Qt.jpg', 'Qb.jpg', 'Qch.jpg', 'Qp.jpg',
+                    'Kt.jpg', 'Kb.jpg', 'Kch.jpg', 'Kp.jpg',
+                    'At.jpg', 'Ab.jpg', 'Ach.jpg', 'Ap.jpg'
+                ]
+            }
+        };
+
+        function convertAllCards() {
+            updateStatus('Starting conversion of all cards...');
+            allConvertedCards = [];
+            convertedCount = 0;
+            
+            // Подсчитываем общее количество карт
+            totalCards = cardPaths.casino.cards.length + cardPaths.tavern.cards.length + cardPaths.underground.cards.length;
+            
+            // Конвертируем каждую тему
+            convertThemeCards('casino');
+            convertThemeCards('tavern');
+            convertThemeCards('underground');
+        }
+
+        function convertThemeCards(theme) {
+            const themeData = cardPaths[theme];
+            const container = document.getElementById(`${theme}-cards`);
+            container.innerHTML = '';
+            
+            themeData.cards.forEach((cardName, index) => {
+                const img = new Image();
+                img.crossOrigin = 'anonymous';
+                
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0);
+                    
+                    const cardDiv = document.createElement('div');
+                    cardDiv.className = 'card';
+                    
+                    const downloadBtn = document.createElement('button');
+                    downloadBtn.textContent = 'Download WebP';
+                    downloadBtn.onclick = () => downloadCard(canvas, getWebPFileName(cardName));
+                    
+                    const info = document.createElement('div');
+                    info.innerHTML = `<strong>${cardName}</strong><br>${theme}<br>${getWebPFileName(cardName)}`;
+                    
+                    cardDiv.appendChild(canvas);
+                    cardDiv.appendChild(info);
+                    cardDiv.appendChild(downloadBtn);
+                    container.appendChild(cardDiv);
+                    
+                    allConvertedCards.push({ 
+                        canvas, 
+                        fileName: getWebPFileName(cardName),
+                        theme: theme
+                    });
+                    
+                    convertedCount++;
+                    updateProgress();
+                    
+                    if (convertedCount === totalCards) {
+                        updateStatus(`✅ Converted all ${totalCards} cards successfully!`);
+                    }
+                };
+                
+                img.onerror = function() {
+                    const errorDiv = document.createElement('div');
+                    errorDiv.className = 'card error';
+                    errorDiv.innerHTML = `<strong>Error loading:</strong><br>${cardName}<br>${theme}`;
+                    container.appendChild(errorDiv);
+                    
+                    convertedCount++;
+                    updateProgress();
+                    
+                    if (convertedCount === totalCards) {
+                        updateStatus(`✅ Converted all ${totalCards} cards successfully!`);
+                    }
+                };
+                
+                // Загружаем карту
+                img.src = themeData.basePath + cardName;
+            });
+        }
+
+        function getWebPFileName(originalName) {
+            return originalName.replace(/\.(svg|png|jpg|jpeg)$/i, '.webp');
+        }
+
+        function downloadCard(canvas, filename) {
+            canvas.toBlob(function(blob) {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                a.click();
+                URL.revokeObjectURL(url);
+            }, 'image/webp', 0.85);
+        }
+
+        function autoDistribute() {
+            if (allConvertedCards.length === 0) {
+                alert('Please convert cards first!');
+                return;
+            }
+            
+            updateStatus('Auto distributing WebP files by theme...');
+            
+            // Группируем карты по темам
+            const casinoCards = allConvertedCards.filter(card => card.theme === 'casino');
+            const tavernCards = allConvertedCards.filter(card => card.theme === 'tavern');
+            const undergroundCards = allConvertedCards.filter(card => card.theme === 'underground');
+            
+            let downloadIndex = 0;
+            
+            // Скачиваем карты по темам с задержкой
+            casinoCards.forEach((item, index) => {
+                setTimeout(() => {
+                    downloadCard(item.canvas, item.fileName);
+                }, downloadIndex * 100);
+                downloadIndex++;
+            });
+            
+            tavernCards.forEach((item, index) => {
+                setTimeout(() => {
+                    downloadCard(item.canvas, item.fileName);
+                }, downloadIndex * 100);
+                downloadIndex++;
+            });
+            
+            undergroundCards.forEach((item, index) => {
+                setTimeout(() => {
+                    downloadCard(item.canvas, item.fileName);
+                }, downloadIndex * 100);
+                downloadIndex++;
+            });
+            
+            setTimeout(() => {
+                updateStatus(`✅ Auto distributed ${allConvertedCards.length} WebP files by theme!`);
+                showDistributionInstructions();
+            }, downloadIndex * 100);
+        }
+
+        function showDistributionInstructions() {
+            const instructions = `
+🎯 AUTO DISTRIBUTION COMPLETE!
+
+📁 Your WebP files have been downloaded organized by theme:
+
+✅ CASINO THEME (36 files):
+   - All casino WebP files downloaded
+   - Move them to: themes/casino/cards/WEBP_cards/
+
+✅ TAVERN THEME (36 files):
+   - All tavern WebP files downloaded  
+   - Move them to: themes/tavern/cards/WEBP_cards/
+
+✅ UNDERGROUND THEME (36 files):
+   - All underground WebP files downloaded
+   - Move them to: themes/underground/cards/WEBP_cards/
+
+🚀 Next steps:
+1. Check your Downloads folder
+2. Move the WebP files to the correct WEBP_cards folders
+3. Your game will now use WebP cards for faster loading!
+
+📊 Total: ${allConvertedCards.length} WebP files ready to use!
+            `;
+            
+            alert(instructions);
+        }
+
+        function updateProgress() {
+            const progress = Math.round((convertedCount / totalCards) * 100);
+            document.getElementById('progressBar').style.width = progress + '%';
+        }
+
+        function updateStatus(message) {
+            document.getElementById('status').textContent = message;
+        }
+
+        // Автоматически запускаем конвертацию при загрузке
+        window.onload = function() {
+            convertAllCards();
+        };
+    </script>
+</body>
+</html>
