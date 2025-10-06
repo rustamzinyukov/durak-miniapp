@@ -2433,12 +2433,33 @@ function aiAttack(player){
   return true;
 }
 function aiDefense(player){
+  console.log(`🤖 AI Defense: checking defense for ${player.name}`);
+  console.log(`🤖 AI Defense: player hand:`, player.hand.map(c => text(c)));
+  console.log(`🤖 AI Defense: table pairs:`, state.table.pairs.map(p => ({ attack: text(p.attack), defense: p.defense ? text(p.defense) : 'none' })));
+  
   const openIdx = state.table.pairs.findIndex(p=>!p.defense);
-  if (openIdx < 0) return false;
+  console.log(`🤖 AI Defense: openIdx = ${openIdx}`);
+  
+  if (openIdx < 0) {
+    console.log(`🤖 AI Defense: no open attacks found`);
+    return false;
+  }
+  
   const atk = state.table.pairs[openIdx].attack;
+  console.log(`🤖 AI Defense: defending against ${text(atk)}`);
+  console.log(`🤖 AI Defense: trump suit = ${state.trumpSuit}`);
+  
   const cand = player.hand.filter(c=>beats(c, atk, state.trumpSuit))
                           .sort((a,b)=>RANK_VALUE[a.rank]-RANK_VALUE[b.rank]);
-  if (!cand.length) return false;
+  
+  console.log(`🤖 AI Defense: candidate cards:`, cand.map(c => text(c)));
+  
+  if (!cand.length) {
+    console.log(`🤖 AI Defense: no cards can beat ${text(atk)}`);
+    return false;
+  }
+  
+  console.log(`🤖 AI Defense: selected card ${text(cand[0])} to defend against ${text(atk)}`);
   
   // Добавляем задержку для "размышления" ИИ
   setTimeout(() => {
@@ -2448,6 +2469,7 @@ function aiDefense(player){
     // Play sound effect for AI defending
     soundManager.playCardOnTable();
     state.phase = state.table.pairs.every(p=>p.defense) ? "adding" : "defending";
+    console.log(`🤖 AI Defense: phase changed to ${state.phase}`);
     render();
     checkEndgame();
     // Продолжаем ход ИИ после защиты
@@ -2517,12 +2539,16 @@ function aiLoopStep(){
       return; // Выходим из функции
     }
   } else if (state.phase === "defending" && !defender.isHuman){
+    console.log(`🤖 AI Loop: trying to defend with ${defender.name}`);
     const ok = aiDefense(defender);
+    console.log(`🤖 AI Loop: aiDefense returned ${ok}`);
     if (!ok){ 
+      console.log(`🤖 AI Loop: defense failed, taking cards`);
       defenderTakes(); 
       moved = true; 
       delay = 1000; // Задержка для взятия карт
     } else {
+      console.log(`🤖 AI Loop: defense successful, aiDefense will handle continuation`);
       // aiDefense уже содержит setTimeout, поэтому не нужно вызывать aiLoopStep сразу
       return; // Выходим из функции, aiDefense сам вызовет render() и aiLoopStep
     }
