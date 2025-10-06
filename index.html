@@ -22,7 +22,27 @@
     <script src="./quotes/underground/sergeant.js"></script>
   </head>
   <body>
-    <div id="app">
+    <!-- Экран загрузки -->
+    <div id="loadingScreen" class="loading-screen">
+      <div class="loading-content">
+        <div class="loading-logo">
+          <img src="./logo/durak.png" alt="Дурак" class="loading-logo-image" />
+        </div>
+        <h1 class="loading-title">Дурак</h1>
+        <p class="loading-subtitle">Классическая карточная игра</p>
+        <div class="loading-progress">
+          <div class="loading-progress-bar">
+            <div class="loading-progress-fill" id="loadingProgressFill"></div>
+          </div>
+          <div class="loading-progress-text" id="loadingProgressText">Загрузка ресурсов...</div>
+        </div>
+        <div class="loading-spinner">
+          <div class="spinner"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="app" style="display: none;">
       <header class="app-header">
         <div class="header-left">
           <button class="stats-button" id="statsButton" title="Статистика">📊</button>

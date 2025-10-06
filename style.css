@@ -1,4 +1,144 @@
 /* ========================================
+   🚀 LOADING SCREEN STYLES
+   ======================================== */
+
+.loading-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  transition: opacity 0.5s ease-out, visibility 0.5s ease-out;
+}
+
+.loading-screen.hidden {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.loading-content {
+  text-align: center;
+  color: white;
+  max-width: 400px;
+  padding: 20px;
+}
+
+.loading-logo {
+  margin-bottom: 20px;
+  animation: logoFloat 2s ease-in-out infinite;
+}
+
+.loading-logo-image {
+  width: 120px;
+  height: 120px;
+  object-fit: contain;
+  filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.3));
+}
+
+.loading-title {
+  font-size: 3rem;
+  font-weight: 700;
+  margin: 0 0 10px 0;
+  background: linear-gradient(45deg, #ffd700, #ffed4e, #ffd700);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
+  animation: titleGlow 2s ease-in-out infinite alternate;
+}
+
+.loading-subtitle {
+  font-size: 1.2rem;
+  margin: 0 0 30px 0;
+  color: #b8c5d6;
+  font-weight: 300;
+}
+
+.loading-progress {
+  margin: 30px 0;
+}
+
+.loading-progress-bar {
+  width: 100%;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+
+.loading-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #ffd700, #ffed4e, #ffd700);
+  border-radius: 3px;
+  width: 0%;
+  transition: width 0.3s ease;
+  box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+}
+
+.loading-progress-text {
+  font-size: 0.9rem;
+  color: #b8c5d6;
+  margin-top: 10px;
+}
+
+.loading-spinner {
+  margin-top: 20px;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(255, 255, 255, 0.2);
+  border-top: 3px solid #ffd700;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto;
+}
+
+/* Анимации */
+@keyframes logoFloat {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes titleGlow {
+  0% { text-shadow: 0 0 30px rgba(255, 215, 0, 0.5); }
+  100% { text-shadow: 0 0 40px rgba(255, 215, 0, 0.8), 0 0 60px rgba(255, 215, 0, 0.3); }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Адаптивность для мобильных устройств */
+@media (max-width: 768px) {
+  .loading-content {
+    max-width: 300px;
+    padding: 15px;
+  }
+  
+  .loading-logo-image {
+    width: 100px;
+    height: 100px;
+  }
+  
+  .loading-title {
+    font-size: 2.5rem;
+  }
+  
+  .loading-subtitle {
+    font-size: 1rem;
+  }
+}
+
+/* ========================================
    📱 TELEGRAM MINIAPP STYLES
    ======================================== */
 

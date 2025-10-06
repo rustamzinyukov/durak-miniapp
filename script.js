@@ -2895,13 +2895,221 @@ function adaptToTelegramTheme() {
 }
 
 // ========================================
+// 🚀 RESOURCE PRELOADING SYSTEM
+// ========================================
+
+// Список всех ресурсов для предзагрузки
+const RESOURCE_LIST = {
+  // Карты для всех тем
+  cards: [
+    // Casino theme cards
+    ...Array.from({length: 36}, (_, i) => `./themes/casino/cards/SVG-cards-1.3/${getCardFileName(i)}.svg`),
+    // Tavern theme cards  
+    ...Array.from({length: 36}, (_, i) => `./themes/tavern/cards/PNG_cards/${getCardFileName(i)}.png`),
+    // Underground theme cards
+    ...Array.from({length: 36}, (_, i) => `./themes/underground/cards/JPG_cards/${getCardFileName(i)}.jpg`)
+  ],
+  
+  // Иконки для всех тем
+  icons: [
+    // Casino icons
+    './themes/casino/icons/attack.svg',
+    './themes/casino/icons/take.svg', 
+    './themes/casino/icons/enough.svg',
+    './themes/casino/icons/options.svg',
+    './themes/casino/icons/person/base.jpg',
+    './themes/casino/icons/person/happy.jpg',
+    './themes/casino/icons/person/sad.jpg',
+    './themes/casino/icons/person/thinks.jpg',
+    // Tavern icons
+    './themes/tavern/icons/attack.svg',
+    './themes/tavern/icons/take.svg',
+    './themes/tavern/icons/enough.svg', 
+    './themes/tavern/icons/options.svg',
+    './themes/tavern/icons/person/base.jpg',
+    './themes/tavern/icons/person/happy.jpg',
+    './themes/tavern/icons/person/sad.jpg',
+    './themes/tavern/icons/person/thinks.jpg',
+    './themes/tavern/icons/buttons/attack.jpg',
+    './themes/tavern/icons/buttons/take.jpg',
+    './themes/tavern/icons/buttons/enough.jpg',
+    // Underground icons
+    './themes/underground/icons/attack.svg',
+    './themes/underground/icons/take.svg',
+    './themes/underground/icons/enough.svg',
+    './themes/underground/icons/options.svg',
+    './themes/underground/icons/person/base.jpg',
+    './themes/underground/icons/person/happy.jpg',
+    './themes/underground/icons/person/sad.jpg',
+    './themes/underground/icons/person/thinks.jpg'
+  ],
+  
+  // Текстуры
+  textures: [
+    './themes/casino/textures/table.jpg',
+    './themes/casino/textures/wall.jpg',
+    './themes/tavern/textures/table.jpg',
+    './themes/tavern/textures/wall.jpg',
+    './themes/tavern/textures/opponent_panel.jpg',
+    './themes/underground/textures/table.jpg',
+    './themes/underground/textures/wall.jpg',
+    './themes/underground/textures/opponent_panel.jpg'
+  ],
+  
+  // Звуки
+  sounds: [
+    './sounds/casino/card_on_table.mp3',
+    './sounds/casino/card_disappear.mp3',
+    './sounds/casino/background_music.mp3',
+    './sounds/tavern/card_on_table.mp3',
+    './sounds/tavern/card_disappear.mp3',
+    './sounds/tavern/background_music.mp3',
+    './sounds/underground/card_on_table.mp3',
+    './sounds/underground/card_disappear.mp3',
+    './sounds/underground/background_music.mp3'
+  ],
+  
+  // Логотипы
+  logos: [
+    './logo/durak.png',
+    './themes/casino/icons/logo/durak.png',
+    './themes/tavern/icons/logo/durak.png',
+    './themes/underground/icons/logo/durak.png'
+  ]
+};
+
+// Функция для получения имени файла карты по индексу
+function getCardFileName(index) {
+  const ranks = ['6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
+  const suits = ['clubs', 'diamonds', 'hearts', 'spades'];
+  const rank = ranks[Math.floor(index / 4)];
+  const suit = suits[index % 4];
+  return `${rank}_of_${suit}`;
+}
+
+// Функция предзагрузки ресурсов
+async function preloadResources() {
+  console.log('🚀 Starting resource preloading...');
+  
+  const progressFill = document.getElementById('loadingProgressFill');
+  const progressText = document.getElementById('loadingProgressText');
+  
+  let totalResources = 0;
+  let loadedResources = 0;
+  
+  // Подсчитываем общее количество ресурсов
+  Object.values(RESOURCE_LIST).forEach(category => {
+    totalResources += category.length;
+  });
+  
+  console.log(`📊 Total resources to load: ${totalResources}`);
+  
+  // Функция обновления прогресса
+  function updateProgress(resourceName) {
+    loadedResources++;
+    const progress = Math.round((loadedResources / totalResources) * 100);
+    progressFill.style.width = `${progress}%`;
+    progressText.textContent = `Загрузка ${resourceName}... (${loadedResources}/${totalResources})`;
+    console.log(`📦 Loaded: ${resourceName} (${progress}%)`);
+  }
+  
+  // Функция предзагрузки изображения
+  function preloadImage(src) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve(src);
+      img.onerror = () => {
+        console.warn(`⚠️ Failed to load image: ${src}`);
+        resolve(src); // Продолжаем даже если изображение не загрузилось
+      };
+      img.src = src;
+    });
+  }
+  
+  // Функция предзагрузки аудио
+  function preloadAudio(src) {
+    return new Promise((resolve, reject) => {
+      const audio = new Audio();
+      audio.oncanplaythrough = () => resolve(src);
+      audio.onerror = () => {
+        console.warn(`⚠️ Failed to load audio: ${src}`);
+        resolve(src); // Продолжаем даже если аудио не загрузилось
+      };
+      audio.src = src;
+    });
+  }
+  
+  try {
+    // Загружаем карты
+    progressText.textContent = 'Загрузка карт...';
+    for (const cardPath of RESOURCE_LIST.cards) {
+      await preloadImage(cardPath);
+      updateProgress('карты');
+    }
+    
+    // Загружаем иконки
+    progressText.textContent = 'Загрузка иконок...';
+    for (const iconPath of RESOURCE_LIST.icons) {
+      await preloadImage(iconPath);
+      updateProgress('иконки');
+    }
+    
+    // Загружаем текстуры
+    progressText.textContent = 'Загрузка текстур...';
+    for (const texturePath of RESOURCE_LIST.textures) {
+      await preloadImage(texturePath);
+      updateProgress('текстуры');
+    }
+    
+    // Загружаем логотипы
+    progressText.textContent = 'Загрузка логотипов...';
+    for (const logoPath of RESOURCE_LIST.logos) {
+      await preloadImage(logoPath);
+      updateProgress('логотипы');
+    }
+    
+    // Загружаем звуки (не блокируем загрузку)
+    progressText.textContent = 'Загрузка звуков...';
+    const audioPromises = RESOURCE_LIST.sounds.map(soundPath => 
+      preloadAudio(soundPath).then(() => updateProgress('звуки'))
+    );
+    
+    // Ждем завершения загрузки звуков
+    await Promise.all(audioPromises);
+    
+    // Финальное обновление
+    progressText.textContent = 'Загрузка завершена!';
+    console.log('✅ All resources preloaded successfully!');
+    
+    return true;
+  } catch (error) {
+    console.error('❌ Error during resource preloading:', error);
+    progressText.textContent = 'Ошибка загрузки ресурсов';
+    return false;
+  }
+}
+
+// Функция скрытия экрана загрузки
+function hideLoadingScreen() {
+  const loadingScreen = document.getElementById('loadingScreen');
+  const app = document.getElementById('app');
+  
+  loadingScreen.classList.add('hidden');
+  app.style.display = 'block';
+  
+  // Удаляем экран загрузки из DOM через некоторое время
+  setTimeout(() => {
+    loadingScreen.remove();
+  }, 500);
+}
+
+// ========================================
 // 🚀 MAIN APPLICATION ENTRY POINT
 // ========================================
 
-function main(){
-  console.log('🚀 main() called');
-  initDomRefs();
-  console.log('🔗 DOM refs initialized');
+// Новая функция инициализации игры (вызывается после предзагрузки)
+function initializeGame() {
+  console.log('🎮 Initializing game after preloading...');
   
   // Initialize Telegram WebApp
   const tg = initTelegramWebApp();
@@ -2966,6 +3174,45 @@ function main(){
   // Initialize profile button with avatar
   if (el.profileButton) {
     el.profileButton.textContent = state.userProfile.avatar;
+  }
+}
+
+// Главная функция с предзагрузкой
+async function main(){
+  console.log('🚀 main() called with preloading');
+  
+  // Инициализируем DOM ссылки
+  initDomRefs();
+  console.log('🔗 DOM refs initialized');
+  
+  try {
+    // Предзагружаем все ресурсы
+    console.log('📦 Starting resource preloading...');
+    const preloadSuccess = await preloadResources();
+    
+    if (preloadSuccess) {
+      console.log('✅ Preloading completed successfully');
+      
+      // Небольшая задержка для показа финального состояния
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Скрываем экран загрузки и показываем игру
+      hideLoadingScreen();
+      
+      // Инициализируем игру
+      initializeGame();
+      
+      console.log('🎮 Game initialized successfully!');
+    } else {
+      console.warn('⚠️ Preloading had issues, but continuing...');
+      hideLoadingScreen();
+      initializeGame();
+    }
+  } catch (error) {
+    console.error('❌ Error during preloading:', error);
+    // В случае ошибки все равно показываем игру
+    hideLoadingScreen();
+    initializeGame();
   }
   
   setTimeout(aiLoopStep, 800);
