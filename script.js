@@ -2538,6 +2538,19 @@ function aiLoopStep(){
   // Если есть незащищенные карты и фаза "defending", принудительно вызываем защиту
   if (state.phase === "defending" && !state.table.pairs.every(p => p.defense)) {
     console.log(`🤖 AI Loop: there are undefended cards, forcing defense`);
+    // Принудительно вызываем защиту AI
+    if (!defender.isHuman) {
+      console.log(`🤖 AI Loop: forcing AI defense`);
+      const ok = aiDefense(defender);
+      if (ok) {
+        return; // aiDefense сам вызовет aiLoopStep
+      } else {
+        console.log(`🤖 AI Loop: AI cannot defend, taking cards`);
+        defenderTakes();
+        moved = true;
+        delay = 1000;
+      }
+    }
   }
 
   if (state.phase === "attacking" && !attacker.isHuman){
