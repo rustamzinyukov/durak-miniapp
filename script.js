@@ -2112,12 +2112,17 @@ function commitAddFromPlayer(player, selectedIds){
   selected.forEach((card, index) => {
     setTimeout(() => {
       createFlyingCardToTable(card, () => {
+        // После подкидывания карты переходим к фазе защиты
         state.phase = "defending";
         render();
         
         // Continue AI after animation (only for the last card)
         if (index === selected.length - 1) {
-          setTimeout(aiLoopStep, 250);
+          // Даем время на обновление UI, затем вызываем AI
+          setTimeout(() => {
+            console.log('🎯 Player added cards, calling aiLoopStep');
+            aiLoopStep();
+          }, 100);
         }
       }, 'attack');
     }, 100 + (index * 200)); // Stagger animations
@@ -2492,6 +2497,14 @@ function aiLoopStep(){
   console.log(`🤖 AI Loop: table pairs=${state.table.pairs.length}, maxTable=${state.maxTableThisRound}`);
   console.log(`🤖 AI Loop: all pairs covered=${state.table.pairs.every(p=>p.defense)}`);
 
+  // Проверяем, нужно ли переключить фазу после действий игрока
+  if (state.phase === "defending" && state.table.pairs.every(p => p.defense)) {
+    state.phase = "adding";
+    console.log(`🤖 AI Loop: all cards defended, switching to adding phase`);
+    setTimeout(aiLoopStep, 100);
+    return;
+  }
+
   if (state.phase === "attacking" && !attacker.isHuman){
     const attacked = aiAttack(attacker);
     if (attacked) {
@@ -2531,14 +2544,6 @@ function aiLoopStep(){
     } else {
       // Human attacker: do not auto-end. User must press Enough manually.
       // No move here; wait for user action (Add or Enough)
-    }
-  } else if (state.phase === "defending") {
-    // Если все карты защищены, переходим к фазе добавления
-    if (state.table.pairs.every(p => p.defense)) {
-      state.phase = "adding";
-      console.log(`🤖 AI Loop: all cards defended, switching to adding phase`);
-      setTimeout(aiLoopStep, 500);
-      return;
     }
   }
 
