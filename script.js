@@ -1003,7 +1003,11 @@ function updateCommentaryIfNeeded(){
     } else if (state.phase === "adding"){
       const allCovered = total>0 && covered===total;
       if (isHumanAtt) {
-        msg = pick(L.adding.human(allCovered));
+        if (typeof L.adding.human === 'function') {
+          msg = pick(L.adding.human(allCovered));
+        } else {
+          msg = pick(L.adding.human);
+        }
       } else {
         msg = pick(L.adding.ai);
       }
@@ -1035,7 +1039,11 @@ function updateCommentaryIfNeeded(){
     } else if (state.phase === "adding"){
       const allCovered = total>0 && covered===total;
       if (isHumanAtt) {
-        msg = pick(L.adding.human(allCovered));
+        if (typeof L.adding.human === 'function') {
+          msg = pick(L.adding.human(allCovered));
+        } else {
+          msg = pick(L.adding.human);
+        }
       } else {
         msg = pick(L.adding.ai);
       }
@@ -2525,6 +2533,11 @@ function aiLoopStep(){
     console.log(`🤖 AI Loop: all cards defended, switching to adding phase`);
     setTimeout(aiLoopStep, 100);
     return;
+  }
+  
+  // Если есть незащищенные карты и фаза "defending", принудительно вызываем защиту
+  if (state.phase === "defending" && !state.table.pairs.every(p => p.defense)) {
+    console.log(`🤖 AI Loop: there are undefended cards, forcing defense`);
   }
 
   if (state.phase === "attacking" && !attacker.isHuman){
