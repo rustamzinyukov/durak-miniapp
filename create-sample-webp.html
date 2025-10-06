@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebP Sample Creator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .card-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        .card {
+            width: 60px;
+            height: 90px;
+            border: 2px solid #333;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: white;
+            font-weight: bold;
+            font-size: 12px;
+        }
+        .trump {
+            border-color: #ffd700;
+            background: linear-gradient(135deg, #ffd700, #ffed4e);
+        }
+        .red { color: #d32f2f; }
+        .black { color: #333; }
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        .info {
+            background: #f0f0f0;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>🎨 WebP Sample Creator</h1>
+    
+    <div class="info">
+        <h3>📋 Instructions:</h3>
+        <ol>
+            <li>Click "Create Sample Cards" to generate test cards</li>
+            <li>Right-click on each card and "Save image as..."</li>
+            <li>Save them as .webp files in the appropriate WEBP_cards folders</li>
+            <li>Use these samples to test WebP support</li>
+        </ol>
+    </div>
+
+    <button onclick="createSampleCards()">Create Sample Cards</button>
+    <button onclick="testWebPSupport()">Test WebP Support</button>
+    <button onclick="downloadAllCards()">Download All Cards</button>
+
+    <div id="cards" class="card-container"></div>
+    
+    <div id="webpTest" style="margin-top: 20px;"></div>
+
+    <script>
+        const suits = ['♣', '♦', '♥', '♠'];
+        const ranks = ['6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
+        const suitNames = ['clubs', 'diamonds', 'hearts', 'spades'];
+        const suitCodes = ['t', 'b', 'ch', 'p'];
+
+        function createSampleCards() {
+            const container = document.getElementById('cards');
+            container.innerHTML = '';
+            
+            // Create sample cards for each theme
+            const themes = [
+                { name: 'Casino', prefix: '', suffix: '_of_' },
+                { name: 'Tavern', prefix: '', suffix: '' },
+                { name: 'Underground', prefix: '', suffix: '' }
+            ];
+            
+            themes.forEach((theme, themeIndex) => {
+                const themeDiv = document.createElement('div');
+                themeDiv.innerHTML = `<h3>${theme.name} Theme Sample</h3>`;
+                
+                // Create 4 sample cards per theme
+                for (let i = 0; i < 4; i++) {
+                    const card = document.createElement('canvas');
+                    card.width = 60;
+                    card.height = 90;
+                    card.style.border = '2px solid #333';
+                    card.style.borderRadius = '8px';
+                    card.style.margin = '5px';
+                    card.style.cursor = 'pointer';
+                    
+                    const ctx = card.getContext('2d');
+                    drawCard(ctx, ranks[i], suits[i], themeIndex);
+                    
+                    // Add click handler for download
+                    card.addEventListener('click', () => {
+                        downloadCard(card, `${theme.name.toLowerCase()}_sample_${i+1}.webp`);
+                    });
+                    
+                    themeDiv.appendChild(card);
+                }
+                
+                container.appendChild(themeDiv);
+            });
+        }
+
+        function drawCard(ctx, rank, suit, themeIndex) {
+            const width = 60;
+            const height = 90;
+            
+            // Clear canvas
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, width, height);
+            
+            // Set colors
+            const isRed = suit === '♦' || suit === '♥';
+            ctx.fillStyle = isRed ? '#d32f2f' : '#333';
+            ctx.strokeStyle = isRed ? '#d32f2f' : '#333';
+            
+            // Draw border
+            ctx.lineWidth = 2;
+            ctx.strokeRect(1, 1, width-2, height-2);
+            
+            // Draw rank
+            ctx.font = 'bold 14px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText(rank, width/2, 20);
+            
+            // Draw suit
+            ctx.font = 'bold 20px Arial';
+            ctx.fillText(suit, width/2, 45);
+            
+            // Draw rank again (upside down)
+            ctx.save();
+            ctx.translate(width/2, height-10);
+            ctx.rotate(Math.PI);
+            ctx.font = 'bold 14px Arial';
+            ctx.fillText(rank, 0, 0);
+            ctx.restore();
+            
+            // Theme-specific styling
+            if (themeIndex === 0) { // Casino - add gold border for trump
+                ctx.strokeStyle = '#ffd700';
+                ctx.lineWidth = 3;
+                ctx.strokeRect(2, 2, width-4, height-4);
+            } else if (themeIndex === 1) { // Tavern - add rustic border
+                ctx.strokeStyle = '#8B4513';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(3, 3, width-6, height-6);
+            } else { // Underground - add dark border
+                ctx.strokeStyle = '#2C2C2C';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(2, 2, width-4, height-4);
+            }
+        }
+
+        function downloadCard(canvas, filename) {
+            // Convert to WebP
+            canvas.toBlob(function(blob) {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                a.click();
+                URL.revokeObjectURL(url);
+            }, 'image/webp', 0.85);
+        }
+
+        function downloadAllCards() {
+            const cards = document.querySelectorAll('canvas');
+            cards.forEach((card, index) => {
+                setTimeout(() => {
+                    downloadCard(card, `sample_card_${index + 1}.webp`);
+                }, index * 200);
+            });
+        }
+
+        function testWebPSupport() {
+            const webP = new Image();
+            webP.onload = webP.onerror = function() {
+                const isSupported = webP.height === 2;
+                const result = document.getElementById('webpTest');
+                result.innerHTML = `
+                    <div style="background: ${isSupported ? '#d4edda' : '#f8d7da'}; 
+                                color: ${isSupported ? '#155724' : '#721c24'}; 
+                                padding: 15px; border-radius: 5px;">
+                        <strong>WebP Support:</strong> ${isSupported ? '✅ Supported' : '❌ Not supported'}
+                        <br><small>Your browser ${isSupported ? 'can' : 'cannot'} display WebP images</small>
+                    </div>
+                `;
+            };
+            webP.src = 'data:image/webp;base64,UklGRjoAAABXRUJQVlA4IC4AAACyAgCdASoCAAIALmk0mk0iIiIiIgBoSygABc6WWgAA/veff/0PP8bA//LwYAAA';
+        }
+
+        // Auto-create cards on load
+        window.onload = function() {
+            createSampleCards();
+            testWebPSupport();
+        };
+    </script>
+</body>
+</html>

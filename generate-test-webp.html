@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebP Test Cards Generator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .theme-section {
+            margin: 30px 0;
+            padding: 20px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+        }
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            gap: 10px;
+            margin: 20px 0;
+        }
+        .card {
+            width: 60px;
+            height: 90px;
+            border: 2px solid #333;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .card:hover {
+            transform: scale(1.1);
+        }
+        .casino-card {
+            background: linear-gradient(135deg, #f0f0f0, #e0e0e0);
+        }
+        .tavern-card {
+            background: linear-gradient(135deg, #8B4513, #A0522D);
+            color: #FFD700;
+        }
+        .underground-card {
+            background: linear-gradient(135deg, #2C2C2C, #1A1A1A);
+            color: #00FF00;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        .download-all {
+            background: #2196F3;
+        }
+        .download-all:hover {
+            background: #1976D2;
+        }
+        .info {
+            background: #f0f0f0;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>🎨 WebP Test Cards Generator</h1>
+    
+    <div class="info">
+        <h3>📋 Instructions:</h3>
+        <ol>
+            <li>Click "Generate All Cards" to create test cards for all themes</li>
+            <li>Click on individual cards to download them as WebP files</li>
+            <li>Use "Download All" to get all cards at once</li>
+            <li>Place the downloaded WebP files in the appropriate WEBP_cards folders</li>
+        </ol>
+    </div>
+
+    <button onclick="generateAllCards()">Generate All Cards</button>
+    <button onclick="downloadAllCards()" class="download-all">Download All Cards</button>
+    <button onclick="testWebPSupport()">Test WebP Support</button>
+
+    <div id="casino-section" class="theme-section">
+        <h2>🎰 Casino Theme (SVG → WebP)</h2>
+        <div id="casino-cards" class="cards-grid"></div>
+    </div>
+
+    <div id="tavern-section" class="theme-section">
+        <h2>🍺 Tavern Theme (PNG → WebP)</h2>
+        <div id="tavern-cards" class="cards-grid"></div>
+    </div>
+
+    <div id="underground-section" class="theme-section">
+        <h2>🌑 Underground Theme (JPG → WebP)</h2>
+        <div id="underground-cards" class="cards-grid"></div>
+    </div>
+
+    <div id="webpTest" style="margin-top: 20px;"></div>
+
+    <script>
+        const suits = ['♣', '♦', '♥', '♠'];
+        const ranks = ['6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
+        const suitNames = ['clubs', 'diamonds', 'hearts', 'spades'];
+        const suitCodes = ['t', 'b', 'ch', 'p'];
+
+        function generateAllCards() {
+            generateCasinoCards();
+            generateTavernCards();
+            generateUndergroundCards();
+        }
+
+        function generateCasinoCards() {
+            const container = document.getElementById('casino-cards');
+            container.innerHTML = '';
+            
+            // Generate 8 sample cards for casino theme
+            for (let i = 0; i < 8; i++) {
+                const canvas = createCardCanvas(ranks[i % ranks.length], suits[i % suits.length], 'casino');
+                canvas.addEventListener('click', () => {
+                    downloadCard(canvas, `${ranks[i % ranks.length].toLowerCase()}_of_${suitNames[i % suitNames.length]}.webp`);
+                });
+                container.appendChild(canvas);
+            }
+        }
+
+        function generateTavernCards() {
+            const container = document.getElementById('tavern-cards');
+            container.innerHTML = '';
+            
+            // Generate 8 sample cards for tavern theme
+            for (let i = 0; i < 8; i++) {
+                const canvas = createCardCanvas(ranks[i % ranks.length], suits[i % suits.length], 'tavern');
+                canvas.addEventListener('click', () => {
+                    downloadCard(canvas, `${ranks[i % ranks.length]}${suitCodes[i % suitCodes.length]}.webp`);
+                });
+                container.appendChild(canvas);
+            }
+        }
+
+        function generateUndergroundCards() {
+            const container = document.getElementById('underground-cards');
+            container.innerHTML = '';
+            
+            // Generate 8 sample cards for underground theme
+            for (let i = 0; i < 8; i++) {
+                const canvas = createCardCanvas(ranks[i % ranks.length], suits[i % suits.length], 'underground');
+                canvas.addEventListener('click', () => {
+                    downloadCard(canvas, `${ranks[i % ranks.length]}${suitCodes[i % suitCodes.length]}.webp`);
+                });
+                container.appendChild(canvas);
+            }
+        }
+
+        function createCardCanvas(rank, suit, theme) {
+            const canvas = document.createElement('canvas');
+            canvas.width = 60;
+            canvas.height = 90;
+            canvas.className = `card ${theme}-card`;
+            
+            const ctx = canvas.getContext('2d');
+            drawCard(ctx, rank, suit, theme);
+            
+            return canvas;
+        }
+
+        function drawCard(ctx, rank, suit, theme) {
+            const width = 60;
+            const height = 90;
+            
+            // Clear canvas
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, width, height);
+            
+            // Theme-specific styling
+            if (theme === 'casino') {
+                // Casino: Clean, elegant design
+                ctx.fillStyle = '#333';
+                ctx.strokeStyle = '#333';
+                ctx.lineWidth = 2;
+            } else if (theme === 'tavern') {
+                // Tavern: Rustic, warm colors
+                ctx.fillStyle = '#8B4513';
+                ctx.strokeStyle = '#8B4513';
+                ctx.lineWidth = 2;
+            } else if (theme === 'underground') {
+                // Underground: Dark, gritty design
+                ctx.fillStyle = '#00FF00';
+                ctx.strokeStyle = '#00FF00';
+                ctx.lineWidth = 2;
+            }
+            
+            // Draw border
+            ctx.strokeRect(2, 2, width-4, height-4);
+            
+            // Set text color
+            const isRed = suit === '♦' || suit === '♥';
+            ctx.fillStyle = isRed ? '#d32f2f' : '#333';
+            
+            // Draw rank
+            ctx.font = 'bold 12px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText(rank, width/2, 18);
+            
+            // Draw suit
+            ctx.font = 'bold 18px Arial';
+            ctx.fillText(suit, width/2, 40);
+            
+            // Draw rank again (upside down)
+            ctx.save();
+            ctx.translate(width/2, height-8);
+            ctx.rotate(Math.PI);
+            ctx.font = 'bold 12px Arial';
+            ctx.fillText(rank, 0, 0);
+            ctx.restore();
+            
+            // Theme-specific decorations
+            if (theme === 'casino') {
+                // Add elegant corner decorations
+                ctx.strokeStyle = '#ffd700';
+                ctx.lineWidth = 1;
+                ctx.strokeRect(4, 4, width-8, height-8);
+            } else if (theme === 'tavern') {
+                // Add rustic border
+                ctx.strokeStyle = '#654321';
+                ctx.lineWidth = 1;
+                ctx.strokeRect(5, 5, width-10, height-10);
+            } else if (theme === 'underground') {
+                // Add dark border
+                ctx.strokeStyle = '#1a1a1a';
+                ctx.lineWidth = 1;
+                ctx.strokeRect(3, 3, width-6, height-6);
+            }
+        }
+
+        function downloadCard(canvas, filename) {
+            // Convert to WebP
+            canvas.toBlob(function(blob) {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                a.click();
+                URL.revokeObjectURL(url);
+                console.log(`Downloaded: ${filename}`);
+            }, 'image/webp', 0.85);
+        }
+
+        function downloadAllCards() {
+            const allCanvases = document.querySelectorAll('canvas');
+            allCanvases.forEach((canvas, index) => {
+                setTimeout(() => {
+                    const theme = canvas.className.includes('casino') ? 'casino' : 
+                                 canvas.className.includes('tavern') ? 'tavern' : 'underground';
+                    const filename = `test_${theme}_${index + 1}.webp`;
+                    downloadCard(canvas, filename);
+                }, index * 200);
+            });
+        }
+
+        function testWebPSupport() {
+            const webP = new Image();
+            webP.onload = webP.onerror = function() {
+                const isSupported = webP.height === 2;
+                const result = document.getElementById('webpTest');
+                result.innerHTML = `
+                    <div style="background: ${isSupported ? '#d4edda' : '#f8d7da'}; 
+                                color: ${isSupported ? '#155724' : '#721c24'}; 
+                                padding: 15px; border-radius: 5px; margin: 20px 0;">
+                        <strong>WebP Support:</strong> ${isSupported ? '✅ Supported' : '❌ Not supported'}
+                        <br><small>Your browser ${isSupported ? 'can' : 'cannot'} display WebP images</small>
+                        <br><small>Expected file size reduction: 30-70% compared to PNG/JPG</small>
+                    </div>
+                `;
+            };
+            webP.src = 'data:image/webp;base64,UklGRjoAAABXRUJQVlA4IC4AAACyAgCdASoCAAIALmk0mk0iIiIiIgBoSygABc6WWgAA/veff/0PP8bA//LwYAAA';
+        }
+
+        // Auto-generate cards on load
+        window.onload = function() {
+            generateAllCards();
+            testWebPSupport();
+        };
+    </script>
+</body>
+</html>

@@ -56,7 +56,10 @@ function text(card){ return `${card.rank}${card.suit}`; }
 function cardImagePath(card){
   let path;
   
-  // Для темы underground используем JPG карты
+  // Проверяем поддержку WebP
+  const supportsWebP = checkWebPSupport();
+  
+  // Для темы underground используем JPG карты (или WebP если поддерживается)
   if (state.theme === 'underground') {
     const suitMapJPG = { '♣':'t', '♦':'b', '♥':'ch', '♠':'p' }; // t-треф, b-буби, ch-черви, p-пики
     const rankMapJPG = { 'J':'J', 'Q':'Q', 'K':'K', 'A':'A', '10':'10' };
@@ -65,9 +68,13 @@ function cardImagePath(card){
     let rankJPG = card.rank;
     if (rankMapJPG[rankJPG]) rankJPG = rankMapJPG[rankJPG];
     
-    path = `./themes/${state.theme}/cards/JPG_cards/${rankJPG}${suitJPG}.jpg`;
+    if (supportsWebP) {
+      path = `./themes/${state.theme}/cards/WEBP_cards/${rankJPG}${suitJPG}.webp`;
+    } else {
+      path = `./themes/${state.theme}/cards/JPG_cards/${rankJPG}${suitJPG}.jpg`;
+    }
   }
-  // Для темы tavern используем PNG карты
+  // Для темы tavern используем PNG карты (или WebP если поддерживается)
   else if (state.theme === 'tavern') {
     const suitMapPNG = { '♣':'t', '♦':'b', '♥':'ch', '♠':'p' }; // t-треф, b-буби, ch-черви, p-пики
     const rankMapPNG = { 'J':'J', 'Q':'Q', 'K':'K', 'A':'A', '10':'10' };
@@ -76,9 +83,13 @@ function cardImagePath(card){
     let rankPNG = card.rank;
     if (rankMapPNG[rankPNG]) rankPNG = rankMapPNG[rankPNG];
     
-    path = `./themes/${state.theme}/cards/PNG_cards/${rankPNG}${suitPNG}.png`;
+    if (supportsWebP) {
+      path = `./themes/${state.theme}/cards/WEBP_cards/${rankPNG}${suitPNG}.webp`;
+    } else {
+      path = `./themes/${state.theme}/cards/PNG_cards/${rankPNG}${suitPNG}.png`;
+    }
   }
-  // Для остальных тем (casino) используем SVG карты
+  // Для остальных тем (casino) используем SVG карты (или WebP если поддерживается)
   else {
     const suitMap = { '♣':'clubs', '♦':'diamonds', '♥':'hearts', '♠':'spades' };
     const rankMap = { 'J':'jack', 'Q':'queen', 'K':'king', 'A':'ace' };
@@ -86,17 +97,21 @@ function cardImagePath(card){
     let rank = card.rank;
     if (rankMap[rank]) rank = rankMap[rank];
     
-    // Card set mapping - теперь используем темы
-    const cardSetPaths = {
-      'classic': 'SVG-cards-1.3',
-      'modern': 'SVG-cards-1.3',
-      'vintage': 'SVG-cards-1.3', 
-      'minimal': 'SVG-cards-1.3',
-      'luxury': 'SVG-cards-1.3'
-    };
-    
-    const cardSetPath = cardSetPaths[state.cardSet] || cardSetPaths['classic'];
-    path = `./themes/${state.theme}/cards/${cardSetPath}/${String(rank).toLowerCase()}_of_${suit}.svg`;
+    if (supportsWebP) {
+      path = `./themes/${state.theme}/cards/WEBP_cards/${String(rank).toLowerCase()}_of_${suit}.webp`;
+    } else {
+      // Card set mapping - теперь используем темы
+      const cardSetPaths = {
+        'classic': 'SVG-cards-1.3',
+        'modern': 'SVG-cards-1.3',
+        'vintage': 'SVG-cards-1.3', 
+        'minimal': 'SVG-cards-1.3',
+        'luxury': 'SVG-cards-1.3'
+      };
+      
+      const cardSetPath = cardSetPaths[state.cardSet] || cardSetPaths['classic'];
+      path = `./themes/${state.theme}/cards/${cardSetPath}/${String(rank).toLowerCase()}_of_${suit}.svg`;
+    }
   }
   
   // Проверяем, есть ли изображение в кэше (ищем по базовому пути без timestamp)
@@ -116,6 +131,25 @@ function cardImagePath(card){
   
   console.log(`📥 Loading image from server: ${path}`);
   return path;
+}
+
+// Функция проверки поддержки WebP
+function checkWebPSupport() {
+  // Проверяем кэш поддержки WebP
+  if (typeof window.webpSupport !== 'undefined') {
+    return window.webpSupport;
+  }
+  
+  // Создаем тестовое изображение WebP
+  const webP = new Image();
+  webP.onload = webP.onerror = function() {
+    window.webpSupport = (webP.height === 2);
+    console.log(`🎨 WebP support: ${window.webpSupport ? '✅ Supported' : '❌ Not supported'}`);
+  };
+  webP.src = 'data:image/webp;base64,UklGRjoAAABXRUJQVlA4IC4AAACyAgCdASoCAAIALmk0mk0iIiIiIgBoSygABc6WWgAA/veff/0PP8bA//LwYAAA';
+  
+  // Возвращаем false по умолчанию (будет обновлено асинхронно)
+  return false;
 }
 
 // ========================================
@@ -2946,38 +2980,51 @@ async function preloadThemeCards(themeName) {
   console.log(`🎨 Preloading cards for theme: ${themeName}`);
   
   const cardPaths = [];
+  const supportsWebP = checkWebPSupport();
   
   // Генерируем пути для карт в зависимости от темы
   if (themeName === 'underground') {
-    // JPG карты для underground
+    // JPG карты для underground (или WebP если поддерживается)
     const suits = ['t', 'b', 'ch', 'p'];
     const ranks = ['6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
     for (const rank of ranks) {
       for (const suit of suits) {
-        cardPaths.push(`./themes/${themeName}/cards/JPG_cards/${rank}${suit}.jpg`);
+        if (supportsWebP) {
+          cardPaths.push(`./themes/${themeName}/cards/WEBP_cards/${rank}${suit}.webp`);
+        } else {
+          cardPaths.push(`./themes/${themeName}/cards/JPG_cards/${rank}${suit}.jpg`);
+        }
       }
     }
   } else if (themeName === 'tavern') {
-    // PNG карты для tavern
+    // PNG карты для tavern (или WebP если поддерживается)
     const suits = ['t', 'b', 'ch', 'p'];
     const ranks = ['6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
     for (const rank of ranks) {
       for (const suit of suits) {
-        cardPaths.push(`./themes/${themeName}/cards/PNG_cards/${rank}${suit}.png`);
+        if (supportsWebP) {
+          cardPaths.push(`./themes/${themeName}/cards/WEBP_cards/${rank}${suit}.webp`);
+        } else {
+          cardPaths.push(`./themes/${themeName}/cards/PNG_cards/${rank}${suit}.png`);
+        }
       }
     }
   } else {
-    // SVG карты для casino и других тем
+    // SVG карты для casino и других тем (или WebP если поддерживается)
     const suits = ['clubs', 'diamonds', 'hearts', 'spades'];
     const ranks = ['6', '7', '8', '9', '10', 'jack', 'queen', 'king', 'ace'];
     for (const rank of ranks) {
       for (const suit of suits) {
-        cardPaths.push(`./themes/${themeName}/cards/SVG-cards-1.3/${rank}_of_${suit}.svg`);
+        if (supportsWebP) {
+          cardPaths.push(`./themes/${themeName}/cards/WEBP_cards/${rank}_of_${suit}.webp`);
+        } else {
+          cardPaths.push(`./themes/${themeName}/cards/SVG-cards-1.3/${rank}_of_${suit}.svg`);
+        }
       }
     }
   }
   
-  console.log(`📦 Preloading ${cardPaths.length} cards for ${themeName}`);
+  console.log(`📦 Preloading ${cardPaths.length} cards for ${themeName} (WebP: ${supportsWebP})`);
   
   // Предзагружаем карты в фоне
   const preloadPromises = cardPaths.map(cardPath => {

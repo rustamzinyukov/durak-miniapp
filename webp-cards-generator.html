@@ -1,0 +1,124 @@
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebP Cards Generator</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .card { display: inline-block; margin: 10px; text-align: center; }
+        canvas { border: 2px solid #333; border-radius: 8px; cursor: pointer; }
+        button { background: #4CAF50; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; margin: 5px; }
+        button:hover { background: #45a049; }
+        .download-all { background: #2196F3; padding: 12px 24px; font-size: 16px; }
+        .download-all:hover { background: #1976D2; }
+    </style>
+</head>
+<body>
+    <h1>🎨 WebP Cards Generator</h1>
+    <button onclick="downloadAllCards()" class="download-all">Download All Cards</button>
+    <div id="cards"></div>
+    
+    <script>
+        const cards = [{"rank":"6","suit":"♣","theme":"casino","filename":"6_of_clubs.webp"},{"rank":"7","suit":"♦","theme":"casino","filename":"7_of_diamonds.webp"},{"rank":"8","suit":"♥","theme":"casino","filename":"8_of_hearts.webp"},{"rank":"9","suit":"♠","theme":"casino","filename":"9_of_spades.webp"},{"rank":"10","suit":"♣","theme":"casino","filename":"10_of_clubs.webp"},{"rank":"J","suit":"♦","theme":"casino","filename":"jack_of_diamonds.webp"},{"rank":"Q","suit":"♥","theme":"casino","filename":"queen_of_hearts.webp"},{"rank":"K","suit":"♠","theme":"casino","filename":"king_of_spades.webp"},{"rank":"A","suit":"♣","theme":"casino","filename":"ace_of_clubs.webp"},{"rank":"6","suit":"♣","theme":"tavern","filename":"6t.webp"},{"rank":"7","suit":"♦","theme":"tavern","filename":"7b.webp"},{"rank":"8","suit":"♥","theme":"tavern","filename":"8ch.webp"},{"rank":"9","suit":"♠","theme":"tavern","filename":"9p.webp"},{"rank":"10","suit":"♣","theme":"tavern","filename":"10t.webp"},{"rank":"J","suit":"♦","theme":"tavern","filename":"Jb.webp"},{"rank":"Q","suit":"♥","theme":"tavern","filename":"Qch.webp"},{"rank":"K","suit":"♠","theme":"tavern","filename":"Kp.webp"},{"rank":"A","suit":"♣","theme":"tavern","filename":"At.webp"},{"rank":"6","suit":"♣","theme":"underground","filename":"6t.webp"},{"rank":"7","suit":"♦","theme":"underground","filename":"7b.webp"},{"rank":"8","suit":"♥","theme":"underground","filename":"8ch.webp"},{"rank":"9","suit":"♠","theme":"underground","filename":"9p.webp"},{"rank":"10","suit":"♣","theme":"underground","filename":"10t.webp"},{"rank":"J","suit":"♦","theme":"underground","filename":"Jb.webp"},{"rank":"Q","suit":"♥","theme":"underground","filename":"Qch.webp"},{"rank":"K","suit":"♠","theme":"underground","filename":"Kp.webp"},{"rank":"A","suit":"♣","theme":"underground","filename":"At.webp"}];
+        
+        function createCard(card) {
+            const canvas = document.createElement('canvas');
+            canvas.width = 60;
+            canvas.height = 90;
+            
+            const ctx = canvas.getContext('2d');
+            drawCard(ctx, card);
+            
+            const cardDiv = document.createElement('div');
+            cardDiv.className = 'card';
+            cardDiv.innerHTML = `<div><strong>${card.rank}${card.suit}</strong><br>${card.theme}<br>${card.filename}</div>`;
+            cardDiv.appendChild(canvas);
+            
+            const downloadBtn = document.createElement('button');
+            downloadBtn.textContent = 'Download';
+            downloadBtn.onclick = () => downloadCard(canvas, card.filename);
+            cardDiv.appendChild(downloadBtn);
+            
+            return cardDiv;
+        }
+        
+        function drawCard(ctx, card) {
+            const width = 60, height = 90;
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, width, height);
+            
+            // Theme-specific styling
+            if (card.theme === 'casino') {
+                ctx.fillStyle = '#333';
+                ctx.strokeStyle = '#333';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(2, 2, width-4, height-4);
+                ctx.strokeStyle = '#ffd700';
+                ctx.lineWidth = 1;
+                ctx.strokeRect(4, 4, width-8, height-8);
+            } else if (card.theme === 'tavern') {
+                ctx.fillStyle = '#8B4513';
+                ctx.strokeStyle = '#8B4513';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(2, 2, width-4, height-4);
+                ctx.strokeStyle = '#654321';
+                ctx.lineWidth = 1;
+                ctx.strokeRect(5, 5, width-10, height-10);
+            } else if (card.theme === 'underground') {
+                ctx.fillStyle = '#00FF00';
+                ctx.strokeStyle = '#00FF00';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(2, 2, width-4, height-4);
+                ctx.strokeStyle = '#1a1a1a';
+                ctx.lineWidth = 1;
+                ctx.strokeRect(3, 3, width-6, height-6);
+            }
+            
+            const isRed = card.suit === '♦' || card.suit === '♥';
+            ctx.fillStyle = isRed ? '#d32f2f' : '#333';
+            
+            ctx.font = 'bold 12px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText(card.rank, width/2, 18);
+            
+            ctx.font = 'bold 18px Arial';
+            ctx.fillText(card.suit, width/2, 40);
+            
+            ctx.save();
+            ctx.translate(width/2, height-8);
+            ctx.rotate(Math.PI);
+            ctx.font = 'bold 12px Arial';
+            ctx.fillText(card.rank, 0, 0);
+            ctx.restore();
+        }
+        
+        function downloadCard(canvas, filename) {
+            canvas.toBlob(function(blob) {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                a.click();
+                URL.revokeObjectURL(url);
+            }, 'image/webp', 0.85);
+        }
+        
+        function downloadAllCards() {
+            const allCanvases = document.querySelectorAll('canvas');
+            allCanvases.forEach((canvas, index) => {
+                setTimeout(() => {
+                    downloadCard(canvas, cards[index].filename);
+                }, index * 200);
+            });
+        }
+        
+        // Generate all cards
+        const container = document.getElementById('cards');
+        cards.forEach(card => {
+            container.appendChild(createCard(card));
+        });
+    </script>
+</body>
+</html>
