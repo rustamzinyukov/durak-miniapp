@@ -1,0 +1,29 @@
+# Минимальный набор файлов для игры
+# Основные файлы
+index.html
+script.js
+style.css
+manifest.json
+
+# Папки с ресурсами (только нужные)
+themes/
+sounds/
+quotes/
+api/
+icons/
+cards/
+logo/
+table/
+wall/
+
+# НЕ включаем:
+# - README.md
+# - .gitignore
+# - package.json
+# - bot.py
+# - requirements.txt
+# - Все .md файлы
+# - test-*.html
+# - *.zip файлы
+# - Временные файлы
+

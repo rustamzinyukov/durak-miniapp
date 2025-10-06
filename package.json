@@ -1,0 +1,26 @@
+{
+  "name": "durak-telegram-bot",
+  "version": "1.0.0",
+  "description": "Telegram bot for Durak Mini App",
+  "main": "bot.js",
+  "scripts": {
+    "start": "node bot.js",
+    "dev": "nodemon bot.js"
+  },
+  "dependencies": {
+    "telegraf": "^4.15.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.0"
+  },
+  "keywords": ["telegram", "bot", "durak", "mini-app", "game"],
+  "author": "Your Name",
+  "license": "MIT"
+}
+
+
+
+
+
+
+

@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тест карт</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #1a1a2e;
+            color: white;
+        }
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .card {
+            display: inline-block;
+            width: 60px;
+            height: 90px;
+            border: 2px solid #333;
+            border-radius: 8px;
+            margin: 5px;
+            background: white;
+            color: black;
+            text-align: center;
+            line-height: 90px;
+            font-weight: bold;
+        }
+        .card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 6px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #333;
+            border-radius: 8px;
+        }
+        .test-section h3 {
+            margin-top: 0;
+            color: #ffd700;
+        }
+        .error {
+            color: #ff6b6b;
+            background: #2d1b1b;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .success {
+            color: #51cf66;
+            background: #1b2d1b;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🃏 Тест отображения карт</h1>
+        
+        <div class="test-section">
+            <h3>📋 Информация о тесте</h3>
+            <p>Этот файл проверяет, правильно ли отображаются карты в игре.</p>
+            <p>Откройте консоль браузера (F12) для просмотра отладочных сообщений.</p>
+        </div>
+        
+        <div class="test-section">
+            <h3>🎮 Тест игры</h3>
+            <p>Нажмите кнопку ниже, чтобы запустить тест игры:</p>
+            <button onclick="testGame()" style="padding: 10px 20px; background: #ffd700; color: #000; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">
+                🚀 Запустить тест
+            </button>
+            <div id="test-results"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>🃏 Тест карт по темам</h3>
+            <p>Проверяем отображение карт для разных тем:</p>
+            <div id="theme-tests"></div>
+        </div>
+    </div>
+
+    <script>
+        // Тестовые данные
+        const testCard = {
+            id: 'test-1',
+            rank: 'A',
+            suit: '♠'
+        };
+        
+        const themes = ['casino', 'underground', 'tavern'];
+        
+        function cardImagePath(card, theme) {
+            // Для темы underground используем JPG карты
+            if (theme === 'underground') {
+                const suitMapJPG = { '♣':'t', '♦':'b', '♥':'ch', '♠':'p' };
+                const rankMapJPG = { 'J':'J', 'Q':'Q', 'K':'K', 'A':'A', '10':'10' };
+                
+                const suitJPG = suitMapJPG[card.suit];
+                let rankJPG = card.rank;
+                if (rankMapJPG[rankJPG]) rankJPG = rankMapJPG[rankJPG];
+                
+                return `./themes/${theme}/cards/JPG_cards/${rankJPG}${suitJPG}.jpg`;
+            }
+            
+            // Для темы tavern используем PNG карты
+            if (theme === 'tavern') {
+                const suitMapPNG = { '♣':'t', '♦':'b', '♥':'ch', '♠':'p' };
+                const rankMapPNG = { 'J':'J', 'Q':'Q', 'K':'K', 'A':'A', '10':'10' };
+                
+                const suitPNG = suitMapPNG[card.suit];
+                let rankPNG = card.rank;
+                if (rankMapPNG[rankPNG]) rankPNG = rankMapPNG[rankPNG];
+                
+                return `./themes/${theme}/cards/PNG_cards/${rankPNG}${suitPNG}.png`;
+            }
+            
+            // Для остальных тем (casino) используем SVG карты
+            const suitMap = { '♣':'clubs', '♦':'diamonds', '♥':'hearts', '♠':'spades' };
+            const rankMap = { 'J':'jack', 'Q':'queen', 'K':'king', 'A':'ace' };
+            const suit = suitMap[card.suit];
+            let rank = card.rank;
+            if (rankMap[rank]) rank = rankMap[rank];
+            
+            return `./themes/${theme}/cards/SVG-cards-1.3/${String(rank).toLowerCase()}_of_${suit}.svg`;
+        }
+        
+        function testCardPaths() {
+            const container = document.getElementById('theme-tests');
+            container.innerHTML = '';
+            
+            themes.forEach(theme => {
+                const path = cardImagePath(testCard, theme);
+                const div = document.createElement('div');
+                div.innerHTML = `
+                    <h4>🎨 Тема: ${theme}</h4>
+                    <p><strong>Путь:</strong> ${path}</p>
+                    <div class="card">
+                        <img src="${path}" alt="${testCard.rank}${testCard.suit}" 
+                             onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                        <div style="display:none; line-height: 90px;">${testCard.rank}${testCard.suit}</div>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+        
+        function testGame() {
+            const results = document.getElementById('test-results');
+            results.innerHTML = '<div class="success">🔄 Запуск теста игры...</div>';
+            
+            // Проверяем, есть ли основные элементы
+            const playerHand = document.getElementById('playerHand');
+            if (!playerHand) {
+                results.innerHTML = '<div class="error">❌ Элемент playerHand не найден! Проверьте, что вы находитесь на главной странице игры.</div>';
+                return;
+            }
+            
+            results.innerHTML = '<div class="success">✅ Элемент playerHand найден. Проверьте консоль браузера для подробной информации.</div>';
+            
+            // Запускаем тест карт
+            testCardPaths();
+        }
+        
+        // Автоматически запускаем тест карт при загрузке
+        window.onload = function() {
+            testCardPaths();
+        };
+    </script>
+</body>
+</html>
+
+

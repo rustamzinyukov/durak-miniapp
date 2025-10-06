@@ -1,0 +1,30 @@
+{
+  "name": "Дурак - Классическая карточная игра",
+  "short_name": "Дурак",
+  "description": "Классическая карточная игра Дурак с агрессивным ИИ Джокером",
+  "version": "1.0.0",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0a0a",
+  "theme_color": "#d4af37",
+  "orientation": "portrait",
+  "scope": "/",
+  "lang": "ru",
+  "icons": [
+    {
+      "src": "logo/durak.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["games", "entertainment"],
+  "screenshots": [
+    {
+      "src": "logo/durak.png",
+      "sizes": "1280x720",
+      "type": "image/png"
+    }
+  ]
+}
+

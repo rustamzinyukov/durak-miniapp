@@ -1,0 +1,23 @@
+# Файлы для загрузки на GitHub Pages
+# Основные файлы игры
+index.html
+script.js
+style.css
+manifest.json
+package.json
+
+# Папки с ресурсами
+themes/
+sounds/
+quotes/
+api/
+icons/
+cards/
+logo/
+table/
+wall/
+
+# Документация
+README.md
+.github/
+

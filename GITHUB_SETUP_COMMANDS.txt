@@ -1,0 +1,24 @@
+# Команды для подключения к GitHub (выполните после установки Git):
+
+# 1. Инициализация Git репозитория
+git init
+
+# 2. Добавление всех файлов
+git add .
+
+# 3. Первый коммит
+git commit -m "Initial commit: Durak MiniApp"
+
+# 4. Подключение к GitHub репозиторию (замените YOUR_USERNAME на ваш GitHub username)
+git remote add origin https://github.com/YOUR_USERNAME/durak-miniapp.git
+
+# 5. Отправка на GitHub
+git push -u origin main
+
+# 6. Включение GitHub Pages:
+# - Идите в Settings вашего репозитория
+# - Найдите раздел "Pages" 
+# - В "Source" выберите "Deploy from a branch"
+# - В "Branch" выберите "main"
+# - Нажмите "Save"
+# - Ваш сайт будет доступен по адресу: https://YOUR_USERNAME.github.io/durak-miniapp/
