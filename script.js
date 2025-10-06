@@ -3004,6 +3004,18 @@ async function preloadResources() {
   
   console.log(`📊 Total resources to load: ${totalResources}`);
   
+  // Принудительно показываем экран загрузки
+  const loadingScreen = document.getElementById('loadingScreen');
+  const app = document.getElementById('app');
+  
+  if (loadingScreen) {
+    loadingScreen.style.display = 'flex';
+    loadingScreen.classList.remove('hidden');
+  }
+  if (app) {
+    app.style.display = 'none';
+  }
+  
   // Функция обновления прогресса
   function updateProgress(resourceName) {
     loadedResources++;
@@ -3022,7 +3034,10 @@ async function preloadResources() {
         console.warn(`⚠️ Failed to load image: ${src}`);
         resolve(src); // Продолжаем даже если изображение не загрузилось
       };
-      img.src = src;
+      // Добавляем timestamp для принудительного обновления кэша
+      const timestamp = Date.now();
+      const separator = src.includes('?') ? '&' : '?';
+      img.src = `${src}${separator}v=${timestamp}`;
     });
   }
   
@@ -3035,7 +3050,10 @@ async function preloadResources() {
         console.warn(`⚠️ Failed to load audio: ${src}`);
         resolve(src); // Продолжаем даже если аудио не загрузилось
       };
-      audio.src = src;
+      // Добавляем timestamp для принудительного обновления кэша
+      const timestamp = Date.now();
+      const separator = src.includes('?') ? '&' : '?';
+      audio.src = `${src}${separator}v=${timestamp}`;
     });
   }
   
@@ -3180,6 +3198,20 @@ function initializeGame() {
 // Главная функция с предзагрузкой
 async function main(){
   console.log('🚀 main() called with preloading');
+  
+  // Принудительно показываем экран загрузки
+  const loadingScreen = document.getElementById('loadingScreen');
+  const app = document.getElementById('app');
+  
+  if (loadingScreen) {
+    loadingScreen.style.display = 'flex';
+    loadingScreen.classList.remove('hidden');
+    console.log('📱 Loading screen shown');
+  }
+  if (app) {
+    app.style.display = 'none';
+    console.log('🎮 Game hidden');
+  }
   
   // Инициализируем DOM ссылки
   initDomRefs();
