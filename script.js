@@ -54,6 +54,8 @@ function beats(defCard, attCard, trumpSuit){
 }
 function text(card){ return `${card.rank}${card.suit}`; }
 function cardImagePath(card){
+  let path;
+  
   // Для темы underground используем JPG карты
   if (state.theme === 'underground') {
     const suitMapJPG = { '♣':'t', '♦':'b', '♥':'ch', '♠':'p' }; // t-треф, b-буби, ch-черви, p-пики
@@ -63,12 +65,10 @@ function cardImagePath(card){
     let rankJPG = card.rank;
     if (rankMapJPG[rankJPG]) rankJPG = rankMapJPG[rankJPG];
     
-    const path = `./themes/${state.theme}/cards/JPG_cards/${rankJPG}${suitJPG}.jpg`;
-    return path;
+    path = `./themes/${state.theme}/cards/JPG_cards/${rankJPG}${suitJPG}.jpg`;
   }
-  
   // Для темы tavern используем PNG карты
-  if (state.theme === 'tavern') {
+  else if (state.theme === 'tavern') {
     const suitMapPNG = { '♣':'t', '♦':'b', '♥':'ch', '♠':'p' }; // t-треф, b-буби, ch-черви, p-пики
     const rankMapPNG = { 'J':'J', 'Q':'Q', 'K':'K', 'A':'A', '10':'10' };
     
@@ -76,28 +76,41 @@ function cardImagePath(card){
     let rankPNG = card.rank;
     if (rankMapPNG[rankPNG]) rankPNG = rankMapPNG[rankPNG];
     
-    const path = `./themes/${state.theme}/cards/PNG_cards/${rankPNG}${suitPNG}.png`;
-    return path;
+    path = `./themes/${state.theme}/cards/PNG_cards/${rankPNG}${suitPNG}.png`;
+  }
+  // Для остальных тем (casino) используем SVG карты
+  else {
+    const suitMap = { '♣':'clubs', '♦':'diamonds', '♥':'hearts', '♠':'spades' };
+    const rankMap = { 'J':'jack', 'Q':'queen', 'K':'king', 'A':'ace' };
+    const suit = suitMap[card.suit];
+    let rank = card.rank;
+    if (rankMap[rank]) rank = rankMap[rank];
+    
+    // Card set mapping - теперь используем темы
+    const cardSetPaths = {
+      'classic': 'SVG-cards-1.3',
+      'modern': 'SVG-cards-1.3',
+      'vintage': 'SVG-cards-1.3', 
+      'minimal': 'SVG-cards-1.3',
+      'luxury': 'SVG-cards-1.3'
+    };
+    
+    const cardSetPath = cardSetPaths[state.cardSet] || cardSetPaths['classic'];
+    path = `./themes/${state.theme}/cards/${cardSetPath}/${String(rank).toLowerCase()}_of_${suit}.svg`;
   }
   
-  // Для остальных тем (casino) используем SVG карты
-  const suitMap = { '♣':'clubs', '♦':'diamonds', '♥':'hearts', '♠':'spades' };
-  const rankMap = { 'J':'jack', 'Q':'queen', 'K':'king', 'A':'ace' };
-  const suit = suitMap[card.suit];
-  let rank = card.rank;
-  if (rankMap[rank]) rank = rankMap[rank];
+  // Проверяем, есть ли изображение в кэше
+  const cachedImage = getCachedImage(path);
+  if (cachedImage) {
+    // Если изображение в кэше, создаем data URL для мгновенной загрузки
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = cachedImage.width;
+    canvas.height = cachedImage.height;
+    ctx.drawImage(cachedImage, 0, 0);
+    return canvas.toDataURL();
+  }
   
-  // Card set mapping - теперь используем темы
-  const cardSetPaths = {
-    'classic': 'SVG-cards-1.3',
-    'modern': 'SVG-cards-1.3',
-    'vintage': 'SVG-cards-1.3', 
-    'minimal': 'SVG-cards-1.3',
-    'luxury': 'SVG-cards-1.3'
-  };
-  
-  const cardSetPath = cardSetPaths[state.cardSet] || cardSetPaths['classic'];
-  const path = `./themes/${state.theme}/cards/${cardSetPath}/${String(rank).toLowerCase()}_of_${suit}.svg`;
   return path;
 }
 
@@ -1259,7 +1272,8 @@ function renderHand(){
       const d = document.createElement("div");
       d.className = "card";
       d.setAttribute("data-card-id", card.id);
-      d.innerHTML = `<img alt="${text(card)}" src="${cardImagePath(card)}">`;
+      const cardSrc = cardImagePath(card);
+      d.innerHTML = `<img alt="${text(card)}" src="${cardSrc}" loading="eager">`;
       if (card.suit === state.trumpSuit) d.classList.add("trump");
       if (playable.has(card.id)) d.classList.add("playable");
       if (ui.selected.has(card.id)) d.classList.add("selected");
@@ -2898,6 +2912,28 @@ function adaptToTelegramTheme() {
 // 🚀 RESOURCE PRELOADING SYSTEM
 // ========================================
 
+// Глобальный кэш для предзагруженных ресурсов
+const RESOURCE_CACHE = {
+  images: new Map(),
+  audio: new Map()
+};
+
+// Функция для получения кэшированного изображения
+function getCachedImage(src) {
+  if (RESOURCE_CACHE.images.has(src)) {
+    return RESOURCE_CACHE.images.get(src);
+  }
+  return null;
+}
+
+// Функция для получения кэшированного аудио
+function getCachedAudio(src) {
+  if (RESOURCE_CACHE.audio.has(src)) {
+    return RESOURCE_CACHE.audio.get(src);
+  }
+  return null;
+}
+
 // Список всех ресурсов для предзагрузки
 const RESOURCE_LIST = {
   // Карты для всех тем
@@ -3029,7 +3065,12 @@ async function preloadResources() {
   function preloadImage(src) {
     return new Promise((resolve, reject) => {
       const img = new Image();
-      img.onload = () => resolve(src);
+      img.onload = () => {
+        // Сохраняем в кэш
+        RESOURCE_CACHE.images.set(src, img);
+        console.log(`📦 Cached image: ${src}`);
+        resolve(src);
+      };
       img.onerror = () => {
         console.warn(`⚠️ Failed to load image: ${src}`);
         resolve(src); // Продолжаем даже если изображение не загрузилось
@@ -3045,7 +3086,12 @@ async function preloadResources() {
   function preloadAudio(src) {
     return new Promise((resolve, reject) => {
       const audio = new Audio();
-      audio.oncanplaythrough = () => resolve(src);
+      audio.oncanplaythrough = () => {
+        // Сохраняем в кэш
+        RESOURCE_CACHE.audio.set(src, audio);
+        console.log(`📦 Cached audio: ${src}`);
+        resolve(src);
+      };
       audio.onerror = () => {
         console.warn(`⚠️ Failed to load audio: ${src}`);
         resolve(src); // Продолжаем даже если аудио не загрузилось
