@@ -99,9 +99,12 @@ function cardImagePath(card){
     path = `./themes/${state.theme}/cards/${cardSetPath}/${String(rank).toLowerCase()}_of_${suit}.svg`;
   }
   
-  // Проверяем, есть ли изображение в кэше
-  const cachedImage = getCachedImage(path);
+  // Проверяем, есть ли изображение в кэше (ищем по базовому пути без timestamp)
+  const basePath = path.split('?')[0]; // Убираем параметры запроса
+  const cachedImage = getCachedImage(basePath);
+  
   if (cachedImage) {
+    console.log(`⚡ Using cached image: ${basePath}`);
     // Если изображение в кэше, создаем data URL для мгновенной загрузки
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
@@ -111,6 +114,7 @@ function cardImagePath(card){
     return canvas.toDataURL();
   }
   
+  console.log(`📥 Loading image from server: ${path}`);
   return path;
 }
 
@@ -530,6 +534,9 @@ function setTheme(themeName){
   
   // Update opponent avatar for new theme
   updateOpponentAvatar();
+  
+  // Предзагружаем карты для новой темы
+  preloadThemeCards(themeName);
   
   // Force re-render to update card images
   render();
@@ -2934,6 +2941,67 @@ function getCachedAudio(src) {
   return null;
 }
 
+// Функция предзагрузки карт для конкретной темы
+async function preloadThemeCards(themeName) {
+  console.log(`🎨 Preloading cards for theme: ${themeName}`);
+  
+  const cardPaths = [];
+  
+  // Генерируем пути для карт в зависимости от темы
+  if (themeName === 'underground') {
+    // JPG карты для underground
+    const suits = ['t', 'b', 'ch', 'p'];
+    const ranks = ['6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
+    for (const rank of ranks) {
+      for (const suit of suits) {
+        cardPaths.push(`./themes/${themeName}/cards/JPG_cards/${rank}${suit}.jpg`);
+      }
+    }
+  } else if (themeName === 'tavern') {
+    // PNG карты для tavern
+    const suits = ['t', 'b', 'ch', 'p'];
+    const ranks = ['6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
+    for (const rank of ranks) {
+      for (const suit of suits) {
+        cardPaths.push(`./themes/${themeName}/cards/PNG_cards/${rank}${suit}.png`);
+      }
+    }
+  } else {
+    // SVG карты для casino и других тем
+    const suits = ['clubs', 'diamonds', 'hearts', 'spades'];
+    const ranks = ['6', '7', '8', '9', '10', 'jack', 'queen', 'king', 'ace'];
+    for (const rank of ranks) {
+      for (const suit of suits) {
+        cardPaths.push(`./themes/${themeName}/cards/SVG-cards-1.3/${rank}_of_${suit}.svg`);
+      }
+    }
+  }
+  
+  console.log(`📦 Preloading ${cardPaths.length} cards for ${themeName}`);
+  
+  // Предзагружаем карты в фоне
+  const preloadPromises = cardPaths.map(cardPath => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        const basePath = cardPath.split('?')[0];
+        RESOURCE_CACHE.images.set(basePath, img);
+        console.log(`⚡ Cached theme card: ${basePath}`);
+        resolve();
+      };
+      img.onerror = () => {
+        console.warn(`⚠️ Failed to preload: ${cardPath}`);
+        resolve();
+      };
+      img.src = cardPath;
+    });
+  });
+  
+  // Ждем завершения предзагрузки
+  await Promise.all(preloadPromises);
+  console.log(`✅ Theme cards preloaded: ${themeName}`);
+}
+
 // Список всех ресурсов для предзагрузки
 const RESOURCE_LIST = {
   // Карты для всех тем
@@ -3066,9 +3134,10 @@ async function preloadResources() {
     return new Promise((resolve, reject) => {
       const img = new Image();
       img.onload = () => {
-        // Сохраняем в кэш
-        RESOURCE_CACHE.images.set(src, img);
-        console.log(`📦 Cached image: ${src}`);
+        // Сохраняем в кэш по базовому пути (без timestamp)
+        const basePath = src.split('?')[0];
+        RESOURCE_CACHE.images.set(basePath, img);
+        console.log(`📦 Cached image: ${basePath}`);
         resolve(src);
       };
       img.onerror = () => {
