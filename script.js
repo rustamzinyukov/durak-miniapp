@@ -618,7 +618,7 @@ function showDebugModal() {
     
     // Информация о версии приложения
     debugData += '📱 ИНФОРМАЦИЯ О ПРИЛОЖЕНИИ:\n';
-    debugData += '  - Версия: v91 (script.js)\n';
+    debugData += '  - Версия: v92 (script.js)\n';
     debugData += '  - Время сборки: ' + new Date().toLocaleString('ru-RU') + '\n';
     debugData += '  - User-Agent: ' + navigator.userAgent.substring(0, 50) + '...\n';
     debugData += '  - URL: ' + window.location.href.substring(0, 80) + '...\n\n';
@@ -728,9 +728,9 @@ function showVersionModal() {
     versionData += '=====================================\n\n';
     
     versionData += '🔢 Версия приложения:\n';
-    versionData += '  - script.js: v91\n';
+    versionData += '  - script.js: v92\n';
     versionData += '  - style.css: v74\n';
-    versionData += '  - index.html: v91\n\n';
+    versionData += '  - index.html: v92\n\n';
     
     versionData += '⏰ Время сборки:\n';
     versionData += '  - Текущее время: ' + new Date().toLocaleString('ru-RU') + '\n';
@@ -1013,15 +1013,64 @@ function openProfile(){
     // Update avatar with Telegram photo if available
     if (user.photo_url) {
       console.log('✅ Setting Telegram photo:', user.photo_url);
-      el.userAvatar.style.backgroundImage = `url(${user.photo_url})`;
-      el.userAvatar.style.backgroundSize = 'cover';
-      el.userAvatar.style.backgroundPosition = 'center';
-      el.userAvatar.style.backgroundRepeat = 'no-repeat';
-      el.userAvatar.style.borderRadius = '50%';
-      el.userAvatar.textContent = '';
-      console.log('✅ Avatar updated with Telegram photo');
+      console.log('🔍 Photo URL details:', {
+        url: user.photo_url,
+        length: user.photo_url.length,
+        startsWith: user.photo_url.substring(0, 20),
+        endsWith: user.photo_url.substring(user.photo_url.length - 20)
+      });
+      
+      // Test if image loads successfully
+      const testImg = new Image();
+      testImg.crossOrigin = 'anonymous';
+      testImg.onload = function() {
+        console.log('✅ Telegram photo loaded successfully');
+        el.userAvatar.style.backgroundImage = `url(${user.photo_url})`;
+        el.userAvatar.style.backgroundSize = 'cover';
+        el.userAvatar.style.backgroundPosition = 'center';
+        el.userAvatar.style.backgroundRepeat = 'no-repeat';
+        el.userAvatar.style.borderRadius = '50%';
+        el.userAvatar.textContent = '';
+        el.userAvatar.style.color = 'transparent';
+      };
+      testImg.onerror = function() {
+        console.log('❌ Failed to load Telegram photo, trying alternative method');
+        
+        // Try alternative approach with fetch
+        fetch(user.photo_url, { mode: 'no-cors' })
+          .then(() => {
+            console.log('✅ Photo accessible via fetch, setting as background');
+            el.userAvatar.style.backgroundImage = `url(${user.photo_url})`;
+            el.userAvatar.style.backgroundSize = 'cover';
+            el.userAvatar.style.backgroundPosition = 'center';
+            el.userAvatar.style.backgroundRepeat = 'no-repeat';
+            el.userAvatar.style.borderRadius = '50%';
+            el.userAvatar.textContent = '';
+            el.userAvatar.style.color = 'transparent';
+          })
+          .catch(() => {
+            console.log('❌ All methods failed, using fallback');
+            // Fallback to initials
+            const firstName = user.first_name || '';
+            const lastName = user.last_name || '';
+            const initials = (firstName.charAt(0) + lastName.charAt(0)).toUpperCase();
+            el.userAvatar.textContent = initials;
+            el.userAvatar.style.backgroundImage = 'none';
+            el.userAvatar.style.color = 'white';
+            el.userAvatar.style.backgroundColor = 'var(--accent)';
+          });
+      };
+      testImg.src = user.photo_url;
     } else {
       console.log('⚠️ No Telegram photo available');
+      // Use initials as fallback
+      const firstName = user.first_name || '';
+      const lastName = user.last_name || '';
+      const initials = (firstName.charAt(0) + lastName.charAt(0)).toUpperCase();
+      el.userAvatar.textContent = initials;
+      el.userAvatar.style.backgroundImage = 'none';
+      el.userAvatar.style.color = 'white';
+      el.userAvatar.style.backgroundColor = 'var(--accent)';
     }
   } else {
     console.log('⚠️ Telegram data not available');
