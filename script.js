@@ -616,6 +616,13 @@ function showDebugModal() {
     let debugData = '🔍 TELEGRAM WEBAPP DEBUG INFO\n';
     debugData += '================================\n\n';
     
+    // Информация о версии приложения
+    debugData += '📱 ИНФОРМАЦИЯ О ПРИЛОЖЕНИИ:\n';
+    debugData += '  - Версия: v86 (script.js)\n';
+    debugData += '  - Время сборки: ' + new Date().toLocaleString('ru-RU') + '\n';
+    debugData += '  - User-Agent: ' + navigator.userAgent.substring(0, 50) + '...\n';
+    debugData += '  - URL: ' + window.location.href.substring(0, 80) + '...\n\n';
+    
     // Проверяем доступность Telegram
     debugData += '📱 Telegram WebApp доступен: ' + (!!window.Telegram?.WebApp) + '\n';
     debugData += '🌐 window.Telegram: ' + (!!window.Telegram) + '\n';
@@ -690,6 +697,50 @@ function hideDebugModal() {
   const debugModal = document.getElementById('debugModal');
   if (debugModal) {
     debugModal.style.display = 'none';
+  }
+}
+
+function showVersionModal() {
+  const versionModal = document.getElementById('versionModal');
+  const versionInfo = document.getElementById('versionInfo');
+  
+  if (versionModal && versionInfo) {
+    // Собираем информацию о версии
+    let versionData = '📱 ИНФОРМАЦИЯ О ВЕРСИИ ПРИЛОЖЕНИЯ\n';
+    versionData += '=====================================\n\n';
+    
+    versionData += '🔢 Версия приложения:\n';
+    versionData += '  - script.js: v86\n';
+    versionData += '  - style.css: v73\n';
+    versionData += '  - index.html: v85\n\n';
+    
+    versionData += '⏰ Время сборки:\n';
+    versionData += '  - Текущее время: ' + new Date().toLocaleString('ru-RU') + '\n';
+    versionData += '  - Время загрузки: ' + new Date(document.lastModified).toLocaleString('ru-RU') + '\n\n';
+    
+    versionData += '🌐 Информация о браузере:\n';
+    versionData += '  - User-Agent: ' + navigator.userAgent.substring(0, 60) + '...\n';
+    versionData += '  - Язык: ' + navigator.language + '\n';
+    versionData += '  - Платформа: ' + navigator.platform + '\n\n';
+    
+    versionData += '🔗 Информация о URL:\n';
+    versionData += '  - Полный URL: ' + window.location.href + '\n';
+    versionData += '  - Домен: ' + window.location.hostname + '\n';
+    versionData += '  - Протокол: ' + window.location.protocol + '\n\n';
+    
+    versionData += '📊 Статистика загрузки:\n';
+    versionData += '  - Время загрузки страницы: ' + (performance.now() / 1000).toFixed(2) + ' сек\n';
+    versionData += '  - Размер DOM: ' + document.documentElement.outerHTML.length + ' символов\n';
+    
+    versionInfo.textContent = versionData;
+    versionModal.style.display = 'block';
+  }
+}
+
+function hideVersionModal() {
+  const versionModal = document.getElementById('versionModal');
+  if (versionModal) {
+    versionModal.style.display = 'none';
   }
 }
 
@@ -3184,6 +3235,21 @@ function bindEvents(){
     }
     if (debugModalOk) {
       debugModalOk.addEventListener('click', hideDebugModal);
+    }
+    
+    // Version button event listeners
+    const versionBtn = document.getElementById('versionButton');
+    const versionModalClose = document.getElementById('versionModalClose');
+    const versionModalOk = document.getElementById('versionModalOk');
+    
+    if (versionBtn) {
+      versionBtn.addEventListener('click', showVersionModal);
+    }
+    if (versionModalClose) {
+      versionModalClose.addEventListener('click', hideVersionModal);
+    }
+    if (versionModalOk) {
+      versionModalOk.addEventListener('click', hideVersionModal);
     }
   }
 
