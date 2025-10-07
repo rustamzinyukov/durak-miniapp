@@ -618,7 +618,7 @@ function showDebugModal() {
     
     // Информация о версии приложения
     debugData += '📱 ИНФОРМАЦИЯ О ПРИЛОЖЕНИИ:\n';
-    debugData += '  - Версия: v92 (script.js)\n';
+    debugData += '  - Версия: v93 (script.js)\n';
     debugData += '  - Время сборки: ' + new Date().toLocaleString('ru-RU') + '\n';
     debugData += '  - User-Agent: ' + navigator.userAgent.substring(0, 50) + '...\n';
     debugData += '  - URL: ' + window.location.href.substring(0, 80) + '...\n\n';
@@ -728,9 +728,9 @@ function showVersionModal() {
     versionData += '=====================================\n\n';
     
     versionData += '🔢 Версия приложения:\n';
-    versionData += '  - script.js: v92\n';
+    versionData += '  - script.js: v93\n';
     versionData += '  - style.css: v74\n';
-    versionData += '  - index.html: v92\n\n';
+    versionData += '  - index.html: v93\n\n';
     
     versionData += '⏰ Время сборки:\n';
     versionData += '  - Текущее время: ' + new Date().toLocaleString('ru-RU') + '\n';
@@ -1020,47 +1020,73 @@ function openProfile(){
         endsWith: user.photo_url.substring(user.photo_url.length - 20)
       });
       
-      // Test if image loads successfully
-      const testImg = new Image();
-      testImg.crossOrigin = 'anonymous';
-      testImg.onload = function() {
-        console.log('✅ Telegram photo loaded successfully');
-        el.userAvatar.style.backgroundImage = `url(${user.photo_url})`;
-        el.userAvatar.style.backgroundSize = 'cover';
-        el.userAvatar.style.backgroundPosition = 'center';
-        el.userAvatar.style.backgroundRepeat = 'no-repeat';
-        el.userAvatar.style.borderRadius = '50%';
-        el.userAvatar.textContent = '';
-        el.userAvatar.style.color = 'transparent';
-      };
-      testImg.onerror = function() {
-        console.log('❌ Failed to load Telegram photo, trying alternative method');
+      // Check if photo is accessible (not restricted by privacy settings)
+      console.log('🔍 Checking photo accessibility...');
+      
+      // First, try to fetch the photo with proper error handling
+      const fetchPromise = fetch(user.photo_url, { 
+        method: 'HEAD', // Only check if resource exists, don't download
+        mode: 'cors'
+      });
+      
+      // Add timeout to prevent hanging
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Photo check timeout')), 5000)
+      );
+      
+      Promise.race([fetchPromise, timeoutPromise])
+      .then(response => {
+        console.log('📡 Photo fetch response:', {
+          status: response.status,
+          statusText: response.statusText,
+          ok: response.ok,
+          headers: Object.fromEntries(response.headers.entries())
+        });
         
-        // Try alternative approach with fetch
-        fetch(user.photo_url, { mode: 'no-cors' })
-          .then(() => {
-            console.log('✅ Photo accessible via fetch, setting as background');
-            el.userAvatar.style.backgroundImage = `url(${user.photo_url})`;
-            el.userAvatar.style.backgroundSize = 'cover';
-            el.userAvatar.style.backgroundPosition = 'center';
-            el.userAvatar.style.backgroundRepeat = 'no-repeat';
-            el.userAvatar.style.borderRadius = '50%';
-            el.userAvatar.textContent = '';
-            el.userAvatar.style.color = 'transparent';
-          })
-          .catch(() => {
-            console.log('❌ All methods failed, using fallback');
-            // Fallback to initials
-            const firstName = user.first_name || '';
-            const lastName = user.last_name || '';
-            const initials = (firstName.charAt(0) + lastName.charAt(0)).toUpperCase();
-            el.userAvatar.textContent = initials;
-            el.userAvatar.style.backgroundImage = 'none';
-            el.userAvatar.style.color = 'white';
-            el.userAvatar.style.backgroundColor = 'var(--accent)';
-          });
-      };
-      testImg.src = user.photo_url;
+        if (response.ok) {
+          console.log('✅ Photo is accessible, setting as background');
+          el.userAvatar.style.backgroundImage = `url(${user.photo_url})`;
+          el.userAvatar.style.backgroundSize = 'cover';
+          el.userAvatar.style.backgroundPosition = 'center';
+          el.userAvatar.style.backgroundRepeat = 'no-repeat';
+          el.userAvatar.style.borderRadius = '50%';
+          el.userAvatar.textContent = '';
+          el.userAvatar.style.color = 'transparent';
+        } else {
+          throw new Error(`Photo not accessible: ${response.status} ${response.statusText}`);
+        }
+      })
+      .catch(error => {
+        console.log('❌ Photo not accessible due to privacy settings:', error.message);
+        
+        // Try alternative method with no-cors
+        console.log('🔄 Trying alternative method...');
+        const testImg = new Image();
+        testImg.crossOrigin = 'anonymous';
+        testImg.onload = function() {
+          console.log('✅ Photo loaded via Image fallback');
+          el.userAvatar.style.backgroundImage = `url(${user.photo_url})`;
+          el.userAvatar.style.backgroundSize = 'cover';
+          el.userAvatar.style.backgroundPosition = 'center';
+          el.userAvatar.style.backgroundRepeat = 'no-repeat';
+          el.userAvatar.style.borderRadius = '50%';
+          el.userAvatar.textContent = '';
+          el.userAvatar.style.color = 'transparent';
+        };
+        testImg.onerror = function() {
+          console.log('❌ All methods failed, using initials fallback');
+          // Fallback to initials when photo is restricted by privacy
+          const firstName = user.first_name || '';
+          const lastName = user.last_name || '';
+          const initials = (firstName.charAt(0) + lastName.charAt(0)).toUpperCase();
+          el.userAvatar.textContent = initials;
+          el.userAvatar.style.backgroundImage = 'none';
+          el.userAvatar.style.color = 'white';
+          el.userAvatar.style.backgroundColor = 'var(--accent)';
+          el.userAvatar.style.borderRadius = '50%';
+        };
+        testImg.src = user.photo_url;
+      });
     } else {
       console.log('⚠️ No Telegram photo available');
       // Use initials as fallback
