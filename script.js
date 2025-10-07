@@ -1153,6 +1153,8 @@ function renderTableSide(){
   
   // Trump indicator card - показываем масть козыря (лучше видно)
   el.trumpCard.className = "card indicator";
+  // Убираем любые фоновые изображения и показываем только масть
+  el.trumpCard.style.backgroundImage = 'none';
   el.trumpCard.innerHTML = state.trumpSuit ? `<div class="trump-symbol">${state.trumpSuit}</div>` : "?";
   if (state.trumpSuit){
     el.trumpCard.classList.add((state.trumpSuit==='♦'||state.trumpSuit==='♥') ? 'suit-red' : 'suit-black');
