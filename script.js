@@ -77,9 +77,9 @@ function cardImagePath(card){
   // Универсальная функция для получения пути к карте
   // Приоритет: WebP -> SVG (fallback)
 
-  // УНИФИЦИРОВАННЫЙ МАППИНГ для всех тем
-  const suitMap = { '♣':'t', '♦':'b', '♥':'ch', '♠':'p' };
-  const rankMap = { 'J':'J', 'Q':'Q', 'K':'K', 'A':'A' };
+  // УНИФИЦИРОВАННЫЙ МАППИНГ для всех тем (теперь все используют casino формат)
+  const suitMap = { '♣':'clubs', '♦':'diamonds', '♥':'hearts', '♠':'spades' };
+  const rankMap = { 'J':'jack', 'Q':'queen', 'K':'king', 'A':'ace' };
   const suit = suitMap[card.suit];
   let rank = card.rank;
   if (rankMap[rank]) rank = rankMap[rank];
@@ -96,24 +96,9 @@ function cardImagePath(card){
   
   console.log(`🃏 cardImagePath: card=${text(card)}, theme=${state.theme}, supportsWebP=${supportsWebP}`);
 
-  // Если WebP поддерживается, используем WebP карты
+  // Если WebP поддерживается, используем WebP карты (теперь все темы используют casino формат)
   if (supportsWebP) {
-    let webpPath;
-    
-    // Для casino используем старый формат названий
-    if (state.theme === 'casino') {
-      const oldSuitMap = { '♣':'clubs', '♦':'diamonds', '♥':'hearts', '♠':'spades' };
-      const oldRankMap = { 'J':'jack', 'Q':'queen', 'K':'king', 'A':'ace' };
-      const oldSuit = oldSuitMap[card.suit];
-      let oldRank = card.rank;
-      if (oldRankMap[oldRank]) oldRank = oldRankMap[oldRank];
-      
-      webpPath = `./themes/${state.theme}/cards/WEBP_cards/${oldRank}_of_${oldSuit}.webp`;
-    } else {
-      // Для tavern и underground используем новые суффиксы
-      webpPath = `./themes/${state.theme}/cards/WEBP_cards/${rank}${suit}.webp`;
-    }
-    
+    const webpPath = `./themes/${state.theme}/cards/WEBP_cards/${rank}_of_${suit}.webp`;
     console.log(`🖼️ Loading WebP card: ${webpPath}`);
     return webpPath;
   }
