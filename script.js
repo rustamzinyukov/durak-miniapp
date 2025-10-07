@@ -1295,6 +1295,10 @@ function renderHand(){
       d.setAttribute("data-card-id", card.id);
       const cardSrc = cardImagePath(card);
       d.innerHTML = `<img alt="${text(card)}" src="${cardSrc}" loading="eager">`;
+      
+      // Детальное логирование для отладки
+      console.log(`🔍 Checking card ${text(card)}: card.suit=${card.suit}, state.trumpSuit=${state.trumpSuit}, matches=${card.suit === state.trumpSuit}`);
+      
       if (card.suit === state.trumpSuit) {
         console.log(`🃏 Adding trump class to card: ${text(card)}, trumpSuit: ${state.trumpSuit}`);
         d.classList.add("trump");
