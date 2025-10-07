@@ -3119,11 +3119,15 @@ function bindEvents(){
     
     // Debug button event listeners
     const debugBtn = document.getElementById('profileDebugBtn');
+    const debugBtnMain = document.getElementById('debugButton');
     const debugModalClose = document.getElementById('debugModalClose');
     const debugModalOk = document.getElementById('debugModalOk');
     
     if (debugBtn) {
       debugBtn.addEventListener('click', showDebugModal);
+    }
+    if (debugBtnMain) {
+      debugBtnMain.addEventListener('click', showDebugModal);
     }
     if (debugModalClose) {
       debugModalClose.addEventListener('click', hideDebugModal);
