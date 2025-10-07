@@ -758,6 +758,8 @@ function dealInitial(){
   state.trumpCard = state.deck[state.deck.length - 1];
   state.trumpSuit = state.trumpCard.suit;
   console.log('🃏 Trump card:', state.trumpCard, 'Suit:', state.trumpSuit);
+  console.log('🃏 Deck length after dealing:', state.deck.length);
+  console.log('🃏 Last card in deck:', state.deck[state.deck.length - 1]);
 
   const lowestTrump = hand =>
     hand.filter(c => c.suit === state.trumpSuit)
@@ -1136,6 +1138,7 @@ function renderTableSide(){
   
   // Отладочная информация
   console.log('🃏 renderTableSide: trumpCard=', state.trumpCard, 'trumpSuit=', state.trumpSuit);
+  console.log('🃏 renderTableSide: deck length=', state.deck.length, 'last card=', state.deck[state.deck.length - 1]);
   
   // Trump indicator card - показываем масть козыря (лучше видно)
   el.trumpCard.className = "card indicator";
