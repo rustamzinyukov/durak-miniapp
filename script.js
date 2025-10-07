@@ -80,22 +80,22 @@ function cardImagePath(card){
   }
   // Для остальных тем (casino) используем SVG карты
   else {
-    const suitMap = { '♣':'clubs', '♦':'diamonds', '♥':'hearts', '♠':'spades' };
-    const rankMap = { 'J':'jack', 'Q':'queen', 'K':'king', 'A':'ace' };
-    const suit = suitMap[card.suit];
-    let rank = card.rank;
-    if (rankMap[rank]) rank = rankMap[rank];
-    
-    // Card set mapping - теперь используем темы
-    const cardSetPaths = {
-      'classic': 'SVG-cards-1.3',
-      'modern': 'SVG-cards-1.3',
-      'vintage': 'SVG-cards-1.3', 
-      'minimal': 'SVG-cards-1.3',
-      'luxury': 'SVG-cards-1.3'
-    };
-    
-    const cardSetPath = cardSetPaths[state.cardSet] || cardSetPaths['classic'];
+  const suitMap = { '♣':'clubs', '♦':'diamonds', '♥':'hearts', '♠':'spades' };
+  const rankMap = { 'J':'jack', 'Q':'queen', 'K':'king', 'A':'ace' };
+  const suit = suitMap[card.suit];
+  let rank = card.rank;
+  if (rankMap[rank]) rank = rankMap[rank];
+  
+  // Card set mapping - теперь используем темы
+  const cardSetPaths = {
+    'classic': 'SVG-cards-1.3',
+    'modern': 'SVG-cards-1.3',
+    'vintage': 'SVG-cards-1.3', 
+    'minimal': 'SVG-cards-1.3',
+    'luxury': 'SVG-cards-1.3'
+  };
+  
+  const cardSetPath = cardSetPaths[state.cardSet] || cardSetPaths['classic'];
     path = `./themes/${state.theme}/cards/${cardSetPath}/${String(rank).toLowerCase()}_of_${suit}.svg`;
   }
   
@@ -1004,7 +1004,7 @@ function updateCommentaryIfNeeded(){
       } else {
         const aiPlayer = state.players.find(p => !p.isHuman);
         if (typeof L.attacking.ai === 'function') {
-          msg = pick(L.attacking.ai(aiPlayer?.name || "Дональд"));
+        msg = pick(L.attacking.ai(aiPlayer?.name || "Дональд"));
         } else {
           msg = pick(L.attacking.ai);
         }
@@ -1015,7 +1015,7 @@ function updateCommentaryIfNeeded(){
       } else {
         const aiPlayer = state.players.find(p => !p.isHuman);
         if (typeof L.defending.ai === 'function') {
-          msg = pick(L.defending.ai(aiPlayer?.name || "Дональд"));
+        msg = pick(L.defending.ai(aiPlayer?.name || "Дональд"));
         } else {
           msg = pick(L.defending.ai);
         }
@@ -1024,8 +1024,8 @@ function updateCommentaryIfNeeded(){
       const allCovered = total>0 && covered===total;
       if (isHumanAtt) {
         if (typeof L.adding.human === 'function') {
-          msg = pick(L.adding.human(allCovered));
-        } else {
+        msg = pick(L.adding.human(allCovered));
+      } else {
           msg = pick(L.adding.human);
         }
       } else {
@@ -1040,7 +1040,7 @@ function updateCommentaryIfNeeded(){
       } else {
         const aiPlayer = state.players.find(p => !p.isHuman);
         if (typeof L.attacking.ai === 'function') {
-          msg = pick(L.attacking.ai(aiPlayer?.name || "Дональд"));
+        msg = pick(L.attacking.ai(aiPlayer?.name || "Дональд"));
         } else {
           msg = pick(L.attacking.ai);
         }
@@ -1051,7 +1051,7 @@ function updateCommentaryIfNeeded(){
       } else {
         const aiPlayer = state.players.find(p => !p.isHuman);
         if (typeof L.defending.ai === 'function') {
-          msg = pick(L.defending.ai(aiPlayer?.name || "Дональд"));
+        msg = pick(L.defending.ai(aiPlayer?.name || "Дональд"));
         } else {
           msg = pick(L.defending.ai);
         }
@@ -1060,8 +1060,8 @@ function updateCommentaryIfNeeded(){
       const allCovered = total>0 && covered===total;
       if (isHumanAtt) {
         if (typeof L.adding.human === 'function') {
-          msg = pick(L.adding.human(allCovered));
-        } else {
+        msg = pick(L.adding.human(allCovered));
+      } else {
           msg = pick(L.adding.human);
         }
       } else {
@@ -1241,7 +1241,7 @@ function adjustCardOverlap() {
     if (cardCount >= 5 && cardCount <= 6) {
       overlapPx = Math.max(18, 30 - cardCount * 1.8); // +20% от базового значения
     } else {
-      overlapPx = Math.max(15, 25 - cardCount * 1.5);
+    overlapPx = Math.max(15, 25 - cardCount * 1.5);
     }
   }
   
@@ -2958,39 +2958,11 @@ function getCachedAudio(src) {
 async function preloadThemeCards(themeName) {
   console.log(`🎨 Preloading cards for theme: ${themeName}`);
   
-  const cardPaths = [];
-  
-  // Генерируем пути для карт в зависимости от темы
-  if (themeName === 'underground') {
-    // JPG карты для underground
-    const suits = ['t', 'b', 'ch', 'p'];
-    const ranks = ['6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
-    for (const rank of ranks) {
-      for (const suit of suits) {
-        cardPaths.push(`./themes/${themeName}/cards/JPG_cards/${rank}${suit}.jpg`);
-      }
-    }
-  } else if (themeName === 'tavern') {
-    // PNG карты для tavern
-    const suits = ['t', 'b', 'ch', 'p'];
-    const ranks = ['6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
-    for (const rank of ranks) {
-      for (const suit of suits) {
-        cardPaths.push(`./themes/${themeName}/cards/PNG_cards/${rank}${suit}.png`);
-      }
-    }
-  } else {
-    // SVG карты для casino и других тем
-    const suits = ['clubs', 'diamonds', 'hearts', 'spades'];
-    const ranks = ['6', '7', '8', '9', '10', 'jack', 'queen', 'king', 'ace'];
-    for (const rank of ranks) {
-      for (const suit of suits) {
-        cardPaths.push(`./themes/${themeName}/cards/SVG-cards-1.3/${rank}_of_${suit}.svg`);
-      }
-    }
-  }
+  // Используем оптимизированную функцию для получения карт
+  const cardPaths = getCurrentThemeCards();
   
   console.log(`📦 Preloading ${cardPaths.length} cards for ${themeName}`);
+  console.log(`🎯 Card format: ${supportsWebP ? 'WebP' : 'SVG'}`);
   
   // Предзагружаем карты в фоне
   const preloadPromises = cardPaths.map(cardPath => {
@@ -3017,15 +2989,8 @@ async function preloadThemeCards(themeName) {
 
 // Список всех ресурсов для предзагрузки
 const RESOURCE_LIST = {
-  // Карты для всех тем
-  cards: [
-    // Casino theme cards
-    ...Array.from({length: 36}, (_, i) => `./themes/casino/cards/SVG-cards-1.3/${getCardFileName(i)}.svg`),
-    // Tavern theme cards  
-    ...Array.from({length: 36}, (_, i) => `./themes/tavern/cards/PNG_cards/${getCardFileName(i)}.png`),
-    // Underground theme cards
-    ...Array.from({length: 36}, (_, i) => `./themes/underground/cards/JPG_cards/${getCardFileName(i)}.jpg`)
-  ],
+  // Карты только для текущей темы (оптимизировано)
+  cards: getCurrentThemeCards(),
   
   // Иконки для всех тем
   icons: [
@@ -3102,6 +3067,23 @@ function getCardFileName(index) {
   const rank = ranks[Math.floor(index / 4)];
   const suit = suits[index % 4];
   return `${rank}_of_${suit}`;
+}
+
+// Функция для получения карт только текущей темы (оптимизация)
+function getCurrentThemeCards() {
+  const currentTheme = state.theme || 'casino';
+  
+  // Если WebP поддерживается, загружаем WebP карты
+  if (supportsWebP) {
+    return Array.from({length: 36}, (_, i) => 
+      `./themes/${currentTheme}/cards/WEBP_cards/${getCardFileName(i)}.webp`
+    );
+  }
+  
+  // Иначе загружаем SVG карты
+  return Array.from({length: 36}, (_, i) => 
+    `./themes/${currentTheme}/cards/SVG-cards-1.3/${getCardFileName(i)}.svg`
+  );
 }
 
 // Функция предзагрузки ресурсов
