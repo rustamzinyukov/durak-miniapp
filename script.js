@@ -754,7 +754,8 @@ function dealInitial(){
     console.log(`  Player ${i}: ${p.name}, hand: ${p.hand.length} cards`);
   });
   
-  state.trumpCard = state.deck[0];
+  // Козырь - это последняя карта в колоде (которая остается после раздачи)
+  state.trumpCard = state.deck[state.deck.length - 1];
   state.trumpSuit = state.trumpCard.suit;
   console.log('🃏 Trump card:', state.trumpCard, 'Suit:', state.trumpSuit);
 
