@@ -604,6 +604,68 @@ function closeSettings(){
 }
 
 // ========================================
+// 🔍 TELEGRAM DEBUG FUNCTIONS
+// ========================================
+
+function showDebugModal() {
+  const debugModal = document.getElementById('debugModal');
+  const debugInfo = document.getElementById('debugInfo');
+  
+  if (debugModal && debugInfo) {
+    // Собираем всю информацию о Telegram
+    let debugData = '🔍 TELEGRAM WEBAPP DEBUG INFO\n';
+    debugData += '================================\n\n';
+    
+    // Проверяем доступность Telegram
+    debugData += '📱 Telegram WebApp доступен: ' + (!!window.Telegram?.WebApp) + '\n';
+    debugData += '🌐 window.Telegram: ' + (!!window.Telegram) + '\n';
+    debugData += '🔗 window.location.href: ' + window.location.href + '\n\n';
+    
+    if (window.Telegram?.WebApp) {
+      const tg = window.Telegram.WebApp;
+      debugData += '📊 Telegram WebApp данные:\n';
+      debugData += '  - version: ' + (tg.version || 'не указано') + '\n';
+      debugData += '  - platform: ' + (tg.platform || 'не указано') + '\n';
+      debugData += '  - colorScheme: ' + (tg.colorScheme || 'не указано') + '\n';
+      debugData += '  - initData: ' + (tg.initData || 'не указано') + '\n';
+      debugData += '  - initDataUnsafe: ' + JSON.stringify(tg.initDataUnsafe, null, 2) + '\n';
+      debugData += '  - themeParams: ' + JSON.stringify(tg.themeParams, null, 2) + '\n\n';
+      
+      // Проверяем данные пользователя
+      if (tg.initDataUnsafe?.user) {
+        debugData += '👤 Данные пользователя:\n';
+        debugData += '  - id: ' + tg.initDataUnsafe.user.id + '\n';
+        debugData += '  - first_name: ' + (tg.initDataUnsafe.user.first_name || 'не указано') + '\n';
+        debugData += '  - last_name: ' + (tg.initDataUnsafe.user.last_name || 'не указано') + '\n';
+        debugData += '  - username: ' + (tg.initDataUnsafe.user.username || 'не указано') + '\n';
+        debugData += '  - photo_url: ' + (tg.initDataUnsafe.user.photo_url || 'не указано') + '\n';
+      } else {
+        debugData += '❌ Данные пользователя недоступны\n';
+      }
+    } else {
+      debugData += '❌ Telegram WebApp недоступен\n';
+    }
+    
+    // Проверяем альтернативные способы доступа
+    debugData += '\n🔄 Альтернативные способы доступа:\n';
+    debugData += '  - window.parent.Telegram: ' + (!!(window.parent && window.parent.Telegram)) + '\n';
+    debugData += '  - window.top.Telegram: ' + (!!(window.top && window.top.Telegram)) + '\n';
+    debugData += '  - URL содержит t.me: ' + window.location.href.includes('t.me') + '\n';
+    debugData += '  - URL содержит telegram: ' + window.location.href.includes('telegram') + '\n';
+    
+    debugInfo.textContent = debugData;
+    debugModal.style.display = 'block';
+  }
+}
+
+function hideDebugModal() {
+  const debugModal = document.getElementById('debugModal');
+  if (debugModal) {
+    debugModal.style.display = 'none';
+  }
+}
+
+// ========================================
 // 👤 USER PROFILE FUNCTIONS
 // ========================================
 
@@ -3054,6 +3116,21 @@ function bindEvents(){
   // Profile event handlers
   if (el.profileButton){
     el.profileButton.addEventListener('click', openProfile);
+    
+    // Debug button event listeners
+    const debugBtn = document.getElementById('profileDebugBtn');
+    const debugModalClose = document.getElementById('debugModalClose');
+    const debugModalOk = document.getElementById('debugModalOk');
+    
+    if (debugBtn) {
+      debugBtn.addEventListener('click', showDebugModal);
+    }
+    if (debugModalClose) {
+      debugModalClose.addEventListener('click', hideDebugModal);
+    }
+    if (debugModalOk) {
+      debugModalOk.addEventListener('click', hideDebugModal);
+    }
   }
 
   if (el.profileClose){

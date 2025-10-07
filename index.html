@@ -223,6 +223,25 @@
         <div class="profile-actions">
           <button class="profile-save-btn" id="profileSaveBtn">Сохранить</button>
           <button class="profile-cancel-btn" id="profileCancelBtn">Отмена</button>
+          <button class="profile-debug-btn" id="profileDebugBtn" style="background: #ff6b6b; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; margin-top: 10px;">🔍 Отладка Telegram</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Модальное окно отладки Telegram -->
+    <div class="modal" id="debugModal" style="display: none;">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>🔍 Отладка Telegram WebApp</h2>
+          <button class="modal-close" id="debugModalClose">×</button>
+        </div>
+        <div class="modal-body">
+          <div id="debugInfo" style="background: #f5f5f5; padding: 15px; border-radius: 8px; font-family: monospace; font-size: 12px; white-space: pre-wrap; max-height: 400px; overflow-y: auto;">
+            Загрузка данных отладки...
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-primary" id="debugModalOk">ОК</button>
         </div>
       </div>
     </div>
@@ -268,6 +287,6 @@
       </div>
     </div>
 
-    <script src="./script.js?v=83"></script>
+    <script src="./script.js?v=84"></script>
   </body>
 </html>
