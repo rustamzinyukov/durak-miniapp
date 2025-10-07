@@ -3043,7 +3043,7 @@ function getResourceList() {
 
 // Функция для получения имени файла карты по индексу
 function getCardFileName(index) {
-  const ranks = ['6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
+  const ranks = ['6', '7', '8', '9', '10', 'jack', 'queen', 'king', 'ace'];
   const suits = ['clubs', 'diamonds', 'hearts', 'spades'];
   const rank = ranks[Math.floor(index / 4)];
   const suit = suits[index % 4];
