@@ -41,6 +41,16 @@ const SUITS = ["♣","♦","♥","♠"];
 const RANKS = ["6","7","8","9","10","J","Q","K","A"];
 const RANK_VALUE = Object.fromEntries(RANKS.map((r,i)=>[r,i]));
 
+// Проверяем поддержку WebP формата
+const supportsWebP = (() => {
+  const canvas = document.createElement('canvas');
+  canvas.width = 1;
+  canvas.height = 1;
+  const result = canvas.toDataURL('image/webp').indexOf('data:image/webp') === 0;
+  console.log(`🖼️ WebP support detected: ${result}`);
+  return result;
+})();
+
 function createDeck36(){
   const deck=[];
   for (const s of SUITS) for (const r of RANKS) deck.push({suit:s, rank:r, id:`${s}-${r}`});
@@ -62,7 +72,9 @@ function cardImagePath(card){
   const suit = suitMap[card.suit];
   let rank = card.rank;
   if (rankMap[rank]) rank = rankMap[rank];
-  
+
+  console.log(`🃏 cardImagePath: card=${text(card)}, theme=${state.theme}, supportsWebP=${supportsWebP}`);
+
   // Если WebP поддерживается, используем WebP карты
   if (supportsWebP) {
     const webpPath = `./themes/${state.theme}/cards/WEBP_cards/${String(rank).toLowerCase()}_of_${suit}.webp`;
@@ -74,11 +86,11 @@ function cardImagePath(card){
   const cardSetPaths = {
     'classic': 'SVG-cards-1.3',
     'modern': 'SVG-cards-1.3',
-    'vintage': 'SVG-cards-1.3', 
+    'vintage': 'SVG-cards-1.3',
     'minimal': 'SVG-cards-1.3',
     'luxury': 'SVG-cards-1.3'
   };
-  
+
   const cardSetPath = cardSetPaths[state.cardSet] || cardSetPaths['classic'];
   const svgPath = `./themes/${state.theme}/cards/${cardSetPath}/${String(rank).toLowerCase()}_of_${suit}.svg`;
   console.log(`🖼️ Loading SVG card: ${svgPath}`);
@@ -3041,18 +3053,23 @@ function getCardFileName(index) {
 // Функция для получения карт только текущей темы (оптимизация)
 function getCurrentThemeCards() {
   const currentTheme = state.theme || 'casino';
+  console.log(`🎨 getCurrentThemeCards: theme=${currentTheme}, supportsWebP=${supportsWebP}`);
   
   // Если WebP поддерживается, загружаем WebP карты
   if (supportsWebP) {
-    return Array.from({length: 36}, (_, i) => 
+    const webpCards = Array.from({length: 36}, (_, i) => 
       `./themes/${currentTheme}/cards/WEBP_cards/${getCardFileName(i)}.webp`
     );
+    console.log(`🖼️ WebP cards generated:`, webpCards.slice(0, 3));
+    return webpCards;
   }
   
   // Иначе загружаем SVG карты
-  return Array.from({length: 36}, (_, i) => 
+  const svgCards = Array.from({length: 36}, (_, i) => 
     `./themes/${currentTheme}/cards/SVG-cards-1.3/${getCardFileName(i)}.svg`
   );
+  console.log(`🖼️ SVG cards generated:`, svgCards.slice(0, 3));
+  return svgCards;
 }
 
 // Функция предзагрузки ресурсов
