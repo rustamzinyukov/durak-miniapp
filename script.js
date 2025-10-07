@@ -2954,10 +2954,11 @@ async function preloadThemeCards(themeName) {
   console.log(`✅ Theme cards preloaded: ${themeName}`);
 }
 
-// Список всех ресурсов для предзагрузки
-const RESOURCE_LIST = {
-  // Карты только для текущей темы (оптимизировано)
-  cards: getCurrentThemeCards(),
+// Функция для получения списка ресурсов для предзагрузки
+function getResourceList() {
+  return {
+    // Карты только для текущей темы (оптимизировано)
+    cards: getCurrentThemeCards(),
   
   // Иконки для всех тем
   icons: [
@@ -3025,7 +3026,8 @@ const RESOURCE_LIST = {
     './themes/tavern/icons/logo/durak.png',
     './themes/underground/icons/logo/durak.png'
   ]
-};
+  };
+}
 
 // Функция для получения имени файла карты по индексу
 function getCardFileName(index) {
@@ -3062,6 +3064,9 @@ async function preloadResources() {
   
   let totalResources = 0;
   let loadedResources = 0;
+  
+  // Получаем список ресурсов
+  const RESOURCE_LIST = getResourceList();
   
   // Подсчитываем общее количество ресурсов
   Object.values(RESOURCE_LIST).forEach(category => {
