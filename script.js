@@ -614,6 +614,38 @@ function openProfile(){
   // Load current profile data
   el.userNickname.value = state.userProfile.nickname;
   el.userAvatar.textContent = state.userProfile.avatar;
+  
+  // Load Telegram data if available
+  const tg = window.Telegram?.WebApp;
+  if (tg && tg.initDataUnsafe?.user) {
+    const user = tg.initDataUnsafe.user;
+    
+    // Get references to Telegram input fields
+    const telegramUsernameInput = document.getElementById('telegramUsername');
+    const telegramFirstNameInput = document.getElementById('telegramFirstName');
+    
+    // Update Telegram username
+    if (telegramUsernameInput) {
+      telegramUsernameInput.value = user.username ? `@${user.username}` : 'Не указан';
+    }
+    
+    // Update Telegram first name
+    if (telegramFirstNameInput) {
+      let fullName = user.first_name || 'Не указано';
+      if (user.last_name) {
+        fullName += ` ${user.last_name}`;
+      }
+      telegramFirstNameInput.value = fullName;
+    }
+    
+    // Update avatar with Telegram photo if available
+    if (user.photo_url) {
+      el.userAvatar.style.backgroundImage = `url(${user.photo_url})`;
+      el.userAvatar.style.backgroundSize = 'cover';
+      el.userAvatar.style.backgroundPosition = 'center';
+      el.userAvatar.textContent = '';
+    }
+  }
 }
 
 function closeProfile(){

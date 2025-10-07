@@ -1681,7 +1681,14 @@ html::before {
   border: 2px solid #e0bebe;
   box-shadow: 0 2px 0 var(--shadow);
 }
-.table-side .trump-symbol { font-size: 2.5rem; font-weight: 900; }
+.table-side .trump-symbol { 
+  font-size: 2.5rem; 
+  font-weight: 900; 
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 8px;
+  padding: 8px 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
 .table-side .deck-count { 
   font-size: 1.2rem; 
   font-weight: 800; 
