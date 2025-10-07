@@ -2529,7 +2529,8 @@ html::before {
 }
 
 /* Адаптивное наезжание в зависимости от количества карт */
-.hand.cards-6 .card:not(:last-child) { margin-right: -15px !important; }
+.hand.cards-5 .card:not(:last-child) { margin-right: -18px !important; }
+.hand.cards-6 .card:not(:last-child) { margin-right: -18px !important; }
 .hand.cards-7 .card:not(:last-child) { margin-right: -25px !important; }
 .hand.cards-8 .card:not(:last-child) { margin-right: -23px !important; }
 .hand.cards-9 .card:not(:last-child) { margin-right: -28px !important; }

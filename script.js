@@ -1227,9 +1227,22 @@ function adjustCardOverlap() {
   // Вычисляем наезжание
   let overlapPx = Math.floor((totalCardWidth - availableSpace) / (cardCount - 1));
   
+  // Увеличиваем наезжание на 20% для 5-6 карт
+  if (cardCount >= 5 && cardCount <= 6) {
+    overlapPx = Math.max(overlapPx, 18); // Минимум 18px для 5-6 карт
+    if (overlapPx > 0) {
+      overlapPx = Math.floor(overlapPx * 1.2); // +20% к вычисленному значению
+    }
+  }
+  
   // Принудительно применяем наезжание для визуального эффекта
   if (overlapPx <= 0) {
-    overlapPx = Math.max(15, 25 - cardCount * 1.5);
+    // Увеличиваем наезжание на 20% для 5-6 карт
+    if (cardCount >= 5 && cardCount <= 6) {
+      overlapPx = Math.max(18, 30 - cardCount * 1.8); // +20% от базового значения
+    } else {
+      overlapPx = Math.max(15, 25 - cardCount * 1.5);
+    }
   }
   
   // Применяем наезжание мгновенно к каждой карте (кроме последней)
