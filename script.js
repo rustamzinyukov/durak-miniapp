@@ -837,12 +837,43 @@ function openProfile(){
           const decodedData = decodeURIComponent(tgWebAppData);
           console.log('🔍 Raw tgWebAppData:', decodedData);
           
-          // Parse user data from tgWebAppData
-          const userMatch = decodedData.match(/user%3D([^%26]+)/);
-          if (userMatch) {
+          // Parse user data from tgWebAppData - try different patterns
+          let userMatch = decodedData.match(/user%3D([^%26]+)/);
+          if (!userMatch) {
+            // Try alternative pattern
+            userMatch = decodedData.match(/user=([^&]+)/);
+          }
+          if (!userMatch) {
+            // Try direct JSON pattern
+            userMatch = decodedData.match(/user%3D%257B([^%257D]+)%257D/);
+            if (userMatch) {
+              const userData = '{"' + userMatch[1].replace(/%2522/g, '"').replace(/%253A/g, ':').replace(/%252C/g, ',') + '}';
+              user = JSON.parse(userData);
+              console.log('🔍 Parsed user from alternative pattern:', user);
+            }
+          } else {
             const userData = decodeURIComponent(userMatch[1]);
             user = JSON.parse(userData);
             console.log('🔍 Parsed user from tgWebAppData:', user);
+          }
+          
+          // If still no user, try manual parsing from your specific URL format
+          if (!user) {
+            try {
+              // Extract user data from the specific URL format you showed
+              const userDataMatch = hash.match(/user%3D%257B%2522id%2522%253A(\d+)%252C%2522first_name%2522%253A%2522([^%2522]+)%2522%252C%2522last_name%2522%253A%2522([^%2522]+)%2522%252C%2522username%2522%253A%2522([^%2522]+)%2522/);
+              if (userDataMatch) {
+                user = {
+                  id: parseInt(userDataMatch[1]),
+                  first_name: userDataMatch[2],
+                  last_name: userDataMatch[3],
+                  username: userDataMatch[4]
+                };
+                console.log('🔍 Parsed user from manual pattern:', user);
+              }
+            } catch (e) {
+              console.log('⚠️ Failed manual parsing:', e);
+            }
           }
         }
       } catch (e) {
