@@ -58,6 +58,10 @@ function createDeck36(){
 }
 function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=(Math.random()*(i+1))|0; [a[i],a[j]]=[a[j],a[i]] } return a; }
 function beats(defCard, attCard, trumpSuit){
+  console.log(`🔍 beats() called: defCard=${text(defCard)}, attCard=${text(attCard)}, trumpSuit=${trumpSuit}`);
+  console.log(`🔍 beats() state.trumpSuit=${state.trumpSuit}, passed trumpSuit=${trumpSuit}`);
+  console.log(`🔍 beats() trumpSuit === state.trumpSuit? ${trumpSuit === state.trumpSuit}`);
+  
   if (defCard.suit === attCard.suit) return RANK_VALUE[defCard.rank] > RANK_VALUE[attCard.rank];
   if (defCard.suit !== attCard.suit && defCard.suit === trumpSuit) return attCard.suit !== trumpSuit;
   return false;
@@ -759,6 +763,9 @@ function dealInitial(){
   state.players.forEach((p, i) => {
     console.log(`  Player ${i}: ${p.name}, hand: ${p.hand.length} cards`);
   });
+  
+  // МАКСИМАЛЬНАЯ ОТЛАДОЧНАЯ ИНФОРМАЦИЯ
+  console.log('🔍 === TRUMP DEBUG INFO ===');
   console.log('🃏 Trump card:', state.trumpCard, 'Suit:', state.trumpSuit);
   console.log('🃏 Deck length after dealing:', state.deck.length);
   console.log('🃏 Last card in deck:', state.deck[state.deck.length - 1]);
@@ -766,6 +773,10 @@ function dealInitial(){
   console.log('🃏 Remaining deck (last 5):', state.deck.slice(-5).map(c => text(c)));
   console.log('🃏 Trump card should be:', state.deck[state.deck.length - 1]);
   console.log('🃏 Trump suit should be:', state.deck[state.deck.length - 1].suit);
+  console.log('🃏 Trump card === last card?', state.trumpCard === state.deck[state.deck.length - 1]);
+  console.log('🃏 Trump suit === last card suit?', state.trumpSuit === state.deck[state.deck.length - 1].suit);
+  console.log('🃏 Full deck after dealing:', state.deck.map(c => text(c)));
+  console.log('🔍 === END TRUMP DEBUG ===');
   
   // Проверяем, что козырь действительно последняя карта
   console.log('🃏 Deck before dealing (first 5):', state.deck.slice(0, 5).map(c => text(c)));
@@ -1147,10 +1158,15 @@ function renderTable(){
 function renderTableSide(){
   if (!el.trumpCard || !el.deckCard) return;
   
-  // Отладочная информация
+  // МАКСИМАЛЬНАЯ ОТЛАДОЧНАЯ ИНФОРМАЦИЯ ДЛЯ RENDER
+  console.log('🔍 === RENDER TABLE SIDE DEBUG ===');
   console.log('🃏 renderTableSide: trumpCard=', state.trumpCard, 'trumpSuit=', state.trumpSuit);
   console.log('🃏 renderTableSide: deck length=', state.deck.length, 'last card=', state.deck[state.deck.length - 1]);
   console.log('🃏 renderTableSide: trumpCard.suit=', state.trumpCard?.suit, 'state.trumpSuit=', state.trumpSuit);
+  console.log('🃏 renderTableSide: trumpCard === last card?', state.trumpCard === state.deck[state.deck.length - 1]);
+  console.log('🃏 renderTableSide: trumpCard.suit === last card suit?', state.trumpCard?.suit === state.deck[state.deck.length - 1]?.suit);
+  console.log('🃏 renderTableSide: Full deck:', state.deck.map(c => text(c)));
+  console.log('🔍 === END RENDER DEBUG ===');
   
   // Trump indicator card - показываем масть козыря (лучше видно)
   el.trumpCard.className = "card indicator";
@@ -1297,8 +1313,16 @@ function renderHand(){
       const cardSrc = cardImagePath(card);
       d.innerHTML = `<img alt="${text(card)}" src="${cardSrc}" loading="eager">`;
       
-      // Детальное логирование для отладки
-      console.log(`🔍 Checking card ${text(card)}: card.suit=${card.suit}, state.trumpSuit=${state.trumpSuit}, matches=${card.suit === state.trumpSuit}`);
+  // МАКСИМАЛЬНАЯ ОТЛАДОЧНАЯ ИНФОРМАЦИЯ ДЛЯ RENDER HAND
+  console.log(`🔍 === RENDER HAND DEBUG ===`);
+  console.log(`🔍 Checking card ${text(card)}: card.suit=${card.suit}, state.trumpSuit=${state.trumpSuit}, matches=${card.suit === state.trumpSuit}`);
+  console.log(`🔍 state.trumpCard=`, state.trumpCard);
+  console.log(`🔍 state.trumpSuit=`, state.trumpSuit);
+  console.log(`🔍 state.deck.length=`, state.deck.length);
+  console.log(`🔍 last card in deck=`, state.deck[state.deck.length - 1]);
+  console.log(`🔍 trumpCard === last card?`, state.trumpCard === state.deck[state.deck.length - 1]);
+  console.log(`🔍 trumpCard.suit === last card suit?`, state.trumpCard?.suit === state.deck[state.deck.length - 1]?.suit);
+  console.log(`🔍 === END RENDER HAND DEBUG ===`);
       
       if (card.suit === state.trumpSuit) {
         console.log(`🃏 Adding trump class to card: ${text(card)}, trumpSuit: ${state.trumpSuit}`);
