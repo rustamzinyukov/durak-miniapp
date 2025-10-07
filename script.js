@@ -72,7 +72,7 @@ function cardImagePath(card){
   const suit = suitMap[card.suit];
   let rank = card.rank;
   if (rankMap[rank]) rank = rankMap[rank];
-
+  
   console.log(`🃏 cardImagePath: card=${text(card)}, theme=${state.theme}, supportsWebP=${supportsWebP}`);
 
   // Если WebP поддерживается, используем WebP карты
@@ -86,11 +86,11 @@ function cardImagePath(card){
   const cardSetPaths = {
     'classic': 'SVG-cards-1.3',
     'modern': 'SVG-cards-1.3',
-    'vintage': 'SVG-cards-1.3',
+    'vintage': 'SVG-cards-1.3', 
     'minimal': 'SVG-cards-1.3',
     'luxury': 'SVG-cards-1.3'
   };
-
+  
   const cardSetPath = cardSetPaths[state.cardSet] || cardSetPaths['classic'];
   const svgPath = `./themes/${state.theme}/cards/${cardSetPath}/${String(rank).toLowerCase()}_of_${suit}.svg`;
   console.log(`🖼️ Loading SVG card: ${svgPath}`);
@@ -1134,20 +1134,12 @@ function renderTable(){
 function renderTableSide(){
   if (!el.trumpCard || !el.deckCard) return;
   
-  // Trump indicator card - показываем настоящую карту
-  if (state.trumpCard) {
-    el.trumpCard.className = "card indicator";
-    const trumpImagePath = cardImagePath(state.trumpCard);
-    el.trumpCard.innerHTML = `<img alt="${text(state.trumpCard)}" src="${trumpImagePath}" style="width: 100%; height: 100%; object-fit: contain;">`;
+  // Trump indicator card - показываем масть козыря (лучше видно)
+  el.trumpCard.className = "card indicator";
+  el.trumpCard.innerHTML = state.trumpSuit ? `<div class="trump-symbol">${state.trumpSuit}</div>` : "?";
+  if (state.trumpSuit){
     el.trumpCard.classList.add((state.trumpSuit==='♦'||state.trumpSuit==='♥') ? 'suit-red' : 'suit-black');
     el.trumpCard.classList.add('trump');
-  } else {
-    el.trumpCard.className = "card indicator";
-    el.trumpCard.innerHTML = state.trumpSuit ? `<div class="trump-symbol">${state.trumpSuit}</div>` : "?";
-    if (state.trumpSuit){
-      el.trumpCard.classList.add((state.trumpSuit==='♦'||state.trumpSuit==='♥') ? 'suit-red' : 'suit-black');
-      el.trumpCard.classList.add('trump');
-    }
   }
   
   // Deck count indicator card
