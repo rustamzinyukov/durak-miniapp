@@ -619,6 +619,17 @@ function openProfile(){
   console.log('🔍 window.Telegram:', window.Telegram);
   console.log('🔍 window.Telegram?.WebApp:', window.Telegram?.WebApp);
   
+  // Debug panel for Telegram data (based on cookbook)
+  if (window.Telegram?.WebApp) {
+    console.log('🔍 Telegram WebApp Debug Info:');
+    console.log('  - initData:', window.Telegram.WebApp.initData);
+    console.log('  - initDataUnsafe:', window.Telegram.WebApp.initDataUnsafe);
+    console.log('  - version:', window.Telegram.WebApp.version);
+    console.log('  - platform:', window.Telegram.WebApp.platform);
+    console.log('  - colorScheme:', window.Telegram.WebApp.colorScheme);
+    console.log('  - themeParams:', window.Telegram.WebApp.themeParams);
+  }
+  
   const tg = window.Telegram?.WebApp;
   console.log('🔍 Telegram WebApp available:', !!tg);
   console.log('🔍 Telegram initDataUnsafe:', tg?.initDataUnsafe);
@@ -635,6 +646,13 @@ function openProfile(){
                       window.location.href.includes('t.me') ||
                       window.location.href.includes('telegram');
   console.log('🔍 Is in Telegram environment:', isInTelegram);
+  
+  // Get user ID for debugging (based on cookbook)
+  let userId = null;
+  if (window.Telegram?.WebApp?.initDataUnsafe?.user?.id) {
+    userId = window.Telegram.WebApp.initDataUnsafe.user.id;
+    console.log('🔍 Telegram User ID:', userId);
+  }
   
   // Try to get user data from alternative sources
   let user = null;
@@ -702,10 +720,12 @@ function openProfile(){
     // Get references to Telegram input fields
     const telegramUsernameInput = document.getElementById('telegramUsername');
     const telegramFirstNameInput = document.getElementById('telegramFirstName');
+    const telegramUserIdInput = document.getElementById('telegramUserId');
     
     console.log('🔍 Telegram input fields found:', {
       username: !!telegramUsernameInput,
-      firstName: !!telegramFirstNameInput
+      firstName: !!telegramFirstNameInput,
+      userId: !!telegramUserIdInput
     });
     
     // Update Telegram username
@@ -730,6 +750,12 @@ function openProfile(){
         state.userProfile.nickname = fullName;
         console.log('✅ Updated main nickname with Telegram name:', fullName);
       }
+    }
+    
+    // Update Telegram User ID
+    if (telegramUserIdInput && user.id) {
+      telegramUserIdInput.value = user.id.toString();
+      console.log('✅ Set Telegram User ID:', user.id);
     }
     
     // Update avatar with Telegram photo if available
