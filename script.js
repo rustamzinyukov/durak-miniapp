@@ -1132,13 +1132,23 @@ function renderTable(){
 
 function renderTableSide(){
   if (!el.trumpCard || !el.deckCard) return;
-  // Trump indicator card
-  el.trumpCard.className = "card indicator";
-  el.trumpCard.innerHTML = state.trumpSuit ? `<div class="trump-symbol">${state.trumpSuit}</div>` : "?";
-  if (state.trumpSuit){
+  
+  // Trump indicator card - показываем настоящую карту
+  if (state.trumpCard) {
+    el.trumpCard.className = "card indicator";
+    const trumpImagePath = cardImagePath(state.trumpCard);
+    el.trumpCard.innerHTML = `<img alt="${text(state.trumpCard)}" src="${trumpImagePath}" style="width: 100%; height: 100%; object-fit: contain;">`;
     el.trumpCard.classList.add((state.trumpSuit==='♦'||state.trumpSuit==='♥') ? 'suit-red' : 'suit-black');
     el.trumpCard.classList.add('trump');
+  } else {
+    el.trumpCard.className = "card indicator";
+    el.trumpCard.innerHTML = state.trumpSuit ? `<div class="trump-symbol">${state.trumpSuit}</div>` : "?";
+    if (state.trumpSuit){
+      el.trumpCard.classList.add((state.trumpSuit==='♦'||state.trumpSuit==='♥') ? 'suit-red' : 'suit-black');
+      el.trumpCard.classList.add('trump');
+    }
   }
+  
   // Deck count indicator card
   el.deckCard.className = "card indicator back";
   el.deckCard.innerHTML = `<div class="deck-count">${state.deck.length}</div>`;
