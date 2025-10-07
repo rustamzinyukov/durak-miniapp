@@ -54,39 +54,23 @@ function beats(defCard, attCard, trumpSuit){
 }
 function text(card){ return `${card.rank}${card.suit}`; }
 function cardImagePath(card){
-  let path;
-  
-  // Для темы underground используем JPG карты
-  if (state.theme === 'underground') {
-    const suitMapJPG = { '♣':'t', '♦':'b', '♥':'ch', '♠':'p' }; // t-треф, b-буби, ch-черви, p-пики
-    const rankMapJPG = { 'J':'J', 'Q':'Q', 'K':'K', 'A':'A', '10':'10' };
-    
-    const suitJPG = suitMapJPG[card.suit];
-    let rankJPG = card.rank;
-    if (rankMapJPG[rankJPG]) rankJPG = rankMapJPG[rankJPG];
-    
-    path = `./themes/${state.theme}/cards/JPG_cards/${rankJPG}${suitJPG}.jpg`;
-  }
-  // Для темы tavern используем PNG карты
-  else if (state.theme === 'tavern') {
-    const suitMapPNG = { '♣':'t', '♦':'b', '♥':'ch', '♠':'p' }; // t-треф, b-буби, ch-черви, p-пики
-    const rankMapPNG = { 'J':'J', 'Q':'Q', 'K':'K', 'A':'A', '10':'10' };
-    
-    const suitPNG = suitMapPNG[card.suit];
-    let rankPNG = card.rank;
-    if (rankMapPNG[rankPNG]) rankPNG = rankMapPNG[rankPNG];
-    
-    path = `./themes/${state.theme}/cards/PNG_cards/${rankPNG}${suitPNG}.png`;
-  }
-  // Для остальных тем (casino) используем SVG карты
-  else {
+  // Универсальная функция для получения пути к карте
+  // Приоритет: WebP -> SVG (fallback)
+
   const suitMap = { '♣':'clubs', '♦':'diamonds', '♥':'hearts', '♠':'spades' };
   const rankMap = { 'J':'jack', 'Q':'queen', 'K':'king', 'A':'ace' };
   const suit = suitMap[card.suit];
   let rank = card.rank;
   if (rankMap[rank]) rank = rankMap[rank];
   
-  // Card set mapping - теперь используем темы
+  // Если WebP поддерживается, используем WebP карты
+  if (supportsWebP) {
+    const webpPath = `./themes/${state.theme}/cards/WEBP_cards/${String(rank).toLowerCase()}_of_${suit}.webp`;
+    console.log(`🖼️ Loading WebP card: ${webpPath}`);
+    return webpPath;
+  }
+
+  // Fallback на SVG карты
   const cardSetPaths = {
     'classic': 'SVG-cards-1.3',
     'modern': 'SVG-cards-1.3',
@@ -96,26 +80,9 @@ function cardImagePath(card){
   };
   
   const cardSetPath = cardSetPaths[state.cardSet] || cardSetPaths['classic'];
-    path = `./themes/${state.theme}/cards/${cardSetPath}/${String(rank).toLowerCase()}_of_${suit}.svg`;
-  }
-  
-  // Проверяем, есть ли изображение в кэше (ищем по базовому пути без timestamp)
-  const basePath = path.split('?')[0]; // Убираем параметры запроса
-  const cachedImage = getCachedImage(basePath);
-  
-  if (cachedImage) {
-    console.log(`⚡ Using cached image: ${basePath}`);
-    // Если изображение в кэше, создаем data URL для мгновенной загрузки
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-    canvas.width = cachedImage.width;
-    canvas.height = cachedImage.height;
-    ctx.drawImage(cachedImage, 0, 0);
-    return canvas.toDataURL();
-  }
-  
-  console.log(`📥 Loading image from server: ${path}`);
-  return path;
+  const svgPath = `./themes/${state.theme}/cards/${cardSetPath}/${String(rank).toLowerCase()}_of_${suit}.svg`;
+  console.log(`🖼️ Loading SVG card: ${svgPath}`);
+  return svgPath;
 }
 
 // ========================================
