@@ -672,6 +672,10 @@ function showDebugModal() {
         const hash = window.location.hash;
         const tgWebAppData = hash.split('tgWebAppData=')[1].split('&')[0];
         const decodedData = decodeURIComponent(tgWebAppData);
+        debugData += '\n🔍 Попытка парсинга URL данных:\n';
+        debugData += '  - tgWebAppData найдено: ДА\n';
+        debugData += '  - Длина данных: ' + tgWebAppData.length + ' символов\n';
+        
         const userMatch = decodedData.match(/user%3D([^%26]+)/);
         if (userMatch) {
           const userData = decodeURIComponent(userMatch[1]);
@@ -682,6 +686,20 @@ function showDebugModal() {
           debugData += '  - last_name: ' + (user.last_name || 'не указано') + '\n';
           debugData += '  - username: ' + (user.username || 'не указано') + '\n';
           debugData += '  - photo_url: ' + (user.photo_url || 'не указано') + '\n';
+        } else {
+          debugData += '\n❌ Паттерн user%3D не найден в данных\n';
+          
+          // Try alternative parsing
+          const userDataMatch = hash.match(/user%3D%257B%2522id%2522%253A(\d+)%252C%2522first_name%2522%253A%2522([^%2522]+)%2522%252C%2522last_name%2522%253A%2522([^%2522]+)%2522%252C%2522username%2522%253A%2522([^%2522]+)%2522/);
+          if (userDataMatch) {
+            debugData += '\n👤 Данные пользователя (альтернативный парсинг):\n';
+            debugData += '  - id: ' + userDataMatch[1] + '\n';
+            debugData += '  - first_name: ' + userDataMatch[2] + '\n';
+            debugData += '  - last_name: ' + userDataMatch[3] + '\n';
+            debugData += '  - username: ' + userDataMatch[4] + '\n';
+          } else {
+            debugData += '\n❌ Альтернативный парсинг также не сработал\n';
+          }
         }
       } catch (e) {
         debugData += '\n❌ Ошибка парсинга URL данных: ' + e.message + '\n';
@@ -742,6 +760,46 @@ function hideVersionModal() {
   if (versionModal) {
     versionModal.style.display = 'none';
   }
+}
+
+// Test function to manually parse Telegram data
+function testTelegramDataParsing() {
+  console.log('🧪 Testing Telegram data parsing...');
+  
+  const hash = window.location.hash;
+  console.log('🔍 Full hash:', hash);
+  
+  if (hash.includes('tgWebAppData=')) {
+    const tgWebAppData = hash.split('tgWebAppData=')[1].split('&')[0];
+    console.log('🔍 tgWebAppData:', tgWebAppData);
+    
+    const decodedData = decodeURIComponent(tgWebAppData);
+    console.log('🔍 Decoded data:', decodedData);
+    
+    // Try different parsing methods
+    const userMatch1 = decodedData.match(/user%3D([^%26]+)/);
+    console.log('🔍 Pattern 1 (user%3D):', userMatch1);
+    
+    const userMatch2 = decodedData.match(/user=([^&]+)/);
+    console.log('🔍 Pattern 2 (user=):', userMatch2);
+    
+    const userMatch3 = hash.match(/user%3D%257B%2522id%2522%253A(\d+)%252C%2522first_name%2522%253A%2522([^%2522]+)%2522%252C%2522last_name%2522%253A%2522([^%2522]+)%2522%252C%2522username%2522%253A%2522([^%2522]+)%2522/);
+    console.log('🔍 Pattern 3 (manual):', userMatch3);
+    
+    if (userMatch3) {
+      const user = {
+        id: parseInt(userMatch3[1]),
+        first_name: userMatch3[2],
+        last_name: userMatch3[3],
+        username: userMatch3[4]
+      };
+      console.log('✅ Successfully parsed user:', user);
+      return user;
+    }
+  }
+  
+  console.log('❌ No user data found');
+  return null;
 }
 
 // ========================================
@@ -3266,6 +3324,22 @@ function bindEvents(){
     }
     if (debugModalOk) {
       debugModalOk.addEventListener('click', hideDebugModal);
+    }
+    
+    // Test parsing button
+    const testParsingBtn = document.getElementById('testParsingBtn');
+    if (testParsingBtn) {
+      testParsingBtn.addEventListener('click', () => {
+        const user = testTelegramDataParsing();
+        if (user) {
+          alert('✅ Данные пользователя найдены!\n\n' +
+                'ID: ' + user.id + '\n' +
+                'Имя: ' + user.first_name + ' ' + user.last_name + '\n' +
+                'Username: @' + user.username);
+        } else {
+          alert('❌ Данные пользователя не найдены');
+        }
+      });
     }
     
     // Version button event listeners
