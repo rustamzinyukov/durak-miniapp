@@ -744,7 +744,7 @@ function dealInitial(){
   console.log('🎲 dealInitial called');
   state.deck = shuffle(createDeck36());
   console.log('🃏 Deck created, length:', state.deck.length);
-  console.log('🃏 Deck before dealing:', state.deck.map(c => text(c)));
+  console.log('🃏 Deck before dealing (first 5):', state.deck.slice(0, 5).map(c => text(c)));
   
   for (let r=0;r<6;r++){
     for (const p of state.players) p.hand.push(state.deck.pop());
@@ -762,7 +762,7 @@ function dealInitial(){
   console.log('🃏 Deck length after dealing:', state.deck.length);
   console.log('🃏 Last card in deck:', state.deck[state.deck.length - 1]);
   console.log('🃏 Trump suit set to:', state.trumpSuit);
-  console.log('🃏 Remaining deck:', state.deck.map(c => text(c)));
+  console.log('🃏 Remaining deck (last 5):', state.deck.slice(-5).map(c => text(c)));
 
   const lowestTrump = hand =>
     hand.filter(c => c.suit === state.trumpSuit)
