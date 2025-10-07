@@ -765,6 +765,11 @@ function dealInitial(){
   console.log('🃏 Remaining deck (last 5):', state.deck.slice(-5).map(c => text(c)));
   console.log('🃏 Trump card should be:', state.deck[state.deck.length - 1]);
   console.log('🃏 Trump suit should be:', state.deck[state.deck.length - 1].suit);
+  
+  // Проверяем, что козырь действительно последняя карта
+  console.log('🃏 Deck before dealing (first 5):', state.deck.slice(0, 5).map(c => text(c)));
+  console.log('🃏 Deck after dealing (last 5):', state.deck.slice(-5).map(c => text(c)));
+  console.log('🃏 Trump card is last card:', state.trumpCard === state.deck[state.deck.length - 1]);
 
   const lowestTrump = hand =>
     hand.filter(c => c.suit === state.trumpSuit)
@@ -2426,7 +2431,35 @@ function findLowestValidAttack(hand, limit){
     return null;
   }
   
-  const byRank = hand.reduce((m,c)=>{ (m[c.rank]=m[c.rank]||[]).push(c); return m; }, {});
+  // В дураке можно атаковать только козырными картами или картами того же ранга, что уже на столе
+  // Если это первая атака (стол пустой), то можно атаковать только козырными картами
+  const tableRanks = state.table.pairs.flat().map(c => c.rank);
+  const isFirstAttack = state.table.pairs.length === 0;
+  
+  console.log(`🔍 findLowestValidAttack: isFirstAttack=${isFirstAttack}, tableRanks=${tableRanks}, trumpSuit=${state.trumpSuit}`);
+  
+  // Фильтруем карты: только козырные или карты того же ранга, что уже на столе
+  const validCards = hand.filter(card => {
+    if (card.suit === state.trumpSuit) {
+      console.log(`🔍 findLowestValidAttack: ${text(card)} is trump - valid`);
+      return true;
+    }
+    if (tableRanks.includes(card.rank)) {
+      console.log(`🔍 findLowestValidAttack: ${text(card)} matches table rank - valid`);
+      return true;
+    }
+    console.log(`🔍 findLowestValidAttack: ${text(card)} is not trump and doesn't match table - invalid`);
+    return false;
+  });
+  
+  console.log(`🔍 findLowestValidAttack: valid cards:`, validCards.map(c => text(c)));
+  
+  if (validCards.length === 0) {
+    console.log(`🔍 findLowestValidAttack: no valid cards found`);
+    return null;
+  }
+  
+  const byRank = validCards.reduce((m,c)=>{ (m[c.rank]=m[c.rank]||[]).push(c); return m; }, {});
   const ranks = Object.keys(byRank).sort((a,b)=>RANK_VALUE[a]-RANK_VALUE[b]);
   console.log(`🔍 findLowestValidAttack: ranks found:`, ranks);
   
