@@ -617,16 +617,31 @@ function openProfile(){
   
   // Load Telegram data if available
   const tg = window.Telegram?.WebApp;
+  console.log('🔍 Telegram WebApp available:', !!tg);
+  console.log('🔍 Telegram initDataUnsafe:', tg?.initDataUnsafe);
+  
+  // Try alternative Telegram SDK access
+  const tgAlt = window.Telegram;
+  console.log('🔍 Alternative Telegram access:', !!tgAlt);
+  
   if (tg && tg.initDataUnsafe?.user) {
     const user = tg.initDataUnsafe.user;
+    console.log('🔍 Telegram user data:', user);
     
     // Get references to Telegram input fields
     const telegramUsernameInput = document.getElementById('telegramUsername');
     const telegramFirstNameInput = document.getElementById('telegramFirstName');
     
+    console.log('🔍 Telegram input fields found:', {
+      username: !!telegramUsernameInput,
+      firstName: !!telegramFirstNameInput
+    });
+    
     // Update Telegram username
     if (telegramUsernameInput) {
-      telegramUsernameInput.value = user.username ? `@${user.username}` : 'Не указан';
+      const username = user.username ? `@${user.username}` : 'Не указан';
+      telegramUsernameInput.value = username;
+      console.log('✅ Set Telegram username:', username);
     }
     
     // Update Telegram first name
@@ -636,15 +651,21 @@ function openProfile(){
         fullName += ` ${user.last_name}`;
       }
       telegramFirstNameInput.value = fullName;
+      console.log('✅ Set Telegram first name:', fullName);
     }
     
     // Update avatar with Telegram photo if available
     if (user.photo_url) {
+      console.log('✅ Setting Telegram photo:', user.photo_url);
       el.userAvatar.style.backgroundImage = `url(${user.photo_url})`;
       el.userAvatar.style.backgroundSize = 'cover';
       el.userAvatar.style.backgroundPosition = 'center';
       el.userAvatar.textContent = '';
+    } else {
+      console.log('⚠️ No Telegram photo available');
     }
+  } else {
+    console.log('⚠️ Telegram data not available');
   }
 }
 
