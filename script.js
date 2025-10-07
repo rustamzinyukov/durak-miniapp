@@ -653,6 +653,34 @@ function showDebugModal() {
     debugData += '  - URL содержит t.me: ' + window.location.href.includes('t.me') + '\n';
     debugData += '  - URL содержит telegram: ' + window.location.href.includes('telegram') + '\n';
     
+    // Проверяем URL параметры Telegram
+    debugData += '\n📋 URL параметры Telegram:\n';
+    debugData += '  - tgWebAppData: ' + (window.location.hash.includes('tgWebAppData=') ? 'ЕСТЬ' : 'НЕТ') + '\n';
+    debugData += '  - tgWebAppVersion: ' + (window.location.hash.includes('tgWebAppVersion=') ? 'ЕСТЬ' : 'НЕТ') + '\n';
+    debugData += '  - tgWebAppPlatform: ' + (window.location.hash.includes('tgWebAppPlatform=') ? 'ЕСТЬ' : 'НЕТ') + '\n';
+    
+    // Пытаемся извлечь данные пользователя из URL
+    if (window.location.hash.includes('tgWebAppData=')) {
+      try {
+        const hash = window.location.hash;
+        const tgWebAppData = hash.split('tgWebAppData=')[1].split('&')[0];
+        const decodedData = decodeURIComponent(tgWebAppData);
+        const userMatch = decodedData.match(/user%3D([^%26]+)/);
+        if (userMatch) {
+          const userData = decodeURIComponent(userMatch[1]);
+          const user = JSON.parse(userData);
+          debugData += '\n👤 Данные пользователя из URL:\n';
+          debugData += '  - id: ' + user.id + '\n';
+          debugData += '  - first_name: ' + (user.first_name || 'не указано') + '\n';
+          debugData += '  - last_name: ' + (user.last_name || 'не указано') + '\n';
+          debugData += '  - username: ' + (user.username || 'не указано') + '\n';
+          debugData += '  - photo_url: ' + (user.photo_url || 'не указано') + '\n';
+        }
+      } catch (e) {
+        debugData += '\n❌ Ошибка парсинга URL данных: ' + e.message + '\n';
+      }
+    }
+    
     debugInfo.textContent = debugData;
     debugModal.style.display = 'block';
   }
@@ -747,6 +775,28 @@ function openProfile(){
       }
     } catch (e) {
       console.log('⚠️ Failed to parse URL params:', e);
+    }
+    
+    // Try to parse Telegram WebApp data from URL hash
+    if (!user) {
+      try {
+        const hash = window.location.hash;
+        if (hash.includes('tgWebAppData=')) {
+          const tgWebAppData = hash.split('tgWebAppData=')[1].split('&')[0];
+          const decodedData = decodeURIComponent(tgWebAppData);
+          console.log('🔍 Raw tgWebAppData:', decodedData);
+          
+          // Parse user data from tgWebAppData
+          const userMatch = decodedData.match(/user%3D([^%26]+)/);
+          if (userMatch) {
+            const userData = decodeURIComponent(userMatch[1]);
+            user = JSON.parse(userData);
+            console.log('🔍 Parsed user from tgWebAppData:', user);
+          }
+        }
+      } catch (e) {
+        console.log('⚠️ Failed to parse tgWebAppData:', e);
+      }
     }
     
     // Try to access Telegram from parent window
