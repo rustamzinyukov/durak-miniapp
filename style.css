@@ -1686,9 +1686,12 @@ html::before {
   font-weight: 900; 
   background: #ffffff !important;
   border-radius: 8px;
-  padding: 8px 12px;
+  padding: 20px 24px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
   border: 2px solid rgba(0, 0, 0, 0.1);
+  display: inline-block;
+  min-width: 80px;
+  text-align: center;
 }
 .table-side .deck-count { 
   font-size: 1.2rem; 
