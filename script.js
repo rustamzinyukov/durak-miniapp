@@ -618,7 +618,7 @@ function showDebugModal() {
     
     // Информация о версии приложения
     debugData += '📱 ИНФОРМАЦИЯ О ПРИЛОЖЕНИИ:\n';
-    debugData += '  - Версия: v87 (script.js)\n';
+    debugData += '  - Версия: v91 (script.js)\n';
     debugData += '  - Время сборки: ' + new Date().toLocaleString('ru-RU') + '\n';
     debugData += '  - User-Agent: ' + navigator.userAgent.substring(0, 50) + '...\n';
     debugData += '  - URL: ' + window.location.href.substring(0, 80) + '...\n\n';
@@ -728,9 +728,9 @@ function showVersionModal() {
     versionData += '=====================================\n\n';
     
     versionData += '🔢 Версия приложения:\n';
-    versionData += '  - script.js: v86\n';
-    versionData += '  - style.css: v73\n';
-    versionData += '  - index.html: v85\n\n';
+    versionData += '  - script.js: v91\n';
+    versionData += '  - style.css: v74\n';
+    versionData += '  - index.html: v91\n\n';
     
     versionData += '⏰ Время сборки:\n';
     versionData += '  - Текущее время: ' + new Date().toLocaleString('ru-RU') + '\n';
@@ -1016,7 +1016,10 @@ function openProfile(){
       el.userAvatar.style.backgroundImage = `url(${user.photo_url})`;
       el.userAvatar.style.backgroundSize = 'cover';
       el.userAvatar.style.backgroundPosition = 'center';
+      el.userAvatar.style.backgroundRepeat = 'no-repeat';
+      el.userAvatar.style.borderRadius = '50%';
       el.userAvatar.textContent = '';
+      console.log('✅ Avatar updated with Telegram photo');
     } else {
       console.log('⚠️ No Telegram photo available');
     }

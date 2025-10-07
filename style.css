@@ -3178,6 +3178,9 @@ html::before {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
   border: 3px solid var(--accent-solid);
   transition: all 0.3s ease;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
 .avatar:hover {
