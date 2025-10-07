@@ -1282,7 +1282,10 @@ function renderHand(){
       d.setAttribute("data-card-id", card.id);
       const cardSrc = cardImagePath(card);
       d.innerHTML = `<img alt="${text(card)}" src="${cardSrc}" loading="eager">`;
-      if (card.suit === state.trumpSuit) d.classList.add("trump");
+      if (card.suit === state.trumpSuit) {
+        console.log(`🃏 Adding trump class to card: ${text(card)}, trumpSuit: ${state.trumpSuit}`);
+        d.classList.add("trump");
+      }
       if (playable.has(card.id)) d.classList.add("playable");
       if (ui.selected.has(card.id)) d.classList.add("selected");
       
