@@ -58,9 +58,15 @@ function createDeck36(){
 }
 function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=(Math.random()*(i+1))|0; [a[i],a[j]]=[a[j],a[i]] } return a; }
 function beats(defCard, attCard, trumpSuit){
+  console.log(`🔍 === BEATS FUNCTION DEBUG ===`);
   console.log(`🔍 beats() called: defCard=${text(defCard)}, attCard=${text(attCard)}, trumpSuit=${trumpSuit}`);
   console.log(`🔍 beats() state.trumpSuit=${state.trumpSuit}, passed trumpSuit=${trumpSuit}`);
   console.log(`🔍 beats() trumpSuit === state.trumpSuit? ${trumpSuit === state.trumpSuit}`);
+  console.log(`🔍 beats() state.trumpCard=`, state.trumpCard);
+  console.log(`🔍 beats() state.trumpSuit=`, state.trumpSuit);
+  console.log(`🔍 beats() trumpSuit passed=`, trumpSuit);
+  console.log(`🔍 beats() trumpSuit === state.trumpSuit? ${trumpSuit === state.trumpSuit}`);
+  console.log(`🔍 === END BEATS FUNCTION DEBUG ===`);
   
   if (defCard.suit === attCard.suit) return RANK_VALUE[defCard.rank] > RANK_VALUE[attCard.rank];
   if (defCard.suit !== attCard.suit && defCard.suit === trumpSuit) return attCard.suit !== trumpSuit;
@@ -1178,6 +1184,15 @@ function renderTableSide(){
     el.trumpCard.classList.add('trump');
   }
   
+  // КРИТИЧЕСКАЯ ОТЛАДОЧНАЯ ИНФОРМАЦИЯ - что именно отображается справа
+  console.log('🔍 === CRITICAL TRUMP DISPLAY DEBUG ===');
+  console.log('🔍 el.trumpCard.innerHTML =', el.trumpCard.innerHTML);
+  console.log('🔍 el.trumpCard.textContent =', el.trumpCard.textContent);
+  console.log('🔍 el.trumpCard.innerText =', el.trumpCard.innerText);
+  console.log('🔍 el.trumpCard.className =', el.trumpCard.className);
+  console.log('🔍 el.trumpCard.style.backgroundImage =', el.trumpCard.style.backgroundImage);
+  console.log('🔍 === END CRITICAL TRUMP DISPLAY DEBUG ===');
+  
   // Deck count indicator card
   el.deckCard.className = "card indicator back";
   el.deckCard.innerHTML = `<div class="deck-count">${state.deck.length}</div>`;
@@ -1328,6 +1343,14 @@ function renderHand(){
         console.log(`🃏 Adding trump class to card: ${text(card)}, trumpSuit: ${state.trumpSuit}`);
         d.classList.add("trump");
       }
+      
+      // КРИТИЧЕСКАЯ ОТЛАДОЧНАЯ ИНФОРМАЦИЯ - что именно помечается как козырь
+      console.log(`🔍 === CRITICAL CARD MARKING DEBUG ===`);
+      console.log(`🔍 Card: ${text(card)}, card.suit: ${card.suit}, state.trumpSuit: ${state.trumpSuit}`);
+      console.log(`🔍 Card is trump: ${card.suit === state.trumpSuit}`);
+      console.log(`🔍 state.trumpCard:`, state.trumpCard);
+      console.log(`🔍 state.trumpSuit:`, state.trumpSuit);
+      console.log(`🔍 === END CRITICAL CARD MARKING DEBUG ===`);
       if (playable.has(card.id)) d.classList.add("playable");
       if (ui.selected.has(card.id)) d.classList.add("selected");
       
