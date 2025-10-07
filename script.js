@@ -616,18 +616,31 @@ function openProfile(){
   el.userAvatar.textContent = state.userProfile.avatar;
   
   // Load Telegram data if available
+  console.log('🔍 window.Telegram:', window.Telegram);
+  console.log('🔍 window.Telegram?.WebApp:', window.Telegram?.WebApp);
+  
   const tg = window.Telegram?.WebApp;
   console.log('🔍 Telegram WebApp available:', !!tg);
   console.log('🔍 Telegram initDataUnsafe:', tg?.initDataUnsafe);
+  console.log('🔍 Telegram initData:', tg?.initData);
   
   // Try alternative Telegram SDK access
   const tgAlt = window.Telegram;
   console.log('🔍 Alternative Telegram access:', !!tgAlt);
   
+  // Check if we're in Telegram environment
+  const isInTelegram = window.Telegram || 
+                      (window.parent && window.parent.Telegram) || 
+                      (window.top && window.top.Telegram) ||
+                      window.location.href.includes('t.me') ||
+                      window.location.href.includes('telegram');
+  console.log('🔍 Is in Telegram environment:', isInTelegram);
+  
   // Try to get user data from alternative sources
   let user = null;
   if (tg && tg.initDataUnsafe?.user) {
     user = tg.initDataUnsafe.user;
+    console.log('🔍 Using primary Telegram WebApp access');
   } else if (tgAlt && tgAlt.WebApp && tgAlt.WebApp.initDataUnsafe?.user) {
     user = tgAlt.WebApp.initDataUnsafe.user;
     console.log('🔍 Using alternative Telegram WebApp access');
@@ -642,6 +655,44 @@ function openProfile(){
       }
     } catch (e) {
       console.log('⚠️ Failed to parse initData:', e);
+    }
+  } else {
+    // Try to get user data from URL parameters
+    try {
+      const urlParams = new URLSearchParams(window.location.search);
+      const userParam = urlParams.get('user');
+      if (userParam) {
+        user = JSON.parse(decodeURIComponent(userParam));
+        console.log('🔍 Parsed user from URL params:', user);
+      }
+    } catch (e) {
+      console.log('⚠️ Failed to parse URL params:', e);
+    }
+    
+    // Try to access Telegram from parent window
+    if (!user && window.parent && window.parent.Telegram) {
+      try {
+        const parentTg = window.parent.Telegram.WebApp;
+        if (parentTg && parentTg.initDataUnsafe?.user) {
+          user = parentTg.initDataUnsafe.user;
+          console.log('🔍 Using parent window Telegram access:', user);
+        }
+      } catch (e) {
+        console.log('⚠️ Failed to access parent Telegram:', e);
+      }
+    }
+    
+    // Try to access Telegram from top window
+    if (!user && window.top && window.top.Telegram) {
+      try {
+        const topTg = window.top.Telegram.WebApp;
+        if (topTg && topTg.initDataUnsafe?.user) {
+          user = topTg.initDataUnsafe.user;
+          console.log('🔍 Using top window Telegram access:', user);
+        }
+      } catch (e) {
+        console.log('⚠️ Failed to access top Telegram:', e);
+      }
     }
   }
   
@@ -694,15 +745,28 @@ function openProfile(){
   } else {
     console.log('⚠️ Telegram data not available');
     
-    // For testing purposes, set some default values
+    // Check if we're in Telegram environment but data is not available
     const telegramUsernameInput = document.getElementById('telegramUsername');
     const telegramFirstNameInput = document.getElementById('telegramFirstName');
     
-    if (telegramUsernameInput) {
-      telegramUsernameInput.value = 'Не подключено к Telegram';
-    }
-    if (telegramFirstNameInput) {
-      telegramFirstNameInput.value = 'Не подключено к Telegram';
+    if (isInTelegram) {
+      // We're in Telegram but can't get user data
+      if (telegramUsernameInput) {
+        telegramUsernameInput.value = 'Telegram: данные недоступны';
+      }
+      if (telegramFirstNameInput) {
+        telegramFirstNameInput.value = 'Telegram: данные недоступны';
+      }
+      console.log('🔍 In Telegram but user data not accessible');
+    } else {
+      // Not in Telegram
+      if (telegramUsernameInput) {
+        telegramUsernameInput.value = 'Не подключено к Telegram';
+      }
+      if (telegramFirstNameInput) {
+        telegramFirstNameInput.value = 'Не подключено к Telegram';
+      }
+      console.log('🔍 Not in Telegram environment');
     }
   }
 }
