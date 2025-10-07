@@ -746,6 +746,11 @@ function dealInitial(){
   console.log('🃏 Deck created, length:', state.deck.length);
   console.log('🃏 Deck before dealing (first 5):', state.deck.slice(0, 5).map(c => text(c)));
   
+  // Козырь - это ПЕРВАЯ карта в колоде (которая будет положена под колоду)
+  // В классическом Дураке козырь определяется перед раздачей
+  state.trumpCard = state.deck[0];
+  state.trumpSuit = state.trumpCard.suit;
+  
   for (let r=0;r<6;r++){
     for (const p of state.players) p.hand.push(state.deck.pop());
   }
@@ -754,10 +759,6 @@ function dealInitial(){
   state.players.forEach((p, i) => {
     console.log(`  Player ${i}: ${p.name}, hand: ${p.hand.length} cards`);
   });
-  
-  // Козырь - это последняя карта в колоде (которая остается после раздачи)
-  state.trumpCard = state.deck[state.deck.length - 1];
-  state.trumpSuit = state.trumpCard.suit;
   console.log('🃏 Trump card:', state.trumpCard, 'Suit:', state.trumpSuit);
   console.log('🃏 Deck length after dealing:', state.deck.length);
   console.log('🃏 Last card in deck:', state.deck[state.deck.length - 1]);
