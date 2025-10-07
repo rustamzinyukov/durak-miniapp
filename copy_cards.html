@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Copy Cards Script</title>
+</head>
+<body>
+    <h1>Copy Cards Script</h1>
+    <p>This script will copy cards from сonverted_webp to themes folders.</p>
+    <script>
+        // Создаем скрипт для копирования карт
+        const fs = require('fs');
+        const path = require('path');
+        
+        // Функция для копирования файлов
+        function copyFiles(sourceDir, destDir) {
+            try {
+                const files = fs.readdirSync(sourceDir);
+                files.forEach(file => {
+                    if (file.endsWith('.webp')) {
+                        const sourcePath = path.join(sourceDir, file);
+                        const destPath = path.join(destDir, file);
+                        fs.copyFileSync(sourcePath, destPath);
+                        console.log(`Copied: ${file}`);
+                    }
+                });
+            } catch (error) {
+                console.error(`Error copying from ${sourceDir}:`, error.message);
+            }
+        }
+        
+        // Копируем карты для каждой темы
+        const themes = ['tavern', 'underground', 'casino'];
+        
+        themes.forEach(theme => {
+            const sourceDir = `сonverted_webp/${theme}`;
+            const destDir = `themes/${theme}/cards/WEBP_cards`;
+            
+            console.log(`Copying cards for ${theme}...`);
+            copyFiles(sourceDir, destDir);
+        });
+        
+        console.log('All cards copied!');
+    </script>
+</body>
+</html>
