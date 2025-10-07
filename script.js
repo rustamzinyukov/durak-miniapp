@@ -618,7 +618,7 @@ function showDebugModal() {
     
     // Информация о версии приложения
     debugData += '📱 ИНФОРМАЦИЯ О ПРИЛОЖЕНИИ:\n';
-    debugData += '  - Версия: v93 (script.js)\n';
+    debugData += '  - Версия: v94 (script.js)\n';
     debugData += '  - Время сборки: ' + new Date().toLocaleString('ru-RU') + '\n';
     debugData += '  - User-Agent: ' + navigator.userAgent.substring(0, 50) + '...\n';
     debugData += '  - URL: ' + window.location.href.substring(0, 80) + '...\n\n';
@@ -728,9 +728,9 @@ function showVersionModal() {
     versionData += '=====================================\n\n';
     
     versionData += '🔢 Версия приложения:\n';
-    versionData += '  - script.js: v93\n';
+    versionData += '  - script.js: v94\n';
     versionData += '  - style.css: v74\n';
-    versionData += '  - index.html: v93\n\n';
+    versionData += '  - index.html: v94\n\n';
     
     versionData += '⏰ Время сборки:\n';
     versionData += '  - Текущее время: ' + new Date().toLocaleString('ru-RU') + '\n';
@@ -1020,73 +1020,38 @@ function openProfile(){
         endsWith: user.photo_url.substring(user.photo_url.length - 20)
       });
       
-      // Check if photo is accessible (not restricted by privacy settings)
-      console.log('🔍 Checking photo accessibility...');
-      
-      // First, try to fetch the photo with proper error handling
-      const fetchPromise = fetch(user.photo_url, { 
-        method: 'HEAD', // Only check if resource exists, don't download
-        mode: 'cors'
-      });
-      
-      // Add timeout to prevent hanging
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Photo check timeout')), 5000)
-      );
-      
-      Promise.race([fetchPromise, timeoutPromise])
-      .then(response => {
-        console.log('📡 Photo fetch response:', {
-          status: response.status,
-          statusText: response.statusText,
-          ok: response.ok,
-          headers: Object.fromEntries(response.headers.entries())
-        });
-        
-        if (response.ok) {
-          console.log('✅ Photo is accessible, setting as background');
-          el.userAvatar.style.backgroundImage = `url(${user.photo_url})`;
-          el.userAvatar.style.backgroundSize = 'cover';
-          el.userAvatar.style.backgroundPosition = 'center';
-          el.userAvatar.style.backgroundRepeat = 'no-repeat';
-          el.userAvatar.style.borderRadius = '50%';
-          el.userAvatar.textContent = '';
-          el.userAvatar.style.color = 'transparent';
-        } else {
-          throw new Error(`Photo not accessible: ${response.status} ${response.statusText}`);
+      // Try to get photo through WebApp API first (if available)
+      if (window.Telegram?.WebApp?.initDataUnsafe?.user?.photo_url) {
+        const webAppPhotoUrl = window.Telegram.WebApp.initDataUnsafe.user.photo_url;
+        if (webAppPhotoUrl && webAppPhotoUrl !== user.photo_url) {
+          console.log('🔄 Found alternative photo URL from WebApp API:', webAppPhotoUrl);
+          user.photo_url = webAppPhotoUrl;
         }
-      })
-      .catch(error => {
-        console.log('❌ Photo not accessible due to privacy settings:', error.message);
-        
-        // Try alternative method with no-cors
-        console.log('🔄 Trying alternative method...');
-        const testImg = new Image();
-        testImg.crossOrigin = 'anonymous';
-        testImg.onload = function() {
-          console.log('✅ Photo loaded via Image fallback');
-          el.userAvatar.style.backgroundImage = `url(${user.photo_url})`;
-          el.userAvatar.style.backgroundSize = 'cover';
-          el.userAvatar.style.backgroundPosition = 'center';
-          el.userAvatar.style.backgroundRepeat = 'no-repeat';
-          el.userAvatar.style.borderRadius = '50%';
-          el.userAvatar.textContent = '';
-          el.userAvatar.style.color = 'transparent';
-        };
-        testImg.onerror = function() {
-          console.log('❌ All methods failed, using initials fallback');
-          // Fallback to initials when photo is restricted by privacy
-          const firstName = user.first_name || '';
-          const lastName = user.last_name || '';
-          const initials = (firstName.charAt(0) + lastName.charAt(0)).toUpperCase();
-          el.userAvatar.textContent = initials;
-          el.userAvatar.style.backgroundImage = 'none';
-          el.userAvatar.style.color = 'white';
-          el.userAvatar.style.backgroundColor = 'var(--accent)';
-          el.userAvatar.style.borderRadius = '50%';
-        };
-        testImg.src = user.photo_url;
-      });
+      }
+      
+      // Try to get photo through server API (if available)
+      if (user.id) {
+        console.log('🔄 Trying to get photo through server API...');
+        fetch(`/api/user-photo/${user.id}`)
+          .then(response => response.json())
+          .then(data => {
+            if (data.success && data.hasPhoto && data.photoUrl) {
+              console.log('✅ Got photo from server API:', data.photoUrl);
+              user.photo_url = data.photoUrl;
+              // Continue with photo loading process
+              loadUserPhoto(user, el);
+            } else {
+              console.log('⚠️ Server API returned no photo, using original URL');
+              loadUserPhoto(user, el);
+            }
+          })
+          .catch(error => {
+            console.log('⚠️ Server API not available, using original URL:', error.message);
+            loadUserPhoto(user, el);
+          });
+      } else {
+        loadUserPhoto(user, el);
+      }
     } else {
       console.log('⚠️ No Telegram photo available');
       // Use initials as fallback
@@ -1097,6 +1062,7 @@ function openProfile(){
       el.userAvatar.style.backgroundImage = 'none';
       el.userAvatar.style.color = 'white';
       el.userAvatar.style.backgroundColor = 'var(--accent)';
+      el.userAvatar.style.borderRadius = '50%';
     }
   } else {
     console.log('⚠️ Telegram data not available');
@@ -1106,7 +1072,6 @@ function openProfile(){
     const telegramFirstNameInput = document.getElementById('telegramFirstName');
     
     if (isInTelegram) {
-      // We're in Telegram but can't get user data
       if (telegramUsernameInput) {
         telegramUsernameInput.value = 'Telegram: данные недоступны';
       }
@@ -1115,7 +1080,6 @@ function openProfile(){
       }
       console.log('🔍 In Telegram but user data not accessible');
     } else {
-      // Not in Telegram
       if (telegramUsernameInput) {
         telegramUsernameInput.value = 'Не подключено к Telegram';
       }
@@ -1125,6 +1089,100 @@ function openProfile(){
       console.log('🔍 Not in Telegram environment');
     }
   }
+}
+
+// Helper function to load user photo
+function loadUserPhoto(user, el) {
+  if (!user.photo_url) {
+    console.log('⚠️ No photo URL available');
+    // Use initials as fallback
+    const firstName = user.first_name || '';
+    const lastName = user.last_name || '';
+    const initials = (firstName.charAt(0) + lastName.charAt(0)).toUpperCase();
+    el.userAvatar.textContent = initials;
+    el.userAvatar.style.backgroundImage = 'none';
+    el.userAvatar.style.color = 'white';
+    el.userAvatar.style.backgroundColor = 'var(--accent)';
+    el.userAvatar.style.borderRadius = '50%';
+    return;
+  }
+      
+  // Check if photo is accessible (not restricted by privacy settings)
+  console.log('🔍 Checking photo accessibility...');
+  console.log('📸 Photo URL analysis:', {
+    url: user.photo_url,
+    isTelegramCDN: user.photo_url.includes('t.me'),
+    isUserpic: user.photo_url.includes('userpic'),
+    protocol: user.photo_url.startsWith('https') ? 'HTTPS' : 'HTTP'
+  });
+  
+  // First, try to fetch the photo with proper error handling
+  const fetchPromise = fetch(user.photo_url, { 
+    method: 'HEAD', // Only check if resource exists, don't download
+    mode: 'cors',
+    headers: {
+      'User-Agent': 'Mozilla/5.0 (compatible; TelegramMiniApp/1.0)'
+    }
+  });
+  
+  // Add timeout to prevent hanging
+  const timeoutPromise = new Promise((_, reject) => 
+    setTimeout(() => reject(new Error('Photo check timeout')), 5000)
+  );
+  
+  Promise.race([fetchPromise, timeoutPromise])
+  .then(response => {
+    console.log('📡 Photo fetch response:', {
+      status: response.status,
+      statusText: response.statusText,
+      ok: response.ok,
+      headers: Object.fromEntries(response.headers.entries())
+    });
+    
+    if (response.ok) {
+      console.log('✅ Photo is accessible, setting as background');
+      el.userAvatar.style.backgroundImage = `url(${user.photo_url})`;
+      el.userAvatar.style.backgroundSize = 'cover';
+      el.userAvatar.style.backgroundPosition = 'center';
+      el.userAvatar.style.backgroundRepeat = 'no-repeat';
+      el.userAvatar.style.borderRadius = '50%';
+      el.userAvatar.textContent = '';
+      el.userAvatar.style.color = 'transparent';
+    } else {
+      throw new Error(`Photo not accessible: ${response.status} ${response.statusText}`);
+    }
+  })
+  .catch(error => {
+    console.log('❌ Photo not accessible due to privacy settings:', error.message);
+    
+    // Try alternative method with no-cors
+    console.log('🔄 Trying alternative method...');
+    const testImg = new Image();
+    testImg.crossOrigin = 'anonymous';
+    testImg.onload = function() {
+      console.log('✅ Photo loaded via Image fallback');
+      el.userAvatar.style.backgroundImage = `url(${user.photo_url})`;
+      el.userAvatar.style.backgroundSize = 'cover';
+      el.userAvatar.style.backgroundPosition = 'center';
+      el.userAvatar.style.backgroundRepeat = 'no-repeat';
+      el.userAvatar.style.borderRadius = '50%';
+      el.userAvatar.textContent = '';
+      el.userAvatar.style.color = 'transparent';
+    };
+    testImg.onerror = function() {
+      console.log('❌ All methods failed, using initials fallback');
+      // Fallback to initials when photo is restricted by privacy
+      const firstName = user.first_name || '';
+      const lastName = user.last_name || '';
+      const initials = (firstName.charAt(0) + lastName.charAt(0)).toUpperCase();
+      el.userAvatar.textContent = initials;
+      el.userAvatar.style.backgroundImage = 'none';
+      el.userAvatar.style.color = 'white';
+      el.userAvatar.style.backgroundColor = 'var(--accent)';
+      el.userAvatar.style.borderRadius = '50%';
+    };
+    testImg.src = user.photo_url;
+  });
 }
 
 function closeProfile(){

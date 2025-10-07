@@ -1,0 +1,113 @@
+// Server endpoint для получения фотографии профиля пользователя
+// Использует Telegram Bot API метод getUserProfilePhotos
+
+const express = require('express');
+const axios = require('axios');
+
+const app = express();
+const PORT = process.env.PORT || 3001;
+
+// Telegram Bot Token (должен быть в переменных окружения)
+const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
+
+// Middleware для CORS
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  next();
+});
+
+app.use(express.json());
+
+// Endpoint для получения фотографии профиля
+app.get('/api/user-photo/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    
+    if (!BOT_TOKEN) {
+      return res.status(500).json({ 
+        error: 'Bot token not configured' 
+      });
+    }
+
+    // Вызываем Telegram Bot API
+    const response = await axios.get(
+      `https://api.telegram.org/bot${BOT_TOKEN}/getUserProfilePhotos`,
+      {
+        params: {
+          user_id: userId,
+          limit: 1 // Получаем только последнюю фотографию
+        }
+      }
+    );
+
+    const data = response.data;
+    
+    if (!data.ok || !data.result.photos || data.result.photos.length === 0) {
+      return res.json({ 
+        success: false, 
+        message: 'No profile photos found',
+        hasPhoto: false 
+      });
+    }
+
+    // Получаем фотографию с максимальным размером
+    const photos = data.result.photos[0]; // Берем последнюю фотографию
+    const largestPhoto = photos.reduce((max, current) => 
+      current.width > max.width ? current : max
+    );
+
+    // Получаем file_path для фотографии
+    const fileResponse = await axios.get(
+      `https://api.telegram.org/bot${BOT_TOKEN}/getFile`,
+      {
+        params: {
+          file_id: largestPhoto.file_id
+        }
+      }
+    );
+
+    if (!fileResponse.data.ok) {
+      return res.json({ 
+        success: false, 
+        message: 'Failed to get file path',
+        hasPhoto: false 
+      });
+    }
+
+    const filePath = fileResponse.data.result.file_path;
+    const photoUrl = `https://api.telegram.org/file/bot${BOT_TOKEN}/${filePath}`;
+
+    res.json({
+      success: true,
+      hasPhoto: true,
+      photoUrl: photoUrl,
+      fileId: largestPhoto.file_id,
+      width: largestPhoto.width,
+      height: largestPhoto.height,
+      fileSize: largestPhoto.file_size
+    });
+
+  } catch (error) {
+    console.error('Error getting user photo:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: error.message,
+      hasPhoto: false 
+    });
+  }
+});
+
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.json({ status: 'OK', timestamp: new Date().toISOString() });
+});
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+  console.log(`Health check: http://localhost:${PORT}/health`);
+  console.log(`User photo endpoint: http://localhost:${PORT}/api/user-photo/:userId`);
+});
+
+module.exports = app;
