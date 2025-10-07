@@ -954,7 +954,7 @@ function updateCommentaryIfNeeded(){
     
     // Проверяем козыри
     const lastCard = state.table.pairs[state.table.pairs.length - 1];
-    const trumpSuit = state.trump && state.trump.suit;
+    const trumpSuit = state.trumpSuit;
     const isPlayerTrump = lastCard && lastCard.attack && lastCard.attack.suit === trumpSuit;
     const isAiTrump = lastCard && lastCard.defense && lastCard.defense && lastCard.defense.suit === trumpSuit;
     
@@ -1133,6 +1133,9 @@ function renderTable(){
 
 function renderTableSide(){
   if (!el.trumpCard || !el.deckCard) return;
+  
+  // Отладочная информация
+  console.log('🃏 renderTableSide: trumpCard=', state.trumpCard, 'trumpSuit=', state.trumpSuit);
   
   // Trump indicator card - показываем масть козыря (лучше видно)
   el.trumpCard.className = "card indicator";
