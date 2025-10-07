@@ -763,6 +763,8 @@ function dealInitial(){
   console.log('🃏 Last card in deck:', state.deck[state.deck.length - 1]);
   console.log('🃏 Trump suit set to:', state.trumpSuit);
   console.log('🃏 Remaining deck (last 5):', state.deck.slice(-5).map(c => text(c)));
+  console.log('🃏 Trump card should be:', state.deck[state.deck.length - 1]);
+  console.log('🃏 Trump suit should be:', state.deck[state.deck.length - 1].suit);
 
   const lowestTrump = hand =>
     hand.filter(c => c.suit === state.trumpSuit)
