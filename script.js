@@ -624,8 +624,28 @@ function openProfile(){
   const tgAlt = window.Telegram;
   console.log('🔍 Alternative Telegram access:', !!tgAlt);
   
+  // Try to get user data from alternative sources
+  let user = null;
   if (tg && tg.initDataUnsafe?.user) {
-    const user = tg.initDataUnsafe.user;
+    user = tg.initDataUnsafe.user;
+  } else if (tgAlt && tgAlt.WebApp && tgAlt.WebApp.initDataUnsafe?.user) {
+    user = tgAlt.WebApp.initDataUnsafe.user;
+    console.log('🔍 Using alternative Telegram WebApp access');
+  } else if (tgAlt && tgAlt.WebApp && tgAlt.WebApp.initData) {
+    // Try to parse initData manually
+    try {
+      const initData = new URLSearchParams(tgAlt.WebApp.initData);
+      const userParam = initData.get('user');
+      if (userParam) {
+        user = JSON.parse(decodeURIComponent(userParam));
+        console.log('🔍 Parsed user from initData:', user);
+      }
+    } catch (e) {
+      console.log('⚠️ Failed to parse initData:', e);
+    }
+  }
+  
+  if (user) {
     console.log('🔍 Telegram user data:', user);
     
     // Get references to Telegram input fields
@@ -652,6 +672,13 @@ function openProfile(){
       }
       telegramFirstNameInput.value = fullName;
       console.log('✅ Set Telegram first name:', fullName);
+      
+      // Also update the main nickname field with Telegram name
+      if (el.userNickname) {
+        el.userNickname.value = fullName;
+        state.userProfile.nickname = fullName;
+        console.log('✅ Updated main nickname with Telegram name:', fullName);
+      }
     }
     
     // Update avatar with Telegram photo if available
@@ -666,6 +693,17 @@ function openProfile(){
     }
   } else {
     console.log('⚠️ Telegram data not available');
+    
+    // For testing purposes, set some default values
+    const telegramUsernameInput = document.getElementById('telegramUsername');
+    const telegramFirstNameInput = document.getElementById('telegramFirstName');
+    
+    if (telegramUsernameInput) {
+      telegramUsernameInput.value = 'Не подключено к Telegram';
+    }
+    if (telegramFirstNameInput) {
+      telegramFirstNameInput.value = 'Не подключено к Telegram';
+    }
   }
 }
 
