@@ -77,17 +77,28 @@ function cardImagePath(card){
   // Универсальная функция для получения пути к карте
   // Приоритет: WebP -> SVG (fallback)
 
-  const suitMap = { '♣':'clubs', '♦':'diamonds', '♥':'hearts', '♠':'spades' };
-  const rankMap = { 'J':'jack', 'Q':'queen', 'K':'king', 'A':'ace' };
+  // ПРАВИЛЬНЫЙ МАППИНГ для ваших карт с суффиксами
+  const suitMap = { '♣':'t', '♦':'b', '♥':'ch', '♠':'p' };
+  const rankMap = { 'J':'J', 'Q':'Q', 'K':'K', 'A':'A' };
   const suit = suitMap[card.suit];
   let rank = card.rank;
   if (rankMap[rank]) rank = rankMap[rank];
   
+  // КРИТИЧЕСКАЯ ОТЛАДОЧНАЯ ИНФОРМАЦИЯ - проверка маппинга мастей
+  console.log(`🔍 === CARD IMAGE PATH DEBUG ===`);
+  console.log(`🔍 Original card: ${text(card)}`);
+  console.log(`🔍 Original suit: ${card.suit}`);
+  console.log(`🔍 Mapped suit: ${suit}`);
+  console.log(`🔍 Original rank: ${card.rank}`);
+  console.log(`🔍 Mapped rank: ${rank}`);
+  console.log(`🔍 Suit mapping: ${card.suit} -> ${suit}`);
+  console.log(`🔍 === END CARD IMAGE PATH DEBUG ===`);
+  
   console.log(`🃏 cardImagePath: card=${text(card)}, theme=${state.theme}, supportsWebP=${supportsWebP}`);
 
-  // Если WebP поддерживается, используем WebP карты
+  // Если WebP поддерживается, используем WebP карты с правильными суффиксами
   if (supportsWebP) {
-    const webpPath = `./themes/${state.theme}/cards/WEBP_cards/${String(rank).toLowerCase()}_of_${suit}.webp`;
+    const webpPath = `./themes/${state.theme}/cards/WEBP_cards/${rank}${suit}.webp`;
     console.log(`🖼️ Loading WebP card: ${webpPath}`);
     return webpPath;
   }
@@ -1327,6 +1338,13 @@ function renderHand(){
       d.setAttribute("data-card-id", card.id);
       const cardSrc = cardImagePath(card);
       d.innerHTML = `<img alt="${text(card)}" src="${cardSrc}" loading="eager">`;
+      
+      // КРИТИЧЕСКАЯ ОТЛАДОЧНАЯ ИНФОРМАЦИЯ - проверка отображения карт
+      console.log(`🔍 === CARD DISPLAY DEBUG ===`);
+      console.log(`🔍 Card: ${text(card)}, card.suit: ${card.suit}, card.rank: ${card.rank}`);
+      console.log(`🔍 cardSrc: ${cardSrc}`);
+      console.log(`🔍 cardImagePath result:`, cardImagePath(card));
+      console.log(`🔍 === END CARD DISPLAY DEBUG ===`);
       
   // МАКСИМАЛЬНАЯ ОТЛАДОЧНАЯ ИНФОРМАЦИЯ ДЛЯ RENDER HAND
   console.log(`🔍 === RENDER HAND DEBUG ===`);
