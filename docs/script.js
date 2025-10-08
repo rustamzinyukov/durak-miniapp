@@ -782,17 +782,27 @@ function loadPlayerStats() {
 }
 
 function showAchievementsModal() {
+  console.log('🏆 showAchievementsModal called');
   const modal = document.getElementById('achievementsModal');
-  if (!modal) return;
+  console.log('🏆 Modal element:', modal);
   
+  if (!modal) {
+    console.error('❌ achievementsModal not found!');
+    return;
+  }
+  
+  console.log('🏆 Updating player level display...');
   // Обновляем информацию об игроке
   updatePlayerLevelDisplay();
   
+  console.log('🏆 Rendering achievements...');
   // Рендерим достижения
   renderAchievements();
   
+  console.log('🏆 Showing modal...');
   // Показываем модальное окно
   modal.style.display = 'flex';
+  console.log('✅ Modal should be visible now');
 }
 
 function updatePlayerLevelDisplay() {
@@ -4200,7 +4210,13 @@ function bindEvents(){
 
   // Обработчики для статистики
   if (el.statsButton){
-    el.statsButton.addEventListener('click', showAchievementsModal);
+    console.log('📊 Adding click listener to stats button');
+    el.statsButton.addEventListener('click', function(e) {
+      console.log('📊 Stats button clicked!', e);
+      showAchievementsModal();
+    });
+  } else {
+    console.error('❌ statsButton not found!');
   }
   
   // Обработчики для модального окна достижений
@@ -5023,6 +5039,18 @@ async function main(){
     return newAchievements;
   };
   
+  window.testStatsButton = function() {
+    console.log('🧪 Testing stats button...');
+    const button = document.getElementById('statsButton');
+    console.log('📊 Button element:', button);
+    if (button) {
+      console.log('📊 Button found, triggering click...');
+      button.click();
+    } else {
+      console.error('❌ Button not found!');
+    }
+  };
+  
   window.exportStats = function() {
     const stats = state.playerStats;
     const json = JSON.stringify(stats, null, 2);
@@ -5053,6 +5081,7 @@ async function main(){
   console.log('  - window.showStats() - показать текущую статистику');
   console.log('  - window.showAchievements() - показать достижения');
   console.log('  - window.testAchievements() - проверить достижения');
+  console.log('  - window.testStatsButton() - протестировать кнопку статистики');
   console.log('  - window.exportStats() - экспортировать в JSON файл');
   console.log('  - window.importStats(json) - импортировать из JSON');
   console.log('  - window.clearStats() - очистить статистику');
