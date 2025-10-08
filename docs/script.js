@@ -3292,15 +3292,15 @@ function findLowestValidAttack(hand, limit){
   const ranks = Object.keys(byRank);
   console.log(`🔍 findLowestValidAttack: ranks found:`, ranks);
   
-  // Улучшенная стратегия: иногда выбираем случайно, иногда по стратегии
+  // Улучшенная стратегия: более агрессивная игра
   const strategy = Math.random();
   let sortedRanks;
   
-  if (strategy < 0.3) {
-    // 30% - случайный выбор
+  if (strategy < 0.5) {
+    // 50% - случайный выбор (более разнообразная игра)
     sortedRanks = ranks.sort(() => Math.random() - 0.5);
   } else if (strategy < 0.7) {
-    // 40% - выбираем низкие карты (экономим сильные)
+    // 20% - выбираем низкие карты (экономим сильные)
     sortedRanks = ranks.sort((a,b)=>RANK_VALUE[a]-RANK_VALUE[b]);
   } else {
     // 30% - выбираем высокие карты (агрессивная игра)
@@ -3310,7 +3310,19 @@ function findLowestValidAttack(hand, limit){
   for (const r of sortedRanks){
     const g = byRank[r];
     if (g.length){
-      const take = Math.min(g.length, Math.max(1, Math.min(limit, g.length)));
+      // Более агрессивный выбор количества карт
+      let take;
+      if (strategy < 0.3) {
+        // 30% - атакуем всеми доступными картами
+        take = Math.min(g.length, limit);
+      } else if (strategy < 0.6) {
+        // 30% - атакуем случайным количеством
+        take = Math.min(g.length, Math.max(1, Math.floor(Math.random() * Math.min(limit, g.length)) + 1));
+      } else {
+        // 40% - атакуем одной картой (консервативно)
+        take = 1;
+      }
+      take = Math.min(take, Math.min(g.length, limit));
       console.log(`🔍 findLowestValidAttack: found rank ${r} with ${g.length} cards, taking ${take} (strategy: ${strategy.toFixed(2)})`);
       return g.slice(0,take);
     }
@@ -3323,13 +3335,21 @@ function aiAttack(player){
   const max = state.maxTableThisRound - state.table.pairs.length;
   console.log(`🤖 AI Attack: max=${max}, hand=${player.hand.length} cards`);
   
-  const sel = findLowestValidAttack(player.hand, max);
+  let sel = findLowestValidAttack(player.hand, max);
+  
+  // Fallback: если нет валидных карт по правилам, атакуем любой картой
+  if (!sel && player.hand.length > 0) {
+    console.log(`🤖 AI Attack: No valid attack by rules, using fallback - any card`);
+    const fallbackCard = player.hand[Math.floor(Math.random() * player.hand.length)];
+    sel = [fallbackCard];
+  }
+  
   if (!sel) {
-    console.log(`🤖 AI Attack: No valid attack found, max=${max}`);
+    console.log(`🤖 AI Attack: No cards available to attack`);
     return false;
   }
   
-  console.log(`🤖 AI Attack: Selected ${sel.length} cards for attack`);
+  console.log(`🤖 AI Attack: Selected ${sel.length} cards for attack:`, sel.map(c => text(c)));
   
   // Добавляем задержку для "планирования" атаки ИИ
   setTimeout(() => {
@@ -3486,10 +3506,15 @@ function aiLoopStep(){
       // aiAttack уже содержит setTimeout, поэтому не нужно вызывать aiLoopStep сразу
       return; // Выходим из функции, aiAttack сам вызовет render() и aiLoopStep
     } else {
-      console.log(`🤖 AI Attack failed, checking if game should end...`);
-      // Если ИИ не может атаковать, проверяем конец игры
-      checkEndgame();
-      return; // Выходим из функции
+      console.log(`🤖 AI Attack failed, passing turn to next player...`);
+      // Если ИИ не может атаковать, передаем ход следующему игроку
+      state.attackerIndex = (state.attackerIndex + 1) % state.players.length;
+      state.defenderIndex = (state.defenderIndex + 1) % state.players.length;
+      state.phase = "attacking";
+      state.table.pairs = [];
+      render();
+      setTimeout(aiLoopStep, 500);
+      return;
     }
   } else if (state.phase === "defending" && !defender.isHuman){
     console.log(`🤖 AI Loop: trying to defend with ${defender.name}`);
