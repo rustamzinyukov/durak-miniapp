@@ -781,25 +781,112 @@ function loadPlayerStats() {
   });
 }
 
-function showStatsModal() {
-  const modal = document.getElementById('statsModal');
+function showAchievementsModal() {
+  const modal = document.getElementById('achievementsModal');
   if (!modal) return;
   
-  // Обновляем значения в модальном окне
-  document.getElementById('totalGames').textContent = state.playerStats.totalGames;
-  document.getElementById('wins').textContent = state.playerStats.wins;
-  document.getElementById('losses').textContent = state.playerStats.losses;
+  // Обновляем информацию об игроке
+  updatePlayerLevelDisplay();
   
-  const winRate = state.playerStats.totalGames > 0 
-    ? Math.round((state.playerStats.wins / state.playerStats.totalGames) * 100)
-    : 0;
-  document.getElementById('winRate').textContent = `${winRate}%`;
-  
-  document.getElementById('currentStreak').textContent = state.playerStats.currentStreak;
-  document.getElementById('bestStreak').textContent = state.playerStats.bestStreak;
+  // Рендерим достижения
+  renderAchievements();
   
   // Показываем модальное окно
   modal.style.display = 'flex';
+}
+
+function updatePlayerLevelDisplay() {
+  const achievements = state.playerStats.achievements || {
+    level: 1,
+    title: "Новичок",
+    points: 0
+  };
+  
+  document.getElementById('playerLevel').textContent = `Уровень ${achievements.level}`;
+  document.getElementById('playerTitle').textContent = achievements.title;
+  document.getElementById('playerPoints').textContent = `${achievements.points} очков`;
+}
+
+function renderAchievements() {
+  const grid = document.getElementById('achievementsGrid');
+  if (!grid) return;
+  
+  grid.innerHTML = '';
+  
+  const achievements = state.playerStats.achievements || { unlocked: [] };
+  const unlocked = achievements.unlocked || [];
+  
+  Object.values(ACHIEVEMENTS).forEach(achievement => {
+    const isUnlocked = unlocked.includes(achievement.id);
+    const card = createAchievementCard(achievement, isUnlocked);
+    grid.appendChild(card);
+  });
+}
+
+function createAchievementCard(achievement, isUnlocked) {
+  const card = document.createElement('div');
+  card.className = `achievement-card ${achievement.rarity} ${isUnlocked ? 'unlocked' : 'locked'}`;
+  
+  card.innerHTML = `
+    <div class="achievement-status ${isUnlocked ? 'unlocked' : 'locked'}"></div>
+    <div class="achievement-header">
+      <div class="achievement-icon">${achievement.icon}</div>
+      <div class="achievement-info">
+        <h4>${achievement.name}</h4>
+        <p>${achievement.description}</p>
+      </div>
+    </div>
+    <div class="achievement-footer">
+      <div class="achievement-points">+${achievement.points} очков</div>
+    </div>
+  `;
+  
+  return card;
+}
+
+function hideAchievementsModal() {
+  const modal = document.getElementById('achievementsModal');
+  if (modal) {
+    modal.style.display = 'none';
+  }
+}
+
+function filterAchievements(tabType) {
+  const grid = document.getElementById('achievementsGrid');
+  if (!grid) return;
+  
+  const achievements = state.playerStats.achievements || { unlocked: [] };
+  const unlocked = achievements.unlocked || [];
+  
+  // Очищаем сетку
+  grid.innerHTML = '';
+  
+  Object.values(ACHIEVEMENTS).forEach(achievement => {
+    const isUnlocked = unlocked.includes(achievement.id);
+    let shouldShow = true;
+    
+    switch (tabType) {
+      case 'unlocked':
+        shouldShow = isUnlocked;
+        break;
+      case 'locked':
+        shouldShow = !isUnlocked;
+        break;
+      case 'progress':
+        // Показываем только заблокированные достижения (в процессе)
+        shouldShow = !isUnlocked;
+        break;
+      case 'all':
+      default:
+        shouldShow = true;
+        break;
+    }
+    
+    if (shouldShow) {
+      const card = createAchievementCard(achievement, isUnlocked);
+      grid.appendChild(card);
+    }
+  });
 }
 
 function hideStatsModal() {
@@ -4113,20 +4200,20 @@ function bindEvents(){
 
   // Обработчики для статистики
   if (el.statsButton){
-    el.statsButton.addEventListener('click', showStatsModal);
+    el.statsButton.addEventListener('click', showAchievementsModal);
   }
   
-  // Обработчики для модального окна статистики
-  const statsModalClose = document.getElementById('statsModalClose');
-  const statsModalOk = document.getElementById('statsModalOk');
+  // Обработчики для модального окна достижений
+  const achievementsModalClose = document.getElementById('achievementsModalClose');
+  const achievementsModalOk = document.getElementById('achievementsModalOk');
   const exportStatsBtn = document.getElementById('exportStatsBtn');
   
-  if (statsModalClose) {
-    statsModalClose.addEventListener('click', hideStatsModal);
+  if (achievementsModalClose) {
+    achievementsModalClose.addEventListener('click', hideAchievementsModal);
   }
   
-  if (statsModalOk) {
-    statsModalOk.addEventListener('click', hideStatsModal);
+  if (achievementsModalOk) {
+    achievementsModalOk.addEventListener('click', hideAchievementsModal);
   }
   
   if (exportStatsBtn) {
@@ -4136,12 +4223,27 @@ function bindEvents(){
     });
   }
   
+  // Обработчики для табов достижений
+  const tabs = document.querySelectorAll('.achievements-tabs .tab');
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      // Убираем активный класс со всех табов
+      tabs.forEach(t => t.classList.remove('active'));
+      // Добавляем активный класс к текущему табу
+      tab.classList.add('active');
+      
+      // Фильтруем достижения
+      const tabType = tab.dataset.tab;
+      filterAchievements(tabType);
+    });
+  });
+  
   // Закрытие модального окна по клику вне его
-  const statsModal = document.getElementById('statsModal');
-  if (statsModal) {
-    statsModal.addEventListener('click', (e) => {
-      if (e.target === statsModal) {
-        hideStatsModal();
+  const achievementsModal = document.getElementById('achievementsModal');
+  if (achievementsModal) {
+    achievementsModal.addEventListener('click', (e) => {
+      if (e.target === achievementsModal) {
+        hideAchievementsModal();
       }
     });
   }
@@ -4341,7 +4443,7 @@ function setupTelegramButtons() {
   // Кнопка "Статистика"
   tg.MainButton.setText('📊 Статистика');
   tg.MainButton.onClick(() => {
-    showStatsModal();
+    showAchievementsModal();
   });
 }
 
