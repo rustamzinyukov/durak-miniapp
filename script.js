@@ -618,7 +618,7 @@ function showDebugModal() {
     
     // Информация о версии приложения
     debugData += '📱 ИНФОРМАЦИЯ О ПРИЛОЖЕНИИ:\n';
-    debugData += '  - Версия: v98 (script.js)\n';
+    debugData += '  - Версия: v99 (script.js)\n';
     debugData += '  - Время сборки: ' + new Date().toLocaleString('ru-RU') + '\n';
     debugData += '  - User-Agent: ' + navigator.userAgent.substring(0, 50) + '...\n';
     debugData += '  - URL: ' + window.location.href.substring(0, 80) + '...\n\n';
@@ -704,11 +704,11 @@ function showDebugModal() {
         
         // Добавляем информацию о сервере
         debugData += '\n🖥️ ИНФОРМАЦИЯ О СЕРВЕРЕ:\n';
-        debugData += '  - Сервер URL: http://localhost:3001/api/user-photo/USER_ID\n';
-        debugData += '  - Статус: ' + (window.location.protocol === 'https:' ? 'HTTPS (может блокировать localhost)' : 'HTTP') + '\n';
+        debugData += '  - Сервер URL: https://durak-miniapp-production.up.railway.app/api/user-photo/USER_ID\n';
+        debugData += '  - Статус: HTTPS (Railway сервер)\n';
         debugData += '  - Telegram Mini App: ' + (window.location.href.includes('t.me') ? 'ДА' : 'НЕТ') + '\n';
-        debugData += '  - CORS: ' + (window.location.origin !== 'http://localhost:3001' ? 'Может блокировать' : 'OK') + '\n';
-        debugData += '  - Примечание: В Telegram Mini App localhost может быть недоступен\n';
+        debugData += '  - CORS: OK (оба сервиса на HTTPS)\n';
+        debugData += '  - Примечание: Сервер развернут на Railway\n';
       } catch (e) {
         debugData += '\n❌ Ошибка парсинга URL данных: ' + e.message + '\n';
       }
@@ -1040,9 +1040,9 @@ function openProfile(){
       // Try to get photo through server API (if available)
       if (user.id) {
         console.log('🔄 Trying to get photo through server API...');
-        console.log('🔍 Server URL:', `http://localhost:3001/api/user-photo/${user.id}`);
+        console.log('🔍 Server URL:', `https://durak-miniapp-production.up.railway.app/api/user-photo/${user.id}`);
         
-        fetch(`http://localhost:3001/api/user-photo/${user.id}`)
+        fetch(`https://durak-miniapp-production.up.railway.app/api/user-photo/${user.id}`)
           .then(response => {
             console.log('📡 Server response status:', response.status);
             return response.json();
