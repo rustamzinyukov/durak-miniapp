@@ -1685,13 +1685,16 @@ html::before {
   font-size: 2.5rem; 
   font-weight: 900; 
   background: #ffffff !important;
-  border-radius: 8px;
-  padding: 20px 24px;
+  border-radius: clamp(8px, 2vw, 14px);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
   border: 2px solid rgba(0, 0, 0, 0.1);
-  display: inline-block;
-  min-width: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   text-align: center;
+  /* Используем те же размеры, что и карта колоды */
+  width: clamp(60px, 10vw, 90px);
+  height: clamp(90px, 15vw, 135px);
 }
 .table-side .deck-count { 
   font-size: 1.2rem; 
