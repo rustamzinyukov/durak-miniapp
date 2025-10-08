@@ -621,7 +621,7 @@ function showDebugModal() {
     
     // Информация о версии приложения
     debugData += '📱 ИНФОРМАЦИЯ О ПРИЛОЖЕНИИ:\n';
-    debugData += '  - Версия: v117 (script.js)\n';
+    debugData += '  - Версия: v118 (script.js)\n';
     debugData += '  - Время сборки: ' + new Date().toLocaleString('ru-RU') + '\n';
     debugData += '  - User-Agent: ' + navigator.userAgent.substring(0, 50) + '...\n';
     debugData += '  - URL: ' + window.location.href.substring(0, 80) + '...\n\n';
@@ -841,16 +841,25 @@ function testTelegramDataParsing() {
 // Profile modal functions
 function openProfile(){
   console.log('🔍 OPENING PROFILE - Starting debug info collection');
+  console.log('🔍 openProfile function called!');
+  console.log('🔍 el.profileModal:', el.profileModal);
+  console.log('🔍 el.profileOverlay:', el.profileOverlay);
   
   // Initialize window.debugInfo if it doesn't exist
   if (!window.debugInfo) {
     window.debugInfo = '';
+    console.log('🔍 Initialized window.debugInfo');
   }
   
   // Add debug info to the debug panel IMMEDIATELY
   window.debugInfo += '\n🔍 PROFILE OPENED DEBUG:\n';
   window.debugInfo += '  - Status: Profile opened successfully\n';
   window.debugInfo += '  - Time: ' + new Date().toLocaleString('ru-RU') + '\n';
+  window.debugInfo += '  - Function: openProfile() called\n';
+  window.debugInfo += '  - Elements found: profileModal=' + !!el.profileModal + ', profileOverlay=' + !!el.profileOverlay + '\n';
+  
+  console.log('🔍 Added debug info to window.debugInfo');
+  console.log('🔍 window.debugInfo length:', window.debugInfo.length);
   
   el.profileModal.classList.add('active');
   el.profileOverlay.classList.add('active');
