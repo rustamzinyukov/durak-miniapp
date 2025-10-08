@@ -783,6 +783,8 @@ function loadPlayerStats() {
 
 function showAchievementsModal() {
   console.log('🏆 showAchievementsModal called');
+  console.trace('🏆 Call stack:'); // Выводим стек вызова
+  
   const modal = document.getElementById('achievementsModal');
   console.log('🏆 Modal element:', modal);
   
