@@ -618,7 +618,7 @@ function showDebugModal() {
     
     // Информация о версии приложения
     debugData += '📱 ИНФОРМАЦИЯ О ПРИЛОЖЕНИИ:\n';
-    debugData += '  - Версия: v97 (script.js)\n';
+    debugData += '  - Версия: v98 (script.js)\n';
     debugData += '  - Время сборки: ' + new Date().toLocaleString('ru-RU') + '\n';
     debugData += '  - User-Agent: ' + navigator.userAgent.substring(0, 50) + '...\n';
     debugData += '  - URL: ' + window.location.href.substring(0, 80) + '...\n\n';
@@ -701,6 +701,14 @@ function showDebugModal() {
             debugData += '\n❌ Альтернативный парсинг также не сработал\n';
           }
         }
+        
+        // Добавляем информацию о сервере
+        debugData += '\n🖥️ ИНФОРМАЦИЯ О СЕРВЕРЕ:\n';
+        debugData += '  - Сервер URL: http://localhost:3001/api/user-photo/USER_ID\n';
+        debugData += '  - Статус: ' + (window.location.protocol === 'https:' ? 'HTTPS (может блокировать localhost)' : 'HTTP') + '\n';
+        debugData += '  - Telegram Mini App: ' + (window.location.href.includes('t.me') ? 'ДА' : 'НЕТ') + '\n';
+        debugData += '  - CORS: ' + (window.location.origin !== 'http://localhost:3001' ? 'Может блокировать' : 'OK') + '\n';
+        debugData += '  - Примечание: В Telegram Mini App localhost может быть недоступен\n';
       } catch (e) {
         debugData += '\n❌ Ошибка парсинга URL данных: ' + e.message + '\n';
       }
@@ -728,9 +736,9 @@ function showVersionModal() {
     versionData += '=====================================\n\n';
     
     versionData += '🔢 Версия приложения:\n';
-    versionData += '  - script.js: v97\n';
+    versionData += '  - script.js: v98\n';
     versionData += '  - style.css: v74\n';
-    versionData += '  - index.html: v97\n\n';
+    versionData += '  - index.html: v98\n\n';
     
     versionData += '⏰ Время сборки:\n';
     versionData += '  - Текущее время: ' + new Date().toLocaleString('ru-RU') + '\n';
