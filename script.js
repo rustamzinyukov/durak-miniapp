@@ -621,7 +621,7 @@ function showDebugModal() {
     
     // Информация о версии приложения
     debugData += '📱 ИНФОРМАЦИЯ О ПРИЛОЖЕНИИ:\n';
-    debugData += '  - Версия: v126 (script.js)\n';
+    debugData += '  - Версия: v127 (script.js)\n';
     debugData += '  - Время сборки: ' + new Date().toLocaleString('ru-RU') + '\n';
     debugData += '  - User-Agent: ' + navigator.userAgent.substring(0, 50) + '...\n';
     debugData += '  - URL: ' + window.location.href.substring(0, 80) + '...\n\n';
@@ -1113,43 +1113,31 @@ function openProfile(){
     }
     
     if (user.id) {
-      fetch(`https://durak-miniapp-production.up.railway.app/api/user-photo/${user.id}`)
-        .then(response => {
-          console.log('📡 Server response status:', response.status);
-          if (window.debugInfo) {
-            window.debugInfo += '  - Response status: ' + response.status + '\n';
-          }
-          return response.json();
-        })
-        .then(data => {
-          console.log('📋 Server response data:', data);
-          if (window.debugInfo) {
-            window.debugInfo += '  - Response data: ' + JSON.stringify(data).substring(0, 100) + '...\n';
-          }
-          if (data.success && data.hasPhoto && data.photoUrl) {
-            console.log('✅ Got photo from server API:', data.photoUrl);
-            if (window.debugInfo) {
-              window.debugInfo += '  - Result: SUCCESS - Photo found!\n';
-              window.debugInfo += '  - Photo URL: ' + data.photoUrl + '\n';
-            }
-            user.photo_url = data.photoUrl;
-            // Continue with photo loading process
-            loadUserPhoto(user, el);
-          } else {
-            console.log('⚠️ Server API returned no photo, using original URL');
-            if (window.debugInfo) {
-              window.debugInfo += '  - Result: NO PHOTO - Using original URL\n';
-            }
-            loadUserPhoto(user, el);
-          }
-        })
-        .catch(error => {
-          console.log('❌ Server API error:', error.message);
-          if (window.debugInfo) {
-            window.debugInfo += '  - Result: ERROR - ' + error.message + '\n';
-          }
-          loadUserPhoto(user, el);
-        });
+      // Server now returns image directly, not JSON
+      const photoUrl = `https://durak-miniapp-production.up.railway.app/api/user-photo/${user.id}`;
+      console.log('✅ Using server photo proxy:', photoUrl);
+      
+      if (window.debugInfo) {
+        window.debugInfo += '  - Photo URL: ' + photoUrl + '\n';
+        window.debugInfo += '  - Loading directly from server...\n';
+      }
+      
+      // Use the server URL directly as the photo URL
+      user.photo_url = photoUrl;
+      
+      // Set the photo directly without additional checks
+      el.userAvatar.style.backgroundImage = `url(${photoUrl})`;
+      el.userAvatar.style.backgroundSize = 'cover';
+      el.userAvatar.style.backgroundPosition = 'center';
+      el.userAvatar.style.backgroundRepeat = 'no-repeat';
+      el.userAvatar.style.borderRadius = '50%';
+      el.userAvatar.textContent = '';
+      el.userAvatar.style.color = 'transparent';
+      
+      console.log('✅ Photo set successfully!');
+      if (window.debugInfo) {
+        window.debugInfo += '  - Result: SUCCESS - Photo loaded from server!\n';
+      }
     } else {
       if (window.debugInfo) {
         window.debugInfo += '  - Result: NO USER ID - Skipping server request\n';

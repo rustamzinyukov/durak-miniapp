@@ -86,15 +86,18 @@ app.get('/api/user-photo/:userId', async (req, res) => {
     const filePath = fileResponse.data.result.file_path;
     const photoUrl = `https://api.telegram.org/file/bot${BOT_TOKEN}/${filePath}`;
 
-    res.json({
-      success: true,
-      hasPhoto: true,
-      photoUrl: photoUrl,
-      fileId: largestPhoto.file_id,
-      width: largestPhoto.width,
-      height: largestPhoto.height,
-      fileSize: largestPhoto.file_size
+    // Download the photo and return it as image
+    const photoResponse = await axios.get(photoUrl, {
+      responseType: 'arraybuffer'
     });
+
+    // Set appropriate headers
+    res.set('Content-Type', 'image/jpeg');
+    res.set('Cache-Control', 'public, max-age=86400'); // Cache for 24 hours
+    res.set('Access-Control-Allow-Origin', '*');
+    
+    // Send the image
+    res.send(Buffer.from(photoResponse.data, 'binary'));
 
   } catch (error) {
     console.error('Error getting user photo:', error);
