@@ -621,7 +621,7 @@ function showDebugModal() {
     
     // Информация о версии приложения
     debugData += '📱 ИНФОРМАЦИЯ О ПРИЛОЖЕНИИ:\n';
-    debugData += '  - Версия: v125 (script.js)\n';
+    debugData += '  - Версия: v126 (script.js)\n';
     debugData += '  - Время сборки: ' + new Date().toLocaleString('ru-RU') + '\n';
     debugData += '  - User-Agent: ' + navigator.userAgent.substring(0, 50) + '...\n';
     debugData += '  - URL: ' + window.location.href.substring(0, 80) + '...\n\n';
@@ -731,6 +731,11 @@ function showDebugModal() {
       } catch (e) {
         debugData += '\n❌ Ошибка парсинга URL данных: ' + e.message + '\n';
       }
+    }
+    
+    // Add global profile debug log if it exists
+    if (window.PROFILE_DEBUG_LOG) {
+      debugData += window.PROFILE_DEBUG_LOG;
     }
     
     // Update global debug info with any server request info
@@ -857,13 +862,22 @@ function openProfile(){
     console.log('🔍 Initialized window.debugInfo');
   }
   
-  // Add debug info to the debug panel IMMEDIATELY
-  window.debugInfo += '\n🔍 PROFILE OPENED DEBUG:\n';
-  window.debugInfo += '  - Status: Profile opened successfully\n';
-  window.debugInfo += '  - Time: ' + new Date().toLocaleString('ru-RU') + '\n';
-  window.debugInfo += '  - Function: openProfile() called\n';
-  window.debugInfo += '  - Call count: ' + window.PROFILE_OPENED_COUNT + '\n';
-  window.debugInfo += '  - Elements found: profileModal=' + !!el.profileModal + ', profileOverlay=' + !!el.profileOverlay + '\n';
+  // Add debug info GLOBALLY so it persists
+  if (!window.PROFILE_DEBUG_LOG) {
+    window.PROFILE_DEBUG_LOG = '';
+  }
+  
+  window.PROFILE_DEBUG_LOG += '\n🔍 PROFILE OPENED DEBUG:\n';
+  window.PROFILE_DEBUG_LOG += '  - Status: Profile opened successfully\n';
+  window.PROFILE_DEBUG_LOG += '  - Time: ' + new Date().toLocaleString('ru-RU') + '\n';
+  window.PROFILE_DEBUG_LOG += '  - Function: openProfile() called\n';
+  window.PROFILE_DEBUG_LOG += '  - Call count: ' + window.PROFILE_OPENED_COUNT + '\n';
+  window.PROFILE_DEBUG_LOG += '  - Elements found: profileModal=' + !!el.profileModal + ', profileOverlay=' + !!el.profileOverlay + '\n';
+  
+  // Also add to window.debugInfo if it exists
+  if (window.debugInfo) {
+    window.debugInfo += window.PROFILE_DEBUG_LOG;
+  }
   
   console.log('🔍 Added debug info to window.debugInfo');
   console.log('🔍 window.debugInfo length:', window.debugInfo.length);
