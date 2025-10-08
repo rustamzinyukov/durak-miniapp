@@ -616,9 +616,12 @@ function showDebugModal() {
     let debugData = '🔍 TELEGRAM WEBAPP DEBUG INFO\n';
     debugData += '================================\n\n';
     
+    // Initialize global debug info for server requests
+    window.debugInfo = debugData;
+    
     // Информация о версии приложения
     debugData += '📱 ИНФОРМАЦИЯ О ПРИЛОЖЕНИИ:\n';
-    debugData += '  - Версия: v103 (script.js)\n';
+    debugData += '  - Версия: v104 (script.js)\n';
     debugData += '  - Время сборки: ' + new Date().toLocaleString('ru-RU') + '\n';
     debugData += '  - User-Agent: ' + navigator.userAgent.substring(0, 50) + '...\n';
     debugData += '  - URL: ' + window.location.href.substring(0, 80) + '...\n\n';
@@ -712,6 +715,11 @@ function showDebugModal() {
       } catch (e) {
         debugData += '\n❌ Ошибка парсинга URL данных: ' + e.message + '\n';
       }
+    }
+    
+    // Update global debug info with any server request info
+    if (window.debugInfo && window.debugInfo !== debugData) {
+      debugData += window.debugInfo.substring(debugData.length);
     }
     
     debugInfo.textContent = debugData;
@@ -1042,34 +1050,65 @@ function openProfile(){
       console.log('🔍 User ID:', user.id);
       console.log('🔍 User ID type:', typeof user.id);
       
+      // Add debug info to the debug panel
+      if (window.debugInfo) {
+        window.debugInfo += '\n🔍 SERVER REQUEST DEBUG:\n';
+        window.debugInfo += '  - User ID: ' + (user.id || 'undefined') + '\n';
+        window.debugInfo += '  - User ID type: ' + (typeof user.id) + '\n';
+        window.debugInfo += '  - Server URL: https://durak-miniapp-production.up.railway.app/api/user-photo/' + (user.id || 'undefined') + '\n';
+      }
+      
       if (user.id) {
         console.log('🔄 Trying to get photo through server API...');
         console.log('🔍 Server URL:', `https://durak-miniapp-production.up.railway.app/api/user-photo/${user.id}`);
         
+        if (window.debugInfo) {
+          window.debugInfo += '  - Status: Making request...\n';
+        }
+        
         fetch(`https://durak-miniapp-production.up.railway.app/api/user-photo/${user.id}`)
           .then(response => {
             console.log('📡 Server response status:', response.status);
+            if (window.debugInfo) {
+              window.debugInfo += '  - Response status: ' + response.status + '\n';
+            }
             return response.json();
           })
           .then(data => {
             console.log('📋 Server response data:', data);
+            if (window.debugInfo) {
+              window.debugInfo += '  - Response data: ' + JSON.stringify(data).substring(0, 100) + '...\n';
+            }
             if (data.success && data.hasPhoto && data.photoUrl) {
               console.log('✅ Got photo from server API:', data.photoUrl);
+              if (window.debugInfo) {
+                window.debugInfo += '  - Result: SUCCESS - Photo found!\n';
+                window.debugInfo += '  - Photo URL: ' + data.photoUrl + '\n';
+              }
               user.photo_url = data.photoUrl;
               // Continue with photo loading process
               loadUserPhoto(user, el);
             } else {
               console.log('⚠️ Server API returned no photo, using original URL');
               console.log('🔍 Server response:', data);
+              if (window.debugInfo) {
+                window.debugInfo += '  - Result: NO PHOTO - Using original URL\n';
+              }
               loadUserPhoto(user, el);
             }
           })
           .catch(error => {
             console.log('❌ Server API error:', error.message);
             console.log('⚠️ Server API not available, using original URL');
+            if (window.debugInfo) {
+              window.debugInfo += '  - Result: ERROR - ' + error.message + '\n';
+            }
             loadUserPhoto(user, el);
           });
       } else {
+        if (window.debugInfo) {
+          window.debugInfo += '  - Result: NO USER ID - Skipping server request\n';
+        }
         loadUserPhoto(user, el);
       }
     } else {
