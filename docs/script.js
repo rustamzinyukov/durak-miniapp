@@ -119,6 +119,239 @@ function cardImagePath(card){
 }
 
 // ========================================
+// 🏆 ACHIEVEMENTS SYSTEM
+// ========================================
+
+// Определения достижений
+const ACHIEVEMENTS = {
+  // Базовые достижения
+  first_game: {
+    id: 'first_game',
+    name: 'Новичок',
+    description: 'Сыграть первую игру',
+    icon: '🎮',
+    category: 'basic',
+    rarity: 'bronze',
+    points: 10,
+    condition: (stats) => stats.totalGames >= 1
+  },
+  
+  first_win: {
+    id: 'first_win',
+    name: 'Первая победа',
+    description: 'Выиграть первую игру',
+    icon: '🏆',
+    category: 'basic',
+    rarity: 'bronze',
+    points: 20,
+    condition: (stats) => stats.wins >= 1
+  },
+  
+  first_loss: {
+    id: 'first_loss',
+    name: 'Первое поражение',
+    description: 'Проиграть первую игру',
+    icon: '😅',
+    category: 'basic',
+    rarity: 'bronze',
+    points: 5,
+    condition: (stats) => stats.losses >= 1
+  },
+  
+  // Серии побед
+  streak_3: {
+    id: 'streak_3',
+    name: 'Горячая рука',
+    description: 'Выиграть 3 игры подряд',
+    icon: '🔥',
+    category: 'streaks',
+    rarity: 'silver',
+    points: 50,
+    condition: (stats) => stats.bestStreak >= 3
+  },
+  
+  streak_5: {
+    id: 'streak_5',
+    name: 'Неудержимый',
+    description: 'Выиграть 5 игр подряд',
+    icon: '⚡',
+    category: 'streaks',
+    rarity: 'silver',
+    points: 100,
+    condition: (stats) => stats.bestStreak >= 5
+  },
+  
+  streak_10: {
+    id: 'streak_10',
+    name: 'Доминирование',
+    description: 'Выиграть 10 игр подряд',
+    icon: '👑',
+    category: 'streaks',
+    rarity: 'gold',
+    points: 200,
+    condition: (stats) => stats.bestStreak >= 10
+  },
+  
+  // Прогресс
+  games_10: {
+    id: 'games_10',
+    name: 'Игрок',
+    description: 'Сыграть 10 игр',
+    icon: '🎯',
+    category: 'progress',
+    rarity: 'bronze',
+    points: 30,
+    condition: (stats) => stats.totalGames >= 10
+  },
+  
+  games_25: {
+    id: 'games_25',
+    name: 'Опытный игрок',
+    description: 'Сыграть 25 игр',
+    icon: '🎲',
+    category: 'progress',
+    rarity: 'silver',
+    points: 75,
+    condition: (stats) => stats.totalGames >= 25
+  },
+  
+  games_50: {
+    id: 'games_50',
+    name: 'Ветеран',
+    description: 'Сыграть 50 игр',
+    icon: '🛡️',
+    category: 'progress',
+    rarity: 'gold',
+    points: 150,
+    condition: (stats) => stats.totalGames >= 50
+  },
+  
+  // Статистические
+  win_rate_60: {
+    id: 'win_rate_60',
+    name: 'Стабильность',
+    description: 'Иметь 60%+ побед при 20+ играх',
+    icon: '📊',
+    category: 'stats',
+    rarity: 'silver',
+    points: 100,
+    condition: (stats) => stats.totalGames >= 20 && (stats.wins / stats.totalGames) >= 0.6
+  },
+  
+  win_rate_70: {
+    id: 'win_rate_70',
+    name: 'Мастерство',
+    description: 'Иметь 70%+ побед при 30+ играх',
+    icon: '🎯',
+    category: 'stats',
+    rarity: 'gold',
+    points: 200,
+    condition: (stats) => stats.totalGames >= 30 && (stats.wins / stats.totalGames) >= 0.7
+  },
+  
+  // Тематические
+  casino_master: {
+    id: 'casino_master',
+    name: 'Крупье',
+    description: 'Выиграть 5 игр в теме "Казино"',
+    icon: '🎰',
+    category: 'thematic',
+    rarity: 'silver',
+    points: 75,
+    condition: (stats) => stats.detailed.gamesByTheme.casino >= 5
+  },
+  
+  basement_master: {
+    id: 'basement_master',
+    name: 'Подпольщик',
+    description: 'Выиграть 5 игр в теме "Землянка"',
+    icon: '🕳️',
+    category: 'thematic',
+    rarity: 'silver',
+    points: 75,
+    condition: (stats) => stats.detailed.gamesByTheme.basement >= 5
+  },
+  
+  tavern_master: {
+    id: 'tavern_master',
+    name: 'Завсегдатай',
+    description: 'Выиграть 5 игр в теме "Таверна"',
+    icon: '🍺',
+    category: 'thematic',
+    rarity: 'silver',
+    points: 75,
+    condition: (stats) => stats.detailed.gamesByTheme.tavern >= 5
+  },
+  
+  // Временные
+  morning_player: {
+    id: 'morning_player',
+    name: 'Утренний игрок',
+    description: 'Сыграть игру утром (6:00-12:00)',
+    icon: '🌅',
+    category: 'time',
+    rarity: 'bronze',
+    points: 25,
+    condition: (stats) => stats.detailed.gamesByTime.morning >= 1
+  },
+  
+  night_owl: {
+    id: 'night_owl',
+    name: 'Ночная сова',
+    description: 'Сыграть игру ночью (22:00-6:00)',
+    icon: '🦉',
+    category: 'time',
+    rarity: 'bronze',
+    points: 25,
+    condition: (stats) => stats.detailed.gamesByTime.night >= 1
+  }
+};
+
+// Система проверки достижений
+class AchievementSystem {
+  static checkAchievements(stats) {
+    const newAchievements = [];
+    
+    Object.values(ACHIEVEMENTS).forEach(achievement => {
+      if (!stats.achievements.unlocked.includes(achievement.id)) {
+        if (achievement.condition(stats)) {
+          newAchievements.push(achievement);
+          stats.achievements.unlocked.push(achievement.id);
+          stats.achievements.points += achievement.points;
+          console.log(`🏆 Достижение разблокировано: ${achievement.name} (+${achievement.points} очков)`);
+        }
+      }
+    });
+    
+    // Обновляем уровень и звание
+    this.updateLevelAndTitle(stats);
+    
+    return newAchievements;
+  }
+  
+  static updateLevelAndTitle(stats) {
+    const points = stats.achievements.points;
+    
+    if (points >= 1000) {
+      stats.achievements.level = 5;
+      stats.achievements.title = "Легенда";
+    } else if (points >= 500) {
+      stats.achievements.level = 4;
+      stats.achievements.title = "Мастер";
+    } else if (points >= 200) {
+      stats.achievements.level = 3;
+      stats.achievements.title = "Опытный";
+    } else if (points >= 50) {
+      stats.achievements.level = 2;
+      stats.achievements.title = "Игрок";
+    } else {
+      stats.achievements.level = 1;
+      stats.achievements.title = "Новичок";
+    }
+  }
+}
+
+// ========================================
 // 📊 STATISTICS SYSTEM
 // ========================================
 
@@ -131,10 +364,10 @@ const StatsAPI = {
     if (window.Telegram?.WebApp?.CloudStorage) {
       try {
         return await this.loadFromTelegramCloud();
-      } catch (error) {
+    } catch (error) {
         console.error('❌ Ошибка загрузки из Telegram Cloud, используем localStorage:', error);
-        return this.loadFromLocalStorage();
-      }
+      return this.loadFromLocalStorage();
+    }
     }
     
     // Fallback на localStorage если не в Telegram
@@ -153,7 +386,7 @@ const StatsAPI = {
         return true;
       } catch (error) {
         console.error('❌ Ошибка сохранения в Telegram Cloud, используем localStorage:', error);
-        return this.saveToLocalStorage(stats);
+      return this.saveToLocalStorage(stats);
       }
     }
     
@@ -165,7 +398,10 @@ const StatsAPI = {
   // Новые методы для работы с Telegram Cloud Storage
   async loadFromTelegramCloud() {
     return new Promise((resolve, reject) => {
-      const keys = ['totalGames', 'wins', 'losses', 'currentStreak', 'bestStreak', 'lastResult'];
+      const keys = [
+        'totalGames', 'wins', 'losses', 'currentStreak', 'bestStreak', 'lastResult',
+        'achievements', 'detailed'
+      ];
       
       window.Telegram.WebApp.CloudStorage.getItems(keys, (error, result) => {
         if (error) {
@@ -183,7 +419,23 @@ const StatsAPI = {
           losses: parseInt(result.losses) || 0,
           currentStreak: parseInt(result.currentStreak) || 0,
           bestStreak: parseInt(result.bestStreak) || 0,
-          lastResult: result.lastResult || null
+          lastResult: result.lastResult || null,
+          // Система достижений
+          achievements: result.achievements ? JSON.parse(result.achievements) : {
+            unlocked: [],
+            points: 0,
+            level: 1,
+            title: "Новичок"
+          },
+          // Детальная статистика
+          detailed: result.detailed ? JSON.parse(result.detailed) : {
+            gamesByTheme: { casino: 0, basement: 0, tavern: 0 },
+            gamesByTime: { morning: 0, afternoon: 0, evening: 0, night: 0 },
+            specialWins: { noCards: 0, comeback: 0, blitz: 0 },
+            cardsTaken: 0,
+            cardsPlayed: 0,
+            trumpCardsUsed: 0
+          }
         };
         
         console.log('✅ Статистика загружена из Telegram Cloud:', stats);
@@ -201,7 +453,21 @@ const StatsAPI = {
         losses: String(stats.losses || 0),
         currentStreak: String(stats.currentStreak || 0),
         bestStreak: String(stats.bestStreak || 0),
-        lastResult: String(stats.lastResult || '')
+        lastResult: String(stats.lastResult || ''),
+        achievements: JSON.stringify(stats.achievements || {
+          unlocked: [],
+          points: 0,
+          level: 1,
+          title: "Новичок"
+        }),
+        detailed: JSON.stringify(stats.detailed || {
+          gamesByTheme: { casino: 0, basement: 0, tavern: 0 },
+          gamesByTime: { morning: 0, afternoon: 0, evening: 0, night: 0 },
+          specialWins: { noCards: 0, comeback: 0, blitz: 0 },
+          cardsTaken: 0,
+          cardsPlayed: 0,
+          trumpCardsUsed: 0
+        })
       };
       
       console.log('💾 Сохраняем в Telegram Cloud:', data);
@@ -238,7 +504,23 @@ const StatsAPI = {
       losses: 0,
       currentStreak: 0,
       bestStreak: 0,
-      lastResult: null
+      lastResult: null,
+      // Система достижений
+      achievements: {
+        unlocked: [],
+        points: 0,
+        level: 1,
+        title: "Новичок"
+      },
+      // Детальная статистика для достижений
+      detailed: {
+        gamesByTheme: { casino: 0, basement: 0, tavern: 0 },
+        gamesByTime: { morning: 0, afternoon: 0, evening: 0, night: 0 },
+        specialWins: { noCards: 0, comeback: 0, blitz: 0 },
+        cardsTaken: 0,
+        cardsPlayed: 0,
+        trumpCardsUsed: 0
+      }
     };
   },
   
@@ -280,7 +562,29 @@ const StatsAPI = {
 };
 
 // Функции для работы со статистикой
-function updatePlayerStats(result) {
+function updatePlayerStats(result, gameData = {}) {
+  // Инициализируем структуру достижений если её нет
+  if (!state.playerStats.achievements) {
+    state.playerStats.achievements = {
+      unlocked: [],
+      points: 0,
+      level: 1,
+      title: "Новичок"
+    };
+  }
+  
+  if (!state.playerStats.detailed) {
+    state.playerStats.detailed = {
+      gamesByTheme: { casino: 0, basement: 0, tavern: 0 },
+      gamesByTime: { morning: 0, afternoon: 0, evening: 0, night: 0 },
+      specialWins: { noCards: 0, comeback: 0, blitz: 0 },
+      cardsTaken: 0,
+      cardsPlayed: 0,
+      trumpCardsUsed: 0
+    };
+  }
+  
+  // Базовые обновления
   state.playerStats.totalGames++;
   
   if (result === 'win') {
@@ -298,10 +602,176 @@ function updatePlayerStats(result) {
   
   state.playerStats.lastResult = result;
   
+  // Обновляем детальную статистику
+  updateDetailedStats(result, gameData);
+  
+  // Проверяем достижения
+  const newAchievements = AchievementSystem.checkAchievements(state.playerStats);
+  
+  // Показываем уведомления о новых достижениях
+  if (newAchievements.length > 0) {
+    showAchievementNotification(newAchievements);
+  }
+  
   // Сохраняем статистику
   StatsAPI.saveStats(state.playerStats);
   
   console.log('📊 Статистика обновлена:', state.playerStats);
+  if (newAchievements.length > 0) {
+    console.log('🏆 Новые достижения:', newAchievements.map(a => a.name));
+  }
+}
+
+// Функция для обновления детальной статистики
+function updateDetailedStats(result, gameData) {
+  const stats = state.playerStats.detailed;
+  
+  // Обновляем метрики по теме
+  const currentTheme = state.theme;
+  if (stats.gamesByTheme[currentTheme] !== undefined) {
+    stats.gamesByTheme[currentTheme]++;
+  }
+  
+  // Обновляем метрики по времени
+  const hour = new Date().getHours();
+  if (hour >= 6 && hour < 12) {
+    stats.gamesByTime.morning++;
+  } else if (hour >= 12 && hour < 18) {
+    stats.gamesByTime.afternoon++;
+  } else if (hour >= 18 && hour < 22) {
+    stats.gamesByTime.evening++;
+  } else {
+    stats.gamesByTime.night++;
+  }
+  
+  // Специальные победы
+  if (result === 'win') {
+    if (gameData.cardsTaken === 0) {
+      stats.specialWins.noCards++;
+    }
+    
+    if (gameData.wasComeback) {
+      stats.specialWins.comeback++;
+    }
+    
+    if (gameData.gameDuration && gameData.gameDuration < 120000) { // 2 минуты
+      stats.specialWins.blitz++;
+    }
+  }
+  
+  // Обновляем общие метрики
+  if (gameData.cardsTaken !== undefined) {
+    stats.cardsTaken += gameData.cardsTaken;
+  }
+  
+  if (gameData.cardsPlayed !== undefined) {
+    stats.cardsPlayed += gameData.cardsPlayed;
+  }
+  
+  if (gameData.trumpCardsUsed !== undefined) {
+    stats.trumpCardsUsed += gameData.trumpCardsUsed;
+  }
+}
+
+// Функция для показа уведомлений о достижениях
+function showAchievementNotification(achievements) {
+  achievements.forEach((achievement, index) => {
+    // Создаем уведомление с задержкой для каждого достижения
+    setTimeout(() => {
+      const notification = document.createElement('div');
+      notification.className = 'achievement-notification';
+      notification.innerHTML = `
+        <div class="achievement-content">
+          <div class="achievement-icon">${achievement.icon}</div>
+          <div class="achievement-text">
+            <h3>🏆 Достижение разблокировано!</h3>
+            <h4>${achievement.name}</h4>
+            <p>${achievement.description}</p>
+            <div class="achievement-reward">+${achievement.points} очков</div>
+          </div>
+        </div>
+      `;
+      
+      // Добавляем стили
+      notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: linear-gradient(135deg, #4CAF50, #45a049);
+        color: white;
+        padding: 16px;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        z-index: 10000;
+        transform: translateX(400px);
+        transition: transform 0.3s ease;
+        max-width: 300px;
+        font-family: Arial, sans-serif;
+      `;
+      
+      // Стили для содержимого
+      const style = document.createElement('style');
+      style.textContent = `
+        .achievement-notification .achievement-content {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+        }
+        .achievement-notification .achievement-icon {
+          font-size: 32px;
+          flex-shrink: 0;
+        }
+        .achievement-notification .achievement-text h3 {
+          margin: 0 0 4px 0;
+          font-size: 14px;
+          font-weight: bold;
+        }
+        .achievement-notification .achievement-text h4 {
+          margin: 0 0 4px 0;
+          font-size: 16px;
+          font-weight: bold;
+        }
+        .achievement-notification .achievement-text p {
+          margin: 0 0 8px 0;
+          font-size: 12px;
+          opacity: 0.9;
+        }
+        .achievement-notification .achievement-reward {
+          background: rgba(255,255,255,0.2);
+          padding: 4px 8px;
+          border-radius: 6px;
+          font-size: 12px;
+          font-weight: bold;
+          display: inline-block;
+        }
+      `;
+      document.head.appendChild(style);
+      
+      // Добавляем в DOM
+      document.body.appendChild(notification);
+      
+      // Анимация появления
+      setTimeout(() => {
+        notification.style.transform = 'translateX(0)';
+      }, 100);
+      
+      // Автоматическое скрытие
+      setTimeout(() => {
+        notification.style.transform = 'translateX(400px)';
+        setTimeout(() => {
+          notification.remove();
+          style.remove();
+        }, 300);
+      }, 4000);
+      
+      // Звуковой эффект (если доступен)
+      if (soundManager && soundManager.sounds && soundManager.sounds.cardOnTable) {
+        soundManager.sounds.cardOnTable.play().catch(e => console.log('Achievement sound failed:', e));
+      }
+      
+      console.log(`🎉 Показано уведомление: ${achievement.name}`);
+    }, index * 500); // Задержка между уведомлениями
+  });
 }
 
 function loadPlayerStats() {
@@ -4430,6 +4900,27 @@ async function main(){
     return state.playerStats;
   };
   
+  window.showAchievements = function() {
+    console.log('🏆 Achievements:', state.playerStats.achievements);
+    console.log('🏆 Unlocked:', state.playerStats.achievements.unlocked);
+    console.log('🏆 Points:', state.playerStats.achievements.points);
+    console.log('🏆 Level:', state.playerStats.achievements.level);
+    console.log('🏆 Title:', state.playerStats.achievements.title);
+    return state.playerStats.achievements;
+  };
+  
+  window.testAchievements = function() {
+    console.log('🧪 Testing achievements...');
+    const newAchievements = AchievementSystem.checkAchievements(state.playerStats);
+    if (newAchievements.length > 0) {
+      showAchievementNotification(newAchievements);
+      console.log('🏆 New achievements:', newAchievements.map(a => a.name));
+    } else {
+      console.log('❌ No new achievements');
+    }
+    return newAchievements;
+  };
+  
   window.exportStats = function() {
     const stats = state.playerStats;
     const json = JSON.stringify(stats, null, 2);
@@ -4458,6 +4949,8 @@ async function main(){
   
   console.log('📊 Stats management functions available:');
   console.log('  - window.showStats() - показать текущую статистику');
+  console.log('  - window.showAchievements() - показать достижения');
+  console.log('  - window.testAchievements() - проверить достижения');
   console.log('  - window.exportStats() - экспортировать в JSON файл');
   console.log('  - window.importStats(json) - импортировать из JSON');
   console.log('  - window.clearStats() - очистить статистику');
