@@ -621,7 +621,7 @@ function showDebugModal() {
     
     // Информация о версии приложения
     debugData += '📱 ИНФОРМАЦИЯ О ПРИЛОЖЕНИИ:\n';
-    debugData += '  - Версия: v120 (script.js)\n';
+    debugData += '  - Версия: v121 (script.js)\n';
     debugData += '  - Время сборки: ' + new Date().toLocaleString('ru-RU') + '\n';
     debugData += '  - User-Agent: ' + navigator.userAgent.substring(0, 50) + '...\n';
     debugData += '  - URL: ' + window.location.href.substring(0, 80) + '...\n\n';
@@ -3627,55 +3627,54 @@ function bindEvents(){
     console.log('🔍 el.profileButton:', el.profileButton);
   }
     
-    // Debug button event listeners
-    const debugBtn = document.getElementById('profileDebugBtn');
-    const debugBtnMain = document.getElementById('debugButton');
-    const debugModalClose = document.getElementById('debugModalClose');
-    const debugModalOk = document.getElementById('debugModalOk');
-    
-    if (debugBtn) {
-      debugBtn.addEventListener('click', showDebugModal);
-    }
-    if (debugBtnMain) {
-      debugBtnMain.addEventListener('click', showDebugModal);
-    }
-    if (debugModalClose) {
-      debugModalClose.addEventListener('click', hideDebugModal);
-    }
-    if (debugModalOk) {
-      debugModalOk.addEventListener('click', hideDebugModal);
-    }
-    
-    // Test parsing button
-    const testParsingBtn = document.getElementById('testParsingBtn');
-    if (testParsingBtn) {
-      testParsingBtn.addEventListener('click', () => {
-        const user = testTelegramDataParsing();
-        if (user) {
-          alert('✅ Данные пользователя найдены!\n\n' +
-                'ID: ' + user.id + '\n' +
-                'Имя: ' + user.first_name + ' ' + user.last_name + '\n' +
-                'Username: @' + user.username);
-        } else {
-          alert('❌ Данные пользователя не найдены');
-        }
-      });
-    }
-    
-    // Version button event listeners
-    const versionBtn = document.getElementById('versionButton');
-    const versionModalClose = document.getElementById('versionModalClose');
-    const versionModalOk = document.getElementById('versionModalOk');
-    
-    if (versionBtn) {
-      versionBtn.addEventListener('click', showVersionModal);
-    }
-    if (versionModalClose) {
-      versionModalClose.addEventListener('click', hideVersionModal);
-    }
-    if (versionModalOk) {
-      versionModalOk.addEventListener('click', hideVersionModal);
-    }
+  // Debug button event listeners
+  const debugBtn = document.getElementById('profileDebugBtn');
+  const debugBtnMain = document.getElementById('debugButton');
+  const debugModalClose = document.getElementById('debugModalClose');
+  const debugModalOk = document.getElementById('debugModalOk');
+  
+  if (debugBtn) {
+    debugBtn.addEventListener('click', showDebugModal);
+  }
+  if (debugBtnMain) {
+    debugBtnMain.addEventListener('click', showDebugModal);
+  }
+  if (debugModalClose) {
+    debugModalClose.addEventListener('click', hideDebugModal);
+  }
+  if (debugModalOk) {
+    debugModalOk.addEventListener('click', hideDebugModal);
+  }
+  
+  // Test parsing button
+  const testParsingBtn = document.getElementById('testParsingBtn');
+  if (testParsingBtn) {
+    testParsingBtn.addEventListener('click', () => {
+      const user = testTelegramDataParsing();
+      if (user) {
+        alert('✅ Данные пользователя найдены!\n\n' +
+              'ID: ' + user.id + '\n' +
+              'Имя: ' + user.first_name + ' ' + user.last_name + '\n' +
+              'Username: @' + user.username);
+      } else {
+        alert('❌ Данные пользователя не найдены');
+      }
+    });
+  }
+  
+  // Version button event listeners
+  const versionBtn = document.getElementById('versionButton');
+  const versionModalClose = document.getElementById('versionModalClose');
+  const versionModalOk = document.getElementById('versionModalOk');
+  
+  if (versionBtn) {
+    versionBtn.addEventListener('click', showVersionModal);
+  }
+  if (versionModalClose) {
+    versionModalClose.addEventListener('click', hideVersionModal);
+  }
+  if (versionModalOk) {
+    versionModalOk.addEventListener('click', hideVersionModal);
   }
 
   if (el.profileClose){
