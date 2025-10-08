@@ -5,9 +5,9 @@
 /* Основной контейнер модального окна */
 .achievements-modal {
   max-width: 360px;
-  width: calc(100% - 32px);
+  width: 90%;
   max-height: 70vh;
-  margin: 16px;
+  margin: 0;
   background: #FFFFFF;
   border-radius: 12px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.24);
@@ -388,64 +388,95 @@
    ======================================== */
 
 @media (max-width: 480px) {
-  /* Уменьшаем отступы на малых экранах */
+  /* Адаптация для мобильных устройств */
   .achievements-modal {
-    width: calc(100% - 16px);
-    margin: 8px;
+    width: 95%;
+    max-width: 95%;
+    margin: 0;
+    border-radius: 10px;
   }
   
-  .achievements-modal .modal-header,
-  .achievements-modal .modal-footer {
-    padding: 12px 8px;
+  .achievements-modal .modal-header {
+    padding: 10px 12px;
+    min-height: 44px;
   }
   
-  .achievements-tabs {
-    padding: 8px;
-    gap: 6px;
-  }
-  
-  .achievements-tabs .tab {
-    height: 32px;
-    font-size: 12pt;
-    padding: 0 8px;
-  }
-  
-  .achievements-grid {
-    padding: 8px;
-    gap: 6px;
-  }
-  
-  .achievement-card {
-    padding: 10px;
-    column-gap: 10px;
-  }
-  
-  .achievement-icon {
-    font-size: 20px;
-    width: 20px;
-    height: 20px;
-  }
-  
-  .achievement-info h4 {
+  .achievements-modal .modal-header h2 {
     font-size: 14pt;
   }
   
-  .achievement-info p {
-    font-size: 11pt;
+  .achievements-modal .modal-footer {
+    padding: 10px 12px;
   }
   
-  .achievement-points {
+  .achievements-tabs {
+    padding: 8px 12px;
+    gap: 4px;
+  }
+  
+  .achievements-tabs .tab {
+    height: 30px;
+    font-size: 10pt;
+    padding: 0 6px;
+    border-radius: 5px;
+  }
+  
+  .achievements-grid {
+    padding: 10px;
+    gap: 5px;
+  }
+  
+  .achievement-card {
+    padding: 8px;
+    column-gap: 8px;
+    row-gap: 2px;
+    min-height: 55px;
+    grid-template-columns: 18px 1fr 16px;
+  }
+  
+  .achievement-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+  }
+  
+  .achievement-info h4 {
     font-size: 12pt;
   }
   
+  .achievement-info p {
+    font-size: 9pt;
+  }
+  
+  .achievement-points {
+    font-size: 10pt;
+    margin-top: 4px;
+  }
+  
+  .achievement-status {
+    width: 16px;
+    height: 16px;
+    font-size: 12px;
+  }
+  
   .level-badge {
-    font-size: 10px;
-    padding: 4px 8px;
+    font-size: 9px;
+    padding: 3px 8px;
   }
   
   .modal-close {
-    width: 28px;
-    height: 28px;
-    font-size: 16px;
+    width: 26px;
+    height: 26px;
+    font-size: 14px;
+  }
+  
+  .modal-header-right {
+    gap: 8px;
+  }
+  
+  .achievements-modal .modal-footer .btn {
+    height: 32px;
+    padding: 0 12px;
+    font-size: 11pt;
   }
 }
