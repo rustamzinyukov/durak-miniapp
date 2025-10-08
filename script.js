@@ -621,7 +621,7 @@ function showDebugModal() {
     
     // Информация о версии приложения
     debugData += '📱 ИНФОРМАЦИЯ О ПРИЛОЖЕНИИ:\n';
-    debugData += '  - Версия: v118 (script.js)\n';
+    debugData += '  - Версия: v119 (script.js)\n';
     debugData += '  - Время сборки: ' + new Date().toLocaleString('ru-RU') + '\n';
     debugData += '  - User-Agent: ' + navigator.userAgent.substring(0, 50) + '...\n';
     debugData += '  - URL: ' + window.location.href.substring(0, 80) + '...\n\n';
@@ -3615,7 +3615,17 @@ function bindEvents(){
 
   // Profile event handlers
   if (el.profileButton){
-    el.profileButton.addEventListener('click', openProfile);
+    console.log('🔍 Profile button found, adding event listener');
+    el.profileButton.addEventListener('click', function(e) {
+      console.log('🔍 PROFILE BUTTON CLICKED!');
+      console.log('🔍 Event:', e);
+      console.log('🔍 Target:', e.target);
+      openProfile();
+    });
+  } else {
+    console.log('❌ Profile button NOT FOUND!');
+    console.log('🔍 el.profileButton:', el.profileButton);
+  }
     
     // Debug button event listeners
     const debugBtn = document.getElementById('profileDebugBtn');
