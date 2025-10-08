@@ -1,6 +1,7 @@
 // Server endpoint для получения фотографии профиля пользователя
 // Использует Telegram Bot API метод getUserProfilePhotos
 
+require('dotenv').config({ path: __dirname + '/.env' });
 const express = require('express');
 const axios = require('axios');
 
@@ -8,7 +9,13 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 
 // Telegram Bot Token (должен быть в переменных окружения)
-const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
+const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '7659067094:AAGpYUIE5TTC49_0Srd562k-3Ax1ZgbHRoo';
+
+// Debug: Log environment variables
+console.log('Environment variables:');
+console.log('PORT:', PORT);
+console.log('BOT_TOKEN:', BOT_TOKEN ? 'Set (length: ' + BOT_TOKEN.length + ')' : 'Not set');
+console.log('NODE_ENV:', process.env.NODE_ENV);
 
 // Middleware для CORS
 app.use((req, res, next) => {
@@ -101,7 +108,23 @@ app.get('/api/user-photo/:userId', async (req, res) => {
 
 // Health check endpoint
 app.get('/health', (req, res) => {
-  res.json({ status: 'OK', timestamp: new Date().toISOString() });
+  res.json({ 
+    status: 'OK', 
+    timestamp: new Date().toISOString(),
+    botTokenConfigured: !!BOT_TOKEN && BOT_TOKEN !== 'your_bot_token_here'
+  });
+});
+
+// Test endpoint
+app.get('/test', (req, res) => {
+  const isTokenConfigured = BOT_TOKEN && BOT_TOKEN.trim() && BOT_TOKEN !== 'your_bot_token_here';
+  res.json({ 
+    message: 'Server is working!',
+    botToken: isTokenConfigured ? 'Configured' : 'Not configured',
+    tokenLength: BOT_TOKEN ? BOT_TOKEN.length : 0,
+    tokenPreview: BOT_TOKEN ? BOT_TOKEN.substring(0, 10) + '...' : 'none',
+    timestamp: new Date().toISOString()
+  });
 });
 
 app.listen(PORT, () => {

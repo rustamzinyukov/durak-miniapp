@@ -618,7 +618,7 @@ function showDebugModal() {
     
     // Информация о версии приложения
     debugData += '📱 ИНФОРМАЦИЯ О ПРИЛОЖЕНИИ:\n';
-    debugData += '  - Версия: v94 (script.js)\n';
+    debugData += '  - Версия: v97 (script.js)\n';
     debugData += '  - Время сборки: ' + new Date().toLocaleString('ru-RU') + '\n';
     debugData += '  - User-Agent: ' + navigator.userAgent.substring(0, 50) + '...\n';
     debugData += '  - URL: ' + window.location.href.substring(0, 80) + '...\n\n';
@@ -728,9 +728,9 @@ function showVersionModal() {
     versionData += '=====================================\n\n';
     
     versionData += '🔢 Версия приложения:\n';
-    versionData += '  - script.js: v94\n';
+    versionData += '  - script.js: v97\n';
     versionData += '  - style.css: v74\n';
-    versionData += '  - index.html: v94\n\n';
+    versionData += '  - index.html: v97\n\n';
     
     versionData += '⏰ Время сборки:\n';
     versionData += '  - Текущее время: ' + new Date().toLocaleString('ru-RU') + '\n';
@@ -1032,9 +1032,15 @@ function openProfile(){
       // Try to get photo through server API (if available)
       if (user.id) {
         console.log('🔄 Trying to get photo through server API...');
-        fetch(`/api/user-photo/${user.id}`)
-          .then(response => response.json())
+        console.log('🔍 Server URL:', `http://localhost:3001/api/user-photo/${user.id}`);
+        
+        fetch(`http://localhost:3001/api/user-photo/${user.id}`)
+          .then(response => {
+            console.log('📡 Server response status:', response.status);
+            return response.json();
+          })
           .then(data => {
+            console.log('📋 Server response data:', data);
             if (data.success && data.hasPhoto && data.photoUrl) {
               console.log('✅ Got photo from server API:', data.photoUrl);
               user.photo_url = data.photoUrl;
@@ -1042,11 +1048,13 @@ function openProfile(){
               loadUserPhoto(user, el);
             } else {
               console.log('⚠️ Server API returned no photo, using original URL');
+              console.log('🔍 Server response:', data);
               loadUserPhoto(user, el);
             }
           })
           .catch(error => {
-            console.log('⚠️ Server API not available, using original URL:', error.message);
+            console.log('❌ Server API error:', error.message);
+            console.log('⚠️ Server API not available, using original URL');
             loadUserPhoto(user, el);
           });
       } else {
