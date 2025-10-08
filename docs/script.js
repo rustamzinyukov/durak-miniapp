@@ -3260,24 +3260,24 @@ function findLowestValidAttack(hand, limit){
     return null;
   }
   
-  // В дураке можно атаковать только козырными картами или картами того же ранга, что уже на столе
-  // Если это первая атака (стол пустой), то можно атаковать только козырными картами
+  // В дураке можно атаковать любыми картами в первой атаке
+  // В последующих атаках - только картами того же ранга, что уже на столе
   const tableRanks = state.table.pairs.flat().map(c => c.rank);
   const isFirstAttack = state.table.pairs.length === 0;
   
   console.log(`🔍 findLowestValidAttack: isFirstAttack=${isFirstAttack}, tableRanks=${tableRanks}, trumpSuit=${state.trumpSuit}`);
   
-  // Фильтруем карты: только козырные или карты того же ранга, что уже на столе
+  // Фильтруем карты: в первой атаке - любые, в последующих - только карты того же ранга
   const validCards = hand.filter(card => {
-    if (card.suit === state.trumpSuit) {
-      console.log(`🔍 findLowestValidAttack: ${text(card)} is trump - valid`);
+    if (isFirstAttack) {
+      console.log(`🔍 findLowestValidAttack: ${text(card)} is first attack - valid`);
       return true;
     }
     if (tableRanks.includes(card.rank)) {
       console.log(`🔍 findLowestValidAttack: ${text(card)} matches table rank - valid`);
       return true;
     }
-    console.log(`🔍 findLowestValidAttack: ${text(card)} is not trump and doesn't match table - invalid`);
+    console.log(`🔍 findLowestValidAttack: ${text(card)} doesn't match table rank - invalid`);
     return false;
   });
   
@@ -3289,14 +3289,29 @@ function findLowestValidAttack(hand, limit){
   }
   
   const byRank = validCards.reduce((m,c)=>{ (m[c.rank]=m[c.rank]||[]).push(c); return m; }, {});
-  const ranks = Object.keys(byRank).sort((a,b)=>RANK_VALUE[a]-RANK_VALUE[b]);
+  const ranks = Object.keys(byRank);
   console.log(`🔍 findLowestValidAttack: ranks found:`, ranks);
   
-  for (const r of ranks){
+  // Улучшенная стратегия: иногда выбираем случайно, иногда по стратегии
+  const strategy = Math.random();
+  let sortedRanks;
+  
+  if (strategy < 0.3) {
+    // 30% - случайный выбор
+    sortedRanks = ranks.sort(() => Math.random() - 0.5);
+  } else if (strategy < 0.7) {
+    // 40% - выбираем низкие карты (экономим сильные)
+    sortedRanks = ranks.sort((a,b)=>RANK_VALUE[a]-RANK_VALUE[b]);
+  } else {
+    // 30% - выбираем высокие карты (агрессивная игра)
+    sortedRanks = ranks.sort((a,b)=>RANK_VALUE[b]-RANK_VALUE[a]);
+  }
+  
+  for (const r of sortedRanks){
     const g = byRank[r];
     if (g.length){
       const take = Math.min(g.length, Math.max(1, Math.min(limit, g.length)));
-      console.log(`🔍 findLowestValidAttack: found rank ${r} with ${g.length} cards, taking ${take}`);
+      console.log(`🔍 findLowestValidAttack: found rank ${r} with ${g.length} cards, taking ${take} (strategy: ${strategy.toFixed(2)})`);
       return g.slice(0,take);
     }
   }
@@ -3350,8 +3365,7 @@ function aiDefense(player){
   console.log(`🤖 AI Defense: defending against ${text(atk)}`);
   console.log(`🤖 AI Defense: trump suit = ${state.trumpSuit}`);
   
-  const cand = player.hand.filter(c=>beats(c, atk, state.trumpSuit))
-                          .sort((a,b)=>RANK_VALUE[a.rank]-RANK_VALUE[b.rank]);
+  const cand = player.hand.filter(c=>beats(c, atk, state.trumpSuit));
   
   console.log(`🤖 AI Defense: candidate cards:`, cand.map(c => text(c)));
   
@@ -3360,11 +3374,31 @@ function aiDefense(player){
     return false;
   }
   
-  console.log(`🤖 AI Defense: selected card ${text(cand[0])} to defend against ${text(atk)}`);
+  // Улучшенная стратегия защиты: иногда экономим козыри, иногда используем их
+  const strategy = Math.random();
+  let selectedCard;
+  
+  if (strategy < 0.4) {
+    // 40% - экономим козыри, выбираем самую низкую карту
+    selectedCard = cand.sort((a,b)=>RANK_VALUE[a.rank]-RANK_VALUE[b.rank])[0];
+  } else if (strategy < 0.7) {
+    // 30% - случайный выбор из доступных
+    selectedCard = cand[Math.floor(Math.random() * cand.length)];
+  } else {
+    // 30% - агрессивная защита, используем козыри
+    const trumps = cand.filter(c => c.suit === state.trumpSuit);
+    if (trumps.length > 0) {
+      selectedCard = trumps.sort((a,b)=>RANK_VALUE[a.rank]-RANK_VALUE[b.rank])[0];
+    } else {
+      selectedCard = cand.sort((a,b)=>RANK_VALUE[a.rank]-RANK_VALUE[b.rank])[0];
+    }
+  }
+  
+  console.log(`🤖 AI Defense: selected card ${text(selectedCard)} to defend against ${text(atk)} (strategy: ${strategy.toFixed(2)})`);
   
   // Добавляем задержку для "размышления" ИИ
   setTimeout(() => {
-    const card = cand[0];
+    const card = selectedCard;
     state.table.pairs[openIdx].defense = card;
     player.hand = player.hand.filter(x=>x.id!==card.id);
     // Play sound effect for AI defending
