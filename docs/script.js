@@ -812,9 +812,22 @@ function updatePlayerLevelDisplay() {
     points: 0
   };
   
-  document.getElementById('playerLevel').textContent = `Уровень ${achievements.level}`;
-  document.getElementById('playerTitle').textContent = achievements.title;
-  document.getElementById('playerPoints').textContent = `${achievements.points} очков`;
+  // Обновляем только уровень в новом дизайне
+  const levelBadge = document.getElementById('playerLevel');
+  if (levelBadge) {
+    levelBadge.textContent = `УРОВЕНЬ ${achievements.level}`;
+  }
+  
+  // playerTitle и playerPoints теперь скрыты в CSS, проверяем их существование
+  const titleElement = document.getElementById('playerTitle');
+  if (titleElement) {
+    titleElement.textContent = achievements.title;
+  }
+  
+  const pointsElement = document.getElementById('playerPoints');
+  if (pointsElement) {
+    pointsElement.textContent = `${achievements.points} очков`;
+  }
 }
 
 function renderAchievements() {
