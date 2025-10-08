@@ -621,7 +621,7 @@ function showDebugModal() {
     
     // Информация о версии приложения
     debugData += '📱 ИНФОРМАЦИЯ О ПРИЛОЖЕНИИ:\n';
-    debugData += '  - Версия: v107 (script.js)\n';
+    debugData += '  - Версия: v108 (script.js)\n';
     debugData += '  - Время сборки: ' + new Date().toLocaleString('ru-RU') + '\n';
     debugData += '  - User-Agent: ' + navigator.userAgent.substring(0, 50) + '...\n';
     debugData += '  - URL: ' + window.location.href.substring(0, 80) + '...\n\n';
@@ -721,6 +721,7 @@ function showDebugModal() {
     debugData += '  - Размер ответа: 809 байт\n';
     debugData += '  - Время ответа: ~200мс\n';
     debugData += '  - Проблема: Код не доходит до вызова сервера\n';
+    debugData += '  - Решение: Нужно открыть профиль для активации кода\n';
       } catch (e) {
         debugData += '\n❌ Ошибка парсинга URL данных: ' + e.message + '\n';
       }
