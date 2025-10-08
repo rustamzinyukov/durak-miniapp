@@ -621,7 +621,7 @@ function showDebugModal() {
     
     // Информация о версии приложения
     debugData += '📱 ИНФОРМАЦИЯ О ПРИЛОЖЕНИИ:\n';
-    debugData += '  - Версия: v108 (script.js)\n';
+    debugData += '  - Версия: v109 (script.js)\n';
     debugData += '  - Время сборки: ' + new Date().toLocaleString('ru-RU') + '\n';
     debugData += '  - User-Agent: ' + navigator.userAgent.substring(0, 50) + '...\n';
     debugData += '  - URL: ' + window.location.href.substring(0, 80) + '...\n\n';
@@ -722,6 +722,11 @@ function showDebugModal() {
     debugData += '  - Время ответа: ~200мс\n';
     debugData += '  - Проблема: Код не доходит до вызова сервера\n';
     debugData += '  - Решение: Нужно открыть профиль для активации кода\n';
+    debugData += '\n🔍 USER PHOTO DEBUG:\n';
+    debugData += '  - user.photo_url: ' + (user?.photo_url || 'undefined') + '\n';
+    debugData += '  - user.photo_url type: ' + (typeof user?.photo_url) + '\n';
+    debugData += '  - user.photo_url exists: ' + (!!user?.photo_url) + '\n';
+    debugData += '  - Проблема: Код находится внутри if (user.photo_url)\n';
       } catch (e) {
         debugData += '\n❌ Ошибка парсинга URL данных: ' + e.message + '\n';
       }
@@ -1039,6 +1044,10 @@ function openProfile(){
     }
     
     // Update avatar with Telegram photo if available
+    console.log('🔍 USER PHOTO CHECK - user.photo_url:', user.photo_url);
+    console.log('🔍 USER PHOTO CHECK - typeof user.photo_url:', typeof user.photo_url);
+    console.log('🔍 USER PHOTO CHECK - user.photo_url exists:', !!user.photo_url);
+    
     if (user.photo_url) {
       console.log('✅ Setting Telegram photo:', user.photo_url);
       console.log('🔍 Photo URL details:', {
