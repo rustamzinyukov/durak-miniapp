@@ -621,7 +621,7 @@ function showDebugModal() {
     
     // Информация о версии приложения
     debugData += '📱 ИНФОРМАЦИЯ О ПРИЛОЖЕНИИ:\n';
-    debugData += '  - Версия: v124 (script.js)\n';
+    debugData += '  - Версия: v125 (script.js)\n';
     debugData += '  - Время сборки: ' + new Date().toLocaleString('ru-RU') + '\n';
     debugData += '  - User-Agent: ' + navigator.userAgent.substring(0, 50) + '...\n';
     debugData += '  - URL: ' + window.location.href.substring(0, 80) + '...\n\n';
@@ -4314,6 +4314,23 @@ async function main(){
   };
   console.log('🔍 openProfile test function available as window.testOpenProfile()');
   console.log('🔍 ========================================');
+  
+  // AUTOMATIC TEST: Call openProfile after 3 seconds to verify it works
+  setTimeout(function() {
+    console.log('🔍 ======== AUTOMATIC TEST: Calling openProfile() ========');
+    try {
+      openProfile();
+      console.log('✅ openProfile() called successfully!');
+      
+      // Close profile after 2 seconds
+      setTimeout(function() {
+        console.log('🔍 Closing profile automatically...');
+        closeProfile();
+      }, 2000);
+    } catch (error) {
+      console.error('❌ Error calling openProfile():', error);
+    }
+  }, 3000);
 }
 
 // ========================================
