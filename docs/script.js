@@ -3649,6 +3649,7 @@ function bindEvents(){
   // Обработчики для модального окна статистики
   const statsModalClose = document.getElementById('statsModalClose');
   const statsModalOk = document.getElementById('statsModalOk');
+  const exportStatsBtn = document.getElementById('exportStatsBtn');
   
   if (statsModalClose) {
     statsModalClose.addEventListener('click', hideStatsModal);
@@ -3656,6 +3657,13 @@ function bindEvents(){
   
   if (statsModalOk) {
     statsModalOk.addEventListener('click', hideStatsModal);
+  }
+  
+  if (exportStatsBtn) {
+    exportStatsBtn.addEventListener('click', () => {
+      console.log('💾 Exporting stats...');
+      window.exportStats();
+    });
   }
   
   // Закрытие модального окна по клику вне его
@@ -4422,8 +4430,36 @@ async function main(){
     return state.playerStats;
   };
   
+  window.exportStats = function() {
+    const stats = state.playerStats;
+    const json = JSON.stringify(stats, null, 2);
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `durak-stats-${Date.now()}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    console.log('✅ Stats exported to file');
+  };
+  
+  window.importStats = function(jsonString) {
+    try {
+      const stats = JSON.parse(jsonString);
+      state.playerStats = stats;
+      StatsAPI.saveStats(stats);
+      console.log('✅ Stats imported successfully:', stats);
+      return true;
+    } catch (error) {
+      console.error('❌ Error importing stats:', error);
+      return false;
+    }
+  };
+  
   console.log('📊 Stats management functions available:');
   console.log('  - window.showStats() - показать текущую статистику');
+  console.log('  - window.exportStats() - экспортировать в JSON файл');
+  console.log('  - window.importStats(json) - импортировать из JSON');
   console.log('  - window.clearStats() - очистить статистику');
   console.log('🔍 ========================================');
   
