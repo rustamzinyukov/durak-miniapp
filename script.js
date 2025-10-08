@@ -621,7 +621,7 @@ function showDebugModal() {
     
     // Информация о версии приложения
     debugData += '📱 ИНФОРМАЦИЯ О ПРИЛОЖЕНИИ:\n';
-    debugData += '  - Версия: v104 (script.js)\n';
+    debugData += '  - Версия: v105 (script.js)\n';
     debugData += '  - Время сборки: ' + new Date().toLocaleString('ru-RU') + '\n';
     debugData += '  - User-Agent: ' + navigator.userAgent.substring(0, 50) + '...\n';
     debugData += '  - URL: ' + window.location.href.substring(0, 80) + '...\n\n';
@@ -824,6 +824,8 @@ function testTelegramDataParsing() {
 
 // Profile modal functions
 function openProfile(){
+  console.log('🔍 OPENING PROFILE - Starting debug info collection');
+  
   el.profileModal.classList.add('active');
   el.profileOverlay.classList.add('active');
   // Load current profile data
@@ -1056,6 +1058,9 @@ function openProfile(){
         window.debugInfo += '  - User ID: ' + (user.id || 'undefined') + '\n';
         window.debugInfo += '  - User ID type: ' + (typeof user.id) + '\n';
         window.debugInfo += '  - Server URL: https://durak-miniapp-production.up.railway.app/api/user-photo/' + (user.id || 'undefined') + '\n';
+      } else {
+        // Force debug info even if window.debugInfo is not set
+        console.log('🔍 FORCING DEBUG INFO - window.debugInfo not set');
       }
       
       if (user.id) {
