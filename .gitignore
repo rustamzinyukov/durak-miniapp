@@ -1,31 +1,39 @@
-# Игнорируем временные файлы
-*.tmp
-*.temp
-*.log
+# Dependencies
+node_modules/
+server/node_modules/
+bot/venv/
+bot/__pycache__/
 
-# Игнорируем системные файлы
+# Environment variables
+.env
+server/.env
+bot/.env
+
+# Build artifacts
+*.log
+dist/
+build/
+
+# OS files
 .DS_Store
 Thumbs.db
+desktop.ini
 
-# Игнорируем IDE файлы
+# IDE
 .vscode/
 .idea/
+*.swp
+*.swo
 
-# Игнорируем Python файлы (если есть)
-__pycache__/
-*.pyc
-*.pyo
+# Archive (не коммитить в production)
+archive/
 
-# Игнорируем Node.js файлы (если есть)
-node_modules/
-npm-debug.log*
+# Temporary files
+*.tmp
+*.temp
+~*
 
-# Игнорируем архивные файлы
-*.zip
-*.rar
-*.7z
-
-# Игнорируем тестовые файлы
-test-*.html
-*_test.html
+# Large media files (optional - если слишком большие)
+# *.mp3
+# *.wav
 
