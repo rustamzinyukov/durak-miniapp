@@ -566,32 +566,8 @@ function updateThemeSelection(){
 }
 
 // Card set switcher
-function setCardSet(cardSetName){
-  if (!cardSetName) return;
-  
-  state.cardSet = cardSetName;
-  
-  // Update card set selection in settings
-  updateCardSetSelection();
-  
-  // Save to localStorage
-  try {
-    localStorage.setItem('cardSet', cardSetName);
-  } catch(e) {}
-  
-  // Re-render to update card images
-  render();
-}
-
-function updateCardSetSelection(){
-  const cardSetOptions = document.querySelectorAll('.card-set-option');
-  cardSetOptions.forEach(option => {
-    option.classList.remove('selected');
-    if (option.dataset.cardSet === state.cardSet) {
-      option.classList.add('selected');
-    }
-  });
-}
+// Функции setCardSet и updateCardSetSelection удалены
+// Карты теперь привязаны к темам и выбираются автоматически
 
 function openSettings(){
   el.settingsMenu.classList.add('open');
@@ -3670,14 +3646,7 @@ function bindEvents(){
     });
   });
 
-  // Card set selection handlers
-  const cardSetOptions = document.querySelectorAll('.card-set-option');
-  cardSetOptions.forEach(option => {
-    option.addEventListener('click', () => {
-      const cardSetName = option.dataset.cardSet;
-      setCardSet(cardSetName);
-    });
-  });
+  // Card set selection handlers удалены - карты привязаны к темам
 
   // Profile event handlers
   if (el.profileButton){
@@ -4274,9 +4243,8 @@ function initializeGame() {
   console.log('🎨 Applying theme:', state.theme);
   setTheme(state.theme);
   
-  // Apply saved card set
-  console.log('🃏 Applying card set:', state.cardSet);
-  setCardSet(state.cardSet);
+  // Card set теперь привязан к теме, не нужно отдельно применять
+  console.log('🃏 Card set is now tied to theme');
   
   // Start background music after user interaction
   // Note: Browsers require user interaction before playing audio
