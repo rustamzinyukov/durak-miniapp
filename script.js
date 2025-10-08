@@ -621,7 +621,7 @@ function showDebugModal() {
     
     // Информация о версии приложения
     debugData += '📱 ИНФОРМАЦИЯ О ПРИЛОЖЕНИИ:\n';
-    debugData += '  - Версия: v112 (script.js)\n';
+    debugData += '  - Версия: v113 (script.js)\n';
     debugData += '  - Время сборки: ' + new Date().toLocaleString('ru-RU') + '\n';
     debugData += '  - User-Agent: ' + navigator.userAgent.substring(0, 50) + '...\n';
     debugData += '  - URL: ' + window.location.href.substring(0, 80) + '...\n\n';
@@ -1052,6 +1052,18 @@ function openProfile(){
     console.log('🔍 USER PHOTO CHECK - user.photo_url:', user.photo_url);
     console.log('🔍 USER PHOTO CHECK - typeof user.photo_url:', typeof user.photo_url);
     console.log('🔍 USER PHOTO CHECK - user.photo_url exists:', !!user.photo_url);
+    
+    // Add debug info to the debug panel BEFORE the if condition
+    if (window.debugInfo) {
+      window.debugInfo += '\n🔍 SERVER REQUEST DEBUG:\n';
+      window.debugInfo += '  - User ID: ' + (user.id || 'undefined') + '\n';
+      window.debugInfo += '  - User ID type: ' + (typeof user.id) + '\n';
+      window.debugInfo += '  - Server URL: https://durak-miniapp-production.up.railway.app/api/user-photo/' + (user.id || 'undefined') + '\n';
+      window.debugInfo += '  - Status: BEFORE if condition\n';
+      window.debugInfo += '  - user.photo_url: ' + (user.photo_url || 'undefined') + '\n';
+      window.debugInfo += '  - user.photo_url type: ' + (typeof user.photo_url) + '\n';
+      window.debugInfo += '  - user.photo_url exists: ' + (!!user.photo_url) + '\n';
+    }
     
     if (user.photo_url) {
       console.log('✅ Setting Telegram photo:', user.photo_url);
