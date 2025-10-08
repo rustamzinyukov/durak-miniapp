@@ -621,7 +621,7 @@ function showDebugModal() {
     
     // Информация о версии приложения
     debugData += '📱 ИНФОРМАЦИЯ О ПРИЛОЖЕНИИ:\n';
-    debugData += '  - Версия: v123 (script.js)\n';
+    debugData += '  - Версия: v124 (script.js)\n';
     debugData += '  - Время сборки: ' + new Date().toLocaleString('ru-RU') + '\n';
     debugData += '  - User-Agent: ' + navigator.userAgent.substring(0, 50) + '...\n';
     debugData += '  - URL: ' + window.location.href.substring(0, 80) + '...\n\n';
@@ -4299,6 +4299,21 @@ async function main(){
   if (isTelegram) {
     initializeTelegramIntegration();
   }
+  
+  // CRITICAL DEBUG: Test if openProfile is accessible
+  console.log('🔍 ======== TESTING openProfile ACCESSIBILITY ========');
+  console.log('🔍 typeof openProfile:', typeof openProfile);
+  console.log('🔍 typeof window.manualOpenProfile:', typeof window.manualOpenProfile);
+  console.log('🔍 window.PROFILE_OPENED_COUNT:', window.PROFILE_OPENED_COUNT || 0);
+  console.log('🔍 el.profileButton:', el.profileButton);
+  
+  // Make openProfile globally accessible for testing
+  window.testOpenProfile = function() {
+    console.log('🔍 TEST: Calling openProfile manually...');
+    openProfile();
+  };
+  console.log('🔍 openProfile test function available as window.testOpenProfile()');
+  console.log('🔍 ========================================');
 }
 
 // ========================================
