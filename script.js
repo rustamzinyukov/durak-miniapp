@@ -621,7 +621,7 @@ function showDebugModal() {
     
     // Информация о версии приложения
     debugData += '📱 ИНФОРМАЦИЯ О ПРИЛОЖЕНИИ:\n';
-    debugData += '  - Версия: v113 (script.js)\n';
+    debugData += '  - Версия: v114 (script.js)\n';
     debugData += '  - Время сборки: ' + new Date().toLocaleString('ru-RU') + '\n';
     debugData += '  - User-Agent: ' + navigator.userAgent.substring(0, 50) + '...\n';
     debugData += '  - URL: ' + window.location.href.substring(0, 80) + '...\n\n';
@@ -1053,16 +1053,63 @@ function openProfile(){
     console.log('🔍 USER PHOTO CHECK - typeof user.photo_url:', typeof user.photo_url);
     console.log('🔍 USER PHOTO CHECK - user.photo_url exists:', !!user.photo_url);
     
-    // Add debug info to the debug panel BEFORE the if condition
+    // ALWAYS try to get photo through server API (regardless of user.photo_url)
+    console.log('🔄 ALWAYS trying to get photo through server API...');
+    console.log('🔍 User ID:', user.id);
+    console.log('🔍 Server URL:', `https://durak-miniapp-production.up.railway.app/api/user-photo/${user.id}`);
+    
+    // Add debug info to the debug panel
     if (window.debugInfo) {
       window.debugInfo += '\n🔍 SERVER REQUEST DEBUG:\n';
       window.debugInfo += '  - User ID: ' + (user.id || 'undefined') + '\n';
       window.debugInfo += '  - User ID type: ' + (typeof user.id) + '\n';
       window.debugInfo += '  - Server URL: https://durak-miniapp-production.up.railway.app/api/user-photo/' + (user.id || 'undefined') + '\n';
-      window.debugInfo += '  - Status: BEFORE if condition\n';
-      window.debugInfo += '  - user.photo_url: ' + (user.photo_url || 'undefined') + '\n';
-      window.debugInfo += '  - user.photo_url type: ' + (typeof user.photo_url) + '\n';
-      window.debugInfo += '  - user.photo_url exists: ' + (!!user.photo_url) + '\n';
+      window.debugInfo += '  - Status: Making request...\n';
+    }
+    
+    if (user.id) {
+      fetch(`https://durak-miniapp-production.up.railway.app/api/user-photo/${user.id}`)
+        .then(response => {
+          console.log('📡 Server response status:', response.status);
+          if (window.debugInfo) {
+            window.debugInfo += '  - Response status: ' + response.status + '\n';
+          }
+          return response.json();
+        })
+        .then(data => {
+          console.log('📋 Server response data:', data);
+          if (window.debugInfo) {
+            window.debugInfo += '  - Response data: ' + JSON.stringify(data).substring(0, 100) + '...\n';
+          }
+          if (data.success && data.hasPhoto && data.photoUrl) {
+            console.log('✅ Got photo from server API:', data.photoUrl);
+            if (window.debugInfo) {
+              window.debugInfo += '  - Result: SUCCESS - Photo found!\n';
+              window.debugInfo += '  - Photo URL: ' + data.photoUrl + '\n';
+            }
+            user.photo_url = data.photoUrl;
+            // Continue with photo loading process
+            loadUserPhoto(user, el);
+          } else {
+            console.log('⚠️ Server API returned no photo, using original URL');
+            if (window.debugInfo) {
+              window.debugInfo += '  - Result: NO PHOTO - Using original URL\n';
+            }
+            loadUserPhoto(user, el);
+          }
+        })
+        .catch(error => {
+          console.log('❌ Server API error:', error.message);
+          if (window.debugInfo) {
+            window.debugInfo += '  - Result: ERROR - ' + error.message + '\n';
+          }
+          loadUserPhoto(user, el);
+        });
+    } else {
+      if (window.debugInfo) {
+        window.debugInfo += '  - Result: NO USER ID - Skipping server request\n';
+      }
+      loadUserPhoto(user, el);
     }
     
     if (user.photo_url) {
@@ -1073,15 +1120,6 @@ function openProfile(){
         startsWith: user.photo_url.substring(0, 20),
         endsWith: user.photo_url.substring(user.photo_url.length - 20)
       });
-      
-      // Add debug info to the debug panel
-      if (window.debugInfo) {
-        window.debugInfo += '\n🔍 SERVER REQUEST DEBUG:\n';
-        window.debugInfo += '  - User ID: ' + (user.id || 'undefined') + '\n';
-        window.debugInfo += '  - User ID type: ' + (typeof user.id) + '\n';
-        window.debugInfo += '  - Server URL: https://durak-miniapp-production.up.railway.app/api/user-photo/' + (user.id || 'undefined') + '\n';
-        window.debugInfo += '  - Status: Making request...\n';
-      }
       
       // Try to get photo through WebApp API first (if available)
       if (window.Telegram?.WebApp?.initDataUnsafe?.user?.photo_url) {
