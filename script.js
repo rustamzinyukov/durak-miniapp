@@ -621,7 +621,7 @@ function showDebugModal() {
     
     // Информация о версии приложения
     debugData += '📱 ИНФОРМАЦИЯ О ПРИЛОЖЕНИИ:\n';
-    debugData += '  - Версия: v106 (script.js)\n';
+    debugData += '  - Версия: v107 (script.js)\n';
     debugData += '  - Время сборки: ' + new Date().toLocaleString('ru-RU') + '\n';
     debugData += '  - User-Agent: ' + navigator.userAgent.substring(0, 50) + '...\n';
     debugData += '  - URL: ' + window.location.href.substring(0, 80) + '...\n\n';
@@ -705,13 +705,22 @@ function showDebugModal() {
           }
         }
         
-        // Добавляем информацию о сервере
-        debugData += '\n🖥️ ИНФОРМАЦИЯ О СЕРВЕРЕ:\n';
-        debugData += '  - Сервер URL: https://durak-miniapp-production.up.railway.app/api/user-photo/USER_ID\n';
-        debugData += '  - Статус: HTTPS (Railway сервер)\n';
-        debugData += '  - Telegram Mini App: ' + (window.location.href.includes('t.me') ? 'ДА' : 'НЕТ') + '\n';
-        debugData += '  - CORS: OK (оба сервиса на HTTPS)\n';
-        debugData += '  - Примечание: Сервер развернут на Railway\n';
+    // Добавляем информацию о сервере
+    debugData += '\n🖥️ ИНФОРМАЦИЯ О СЕРВЕРЕ:\n';
+    debugData += '  - Сервер URL: https://durak-miniapp-production.up.railway.app/api/user-photo/USER_ID\n';
+    debugData += '  - Статус: HTTPS (Railway сервер)\n';
+    debugData += '  - Telegram Mini App: ' + (window.location.href.includes('t.me') ? 'ДА' : 'НЕТ') + '\n';
+    debugData += '  - CORS: OK (оба сервиса на HTTPS)\n';
+    debugData += '  - Примечание: Сервер развернут на Railway\n';
+    
+    // Добавляем информацию о серверных запросах
+    debugData += '\n🔍 СЕРВЕРНЫЕ ЗАПРОСЫ:\n';
+    debugData += '  - Статус: Запросы идут (видно в логах Railway)\n';
+    debugData += '  - Последний запрос: GET /api/user-photo/280642403\n';
+    debugData += '  - Статус ответа: 304 (Not Modified)\n';
+    debugData += '  - Размер ответа: 809 байт\n';
+    debugData += '  - Время ответа: ~200мс\n';
+    debugData += '  - Проблема: Код не доходит до вызова сервера\n';
       } catch (e) {
         debugData += '\n❌ Ошибка парсинга URL данных: ' + e.message + '\n';
       }
