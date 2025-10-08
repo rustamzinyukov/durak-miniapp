@@ -16,6 +16,8 @@
   justify-content: center !important;
   z-index: 1000 !important;
   animation: fadeIn 300ms ease-out !important;
+  padding: 0 !important;
+  margin: 0 !important;
 }
 
 /* Основной контейнер модального окна */
@@ -23,13 +25,19 @@
   max-width: 180px !important;
   width: 85% !important;
   max-height: 60vh !important;
-  margin: 0 auto !important;
+  margin: 0 !important;
+  padding: 0 !important;
   background: #FFFFFF !important;
   border-radius: 8px !important;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.24) !important;
   overflow: hidden !important;
   display: flex !important;
   flex-direction: column !important;
+  position: relative !important;
+  left: 0 !important;
+  right: 0 !important;
+  top: 0 !important;
+  bottom: 0 !important;
 }
 
 /* Контейнер для прокручиваемого контента */
@@ -408,7 +416,7 @@
   .achievements-modal {
     width: 90% !important;
     max-width: 90% !important;
-    margin: 0 auto !important;
+    margin: 0 !important;
     border-radius: 5px !important;
   }
   
