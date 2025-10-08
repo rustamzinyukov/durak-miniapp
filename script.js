@@ -621,7 +621,7 @@ function showDebugModal() {
     
     // Информация о версии приложения
     debugData += '📱 ИНФОРМАЦИЯ О ПРИЛОЖЕНИИ:\n';
-    debugData += '  - Версия: v114 (script.js)\n';
+    debugData += '  - Версия: v115 (script.js)\n';
     debugData += '  - Время сборки: ' + new Date().toLocaleString('ru-RU') + '\n';
     debugData += '  - User-Agent: ' + navigator.userAgent.substring(0, 50) + '...\n';
     debugData += '  - URL: ' + window.location.href.substring(0, 80) + '...\n\n';
@@ -841,6 +841,13 @@ function testTelegramDataParsing() {
 // Profile modal functions
 function openProfile(){
   console.log('🔍 OPENING PROFILE - Starting debug info collection');
+  
+  // Add debug info to the debug panel IMMEDIATELY
+  if (window.debugInfo) {
+    window.debugInfo += '\n🔍 PROFILE OPENED DEBUG:\n';
+    window.debugInfo += '  - Status: Profile opened successfully\n';
+    window.debugInfo += '  - Time: ' + new Date().toLocaleString('ru-RU') + '\n';
+  }
   
   el.profileModal.classList.add('active');
   el.profileOverlay.classList.add('active');
