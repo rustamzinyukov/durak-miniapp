@@ -621,7 +621,7 @@ function showDebugModal() {
     
     // Информация о версии приложения
     debugData += '📱 ИНФОРМАЦИЯ О ПРИЛОЖЕНИИ:\n';
-    debugData += '  - Версия: v122 (script.js)\n';
+    debugData += '  - Версия: v123 (script.js)\n';
     debugData += '  - Время сборки: ' + new Date().toLocaleString('ru-RU') + '\n';
     debugData += '  - User-Agent: ' + navigator.userAgent.substring(0, 50) + '...\n';
     debugData += '  - URL: ' + window.location.href.substring(0, 80) + '...\n\n';
@@ -3628,12 +3628,22 @@ function bindEvents(){
   // Profile event handlers
   if (el.profileButton){
     console.log('🔍 Profile button found, adding event listener');
+    console.log('🔍 Profile button element:', el.profileButton);
+    console.log('🔍 Profile button classList:', el.profileButton.classList);
+    console.log('🔍 Profile button id:', el.profileButton.id);
+    
+    // Make sure we're attaching to the right element
     el.profileButton.addEventListener('click', function(e) {
-      console.log('🔍 PROFILE BUTTON CLICKED!');
+      console.log('🔍 ======== PROFILE BUTTON CLICKED! ========');
       console.log('🔍 Event:', e);
       console.log('🔍 Target:', e.target);
+      console.log('🔍 CurrentTarget:', e.currentTarget);
+      console.log('🔍 About to call openProfile()...');
       openProfile();
+      console.log('🔍 openProfile() called!');
     });
+    
+    console.log('🔍 Event listener added successfully!');
   } else {
     console.log('❌ Profile button NOT FOUND!');
     console.log('🔍 el.profileButton:', el.profileButton);
