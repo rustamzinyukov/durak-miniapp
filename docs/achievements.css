@@ -2,18 +2,34 @@
    🏆 ACHIEVEMENTS MODAL STYLES - PROFESSIONAL REDESIGN
    ======================================== */
 
+/* Переопределяем стили родительского контейнера */
+#achievementsModal {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  background: rgba(0, 0, 0, 0.8) !important;
+  backdrop-filter: blur(20px) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  z-index: 1000 !important;
+  animation: fadeIn 300ms ease-out !important;
+}
+
 /* Основной контейнер модального окна */
 .achievements-modal {
-  max-width: 180px;
-  width: 85%;
-  max-height: 60vh;
-  margin: 0 auto;
-  background: #FFFFFF;
-  border-radius: 8px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.24);
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
+  max-width: 180px !important;
+  width: 85% !important;
+  max-height: 60vh !important;
+  margin: 0 auto !important;
+  background: #FFFFFF !important;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.24) !important;
+  overflow: hidden !important;
+  display: flex !important;
+  flex-direction: column !important;
 }
 
 /* Контейнер для прокручиваемого контента */
@@ -390,10 +406,10 @@
 @media (max-width: 480px) {
   /* Адаптация для мобильных устройств */
   .achievements-modal {
-    width: 90%;
-    max-width: 90%;
-    margin: 0 auto;
-    border-radius: 5px;
+    width: 90% !important;
+    max-width: 90% !important;
+    margin: 0 auto !important;
+    border-radius: 5px !important;
   }
   
   .achievements-modal .modal-header {
