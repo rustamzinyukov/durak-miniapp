@@ -3261,11 +3261,12 @@ function findLowestValidAttack(hand, limit){
   }
   
   // В дураке можно атаковать любыми картами в первой атаке
-  // В последующих атаках - только картами того же ранга, что уже на столе
-  const tableRanks = state.table.pairs.flat().map(c => c.rank);
+  // В последующих атаках (подкидывании) - только картами того же ранга, что уже на столе
+  const tableRanks = state.table.pairs.flatMap(p=>[p.attack.rank, p.defense?.rank].filter(Boolean));
   const isFirstAttack = state.table.pairs.length === 0;
   
-  console.log(`🔍 findLowestValidAttack: isFirstAttack=${isFirstAttack}, tableRanks=${tableRanks}, trumpSuit=${state.trumpSuit}`);
+  console.log(`🔍 findLowestValidAttack: isFirstAttack=${isFirstAttack}, tableRanks=${JSON.stringify(tableRanks)}, trumpSuit=${state.trumpSuit}`);
+  console.log(`🔍 findLowestValidAttack: state.phase=${state.phase}`);
   
   // Фильтруем карты: в первой атаке - любые, в последующих - только карты того же ранга
   const validCards = hand.filter(card => {
@@ -3333,19 +3334,13 @@ function findLowestValidAttack(hand, limit){
 }
 function aiAttack(player){
   const max = state.maxTableThisRound - state.table.pairs.length;
-  console.log(`🤖 AI Attack: max=${max}, hand=${player.hand.length} cards`);
+  console.log(`🤖 AI Attack: max=${max}, hand=${player.hand.length} cards, phase=${state.phase}`);
+  console.log(`🤖 AI Attack: player hand:`, player.hand.map(c => text(c)));
   
-  let sel = findLowestValidAttack(player.hand, max);
-  
-  // Fallback: если нет валидных карт по правилам, атакуем любой картой
-  if (!sel && player.hand.length > 0) {
-    console.log(`🤖 AI Attack: No valid attack by rules, using fallback - any card`);
-    const fallbackCard = player.hand[Math.floor(Math.random() * player.hand.length)];
-    sel = [fallbackCard];
-  }
+  const sel = findLowestValidAttack(player.hand, max);
   
   if (!sel) {
-    console.log(`🤖 AI Attack: No cards available to attack`);
+    console.log(`🤖 AI Attack: No valid attack found - this should not happen in attacking phase!`);
     return false;
   }
   
@@ -3501,19 +3496,17 @@ function aiLoopStep(){
   }
 
   if (state.phase === "attacking" && !attacker.isHuman){
+    console.log(`🤖 AI Loop: AI is attacker, attempting attack`);
     const attacked = aiAttack(attacker);
     if (attacked) {
       // aiAttack уже содержит setTimeout, поэтому не нужно вызывать aiLoopStep сразу
       return; // Выходим из функции, aiAttack сам вызовет render() и aiLoopStep
     } else {
-      console.log(`🤖 AI Attack failed, passing turn to next player...`);
-      // Если ИИ не может атаковать, передаем ход следующему игроку
-      state.attackerIndex = (state.attackerIndex + 1) % state.players.length;
-      state.defenderIndex = (state.defenderIndex + 1) % state.players.length;
-      state.phase = "attacking";
-      state.table.pairs = [];
-      render();
-      setTimeout(aiLoopStep, 500);
+      console.log(`❌ AI Attack failed - AI cannot attack! This is a bug!`);
+      console.log(`🤖 AI state: hand=${attacker.hand.length}, phase=${state.phase}, table=${state.table.pairs.length}`);
+      // Это не должно происходить! ИИ должен всегда иметь валидные карты для атаки
+      // Если это происходит - проверяем конец игры
+      checkEndgame();
       return;
     }
   } else if (state.phase === "defending" && !defender.isHuman){
