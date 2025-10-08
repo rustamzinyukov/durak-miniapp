@@ -804,6 +804,9 @@ function showAchievementsModal() {
   console.log('🏆 Showing modal...');
   // Показываем модальное окно
   modal.style.display = 'flex';
+  modal.style.visibility = 'visible';
+  modal.style.opacity = '1';
+  modal.classList.remove('hidden');
   console.log('✅ Modal should be visible now');
 }
 
@@ -872,6 +875,10 @@ function hideAchievementsModal() {
   if (modal) {
     console.log('🔍 Modal found, hiding...');
     modal.style.display = 'none';
+    modal.style.visibility = 'hidden';
+    modal.style.opacity = '0';
+    modal.classList.add('hidden');
+    console.log('✅ Modal should be hidden now');
   } else {
     console.log('❌ Modal not found!');
   }
