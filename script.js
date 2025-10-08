@@ -621,7 +621,7 @@ function showDebugModal() {
     
     // Информация о версии приложения
     debugData += '📱 ИНФОРМАЦИЯ О ПРИЛОЖЕНИИ:\n';
-    debugData += '  - Версия: v121 (script.js)\n';
+    debugData += '  - Версия: v122 (script.js)\n';
     debugData += '  - Время сборки: ' + new Date().toLocaleString('ru-RU') + '\n';
     debugData += '  - User-Agent: ' + navigator.userAgent.substring(0, 50) + '...\n';
     debugData += '  - URL: ' + window.location.href.substring(0, 80) + '...\n\n';
@@ -840,10 +840,16 @@ function testTelegramDataParsing() {
 
 // Profile modal functions
 function openProfile(){
-  console.log('🔍 OPENING PROFILE - Starting debug info collection');
+  console.log('🔍 ========================================');
+  console.log('🔍 PROFILE OPENED - TIMESTAMP:', new Date().toISOString());
+  console.log('🔍 ========================================');
   console.log('🔍 openProfile function called!');
   console.log('🔍 el.profileModal:', el.profileModal);
   console.log('🔍 el.profileOverlay:', el.profileOverlay);
+  
+  // CRITICAL: Make this function globally accessible for debugging
+  window.PROFILE_OPENED_COUNT = (window.PROFILE_OPENED_COUNT || 0) + 1;
+  console.log('🔍 Profile opened count:', window.PROFILE_OPENED_COUNT);
   
   // Initialize window.debugInfo if it doesn't exist
   if (!window.debugInfo) {
@@ -856,10 +862,16 @@ function openProfile(){
   window.debugInfo += '  - Status: Profile opened successfully\n';
   window.debugInfo += '  - Time: ' + new Date().toLocaleString('ru-RU') + '\n';
   window.debugInfo += '  - Function: openProfile() called\n';
+  window.debugInfo += '  - Call count: ' + window.PROFILE_OPENED_COUNT + '\n';
   window.debugInfo += '  - Elements found: profileModal=' + !!el.profileModal + ', profileOverlay=' + !!el.profileOverlay + '\n';
   
   console.log('🔍 Added debug info to window.debugInfo');
   console.log('🔍 window.debugInfo length:', window.debugInfo.length);
+  console.log('🔍 ========================================');
+  
+  // Make openProfile globally accessible for manual testing
+  window.manualOpenProfile = openProfile;
+  console.log('🔍 openProfile is now available as window.manualOpenProfile()');
   
   el.profileModal.classList.add('active');
   el.profileOverlay.classList.add('active');
