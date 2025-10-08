@@ -835,20 +835,17 @@ function renderAchievements() {
 
 function createAchievementCard(achievement, isUnlocked) {
   const card = document.createElement('div');
-  card.className = `achievement-card ${achievement.rarity} ${isUnlocked ? 'unlocked' : 'locked'}`;
+  card.className = `achievement-card ${isUnlocked ? 'unlocked' : 'locked'}`;
   
+  // Используем новую grid-структуру
   card.innerHTML = `
+    <div class="achievement-icon">${achievement.icon}</div>
+    <div class="achievement-info">
+      <h4>${achievement.name}</h4>
+      <p>${achievement.description}</p>
+    </div>
     <div class="achievement-status ${isUnlocked ? 'unlocked' : 'locked'}"></div>
-    <div class="achievement-header">
-      <div class="achievement-icon">${achievement.icon}</div>
-      <div class="achievement-info">
-        <h4>${achievement.name}</h4>
-        <p>${achievement.description}</p>
-      </div>
-    </div>
-    <div class="achievement-footer">
-      <div class="achievement-points">+${achievement.points} очков</div>
-    </div>
+    <div class="achievement-points">+${achievement.points} очков</div>
   `;
   
   return card;
