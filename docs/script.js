@@ -4289,15 +4289,7 @@ function bindEvents(){
     });
   });
   
-  // Закрытие модального окна по клику вне его
-  const achievementsModal = document.getElementById('achievementsModal');
-  if (achievementsModal) {
-    achievementsModal.addEventListener('click', (e) => {
-      if (e.target === achievementsModal) {
-        hideAchievementsModal();
-      }
-    });
-  }
+  // Дублированный код удален - обработчик уже добавлен выше
 
   // Settings event handlers
   if (el.settingsButton){

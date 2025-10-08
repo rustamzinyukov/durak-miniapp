@@ -201,13 +201,13 @@ body.telegram-miniapp {
 
 :root {
   /* Theme Variables - будут переопределены в зависимости от выбранного стиля */
-  --theme-wall: url('./wall/base.jpg');
-  --theme-table: url('./table/base.jpg');
+  --theme-wall: url('./themes/casino/textures/wall.jpg');
+  --theme-table: url('./themes/casino/textures/table.jpg');
   --theme-logo: url('./logo/durak.png');
-  --theme-person-base: url('./icons/person/casino/base.jpg');
-  --theme-person-happy: url('./icons/person/casino/happy.jpg');
-  --theme-person-sad: url('./icons/person/casino/sad.jpg');
-  --theme-person-thinks: url('./icons/person/casino/thinks.jpg');
+  --theme-person-base: url('./themes/casino/icons/person/base.jpg');
+  --theme-person-happy: url('./themes/casino/icons/person/happy.jpg');
+  --theme-person-sad: url('./themes/casino/icons/person/sad.jpg');
+  --theme-person-thinks: url('./themes/casino/icons/person/thinks.jpg');
   
   /* Default Casino Theme */
   --bg: var(--theme-wall) center/cover no-repeat fixed, linear-gradient(135deg, #0d2818 0%, #1a3d2e 25%, #2d5a3d 50%, #1a3d2e 75%, #0d2818 100%);
