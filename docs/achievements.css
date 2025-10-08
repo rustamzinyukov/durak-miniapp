@@ -93,13 +93,13 @@
 
 /* Кнопка закрытия */
 .modal-close {
-  width: clamp(24px, 5vw, 40px);
-  height: clamp(24px, 5vw, 40px);
+  width: clamp(32px, 6vw, 48px);
+  height: clamp(32px, 6vw, 48px);
   border-radius: 50%;
   background: #333333;
   color: #FFFFFF;
   border: none;
-  font-size: clamp(12px, 3vw, 20px);
+  font-size: clamp(16px, 4vw, 24px);
   font-weight: 700;
   display: flex;
   align-items: center;
@@ -110,6 +110,9 @@
   transition: background 0.2s ease;
   z-index: 1001;
   position: relative;
+  min-width: 32px;
+  min-height: 32px;
+  flex-shrink: 0;
 }
 
 .modal-close:hover {

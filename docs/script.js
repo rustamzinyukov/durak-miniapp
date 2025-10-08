@@ -865,9 +865,13 @@ function createAchievementCard(achievement, isUnlocked) {
 }
 
 function hideAchievementsModal() {
+  console.log('🔍 hideAchievementsModal called');
   const modal = document.getElementById('achievementsModal');
   if (modal) {
+    console.log('🔍 Modal found, hiding...');
     modal.style.display = 'none';
+  } else {
+    console.log('❌ Modal not found!');
   }
 }
 
@@ -4235,11 +4239,32 @@ function bindEvents(){
   const exportStatsBtn = document.getElementById('exportStatsBtn');
   
   if (achievementsModalClose) {
-    achievementsModalClose.addEventListener('click', hideAchievementsModal);
+    achievementsModalClose.addEventListener('click', (e) => {
+      console.log('🔍 Close button clicked');
+      e.preventDefault();
+      e.stopPropagation();
+      hideAchievementsModal();
+    });
   }
   
   if (achievementsModalOk) {
-    achievementsModalOk.addEventListener('click', hideAchievementsModal);
+    achievementsModalOk.addEventListener('click', (e) => {
+      console.log('🔍 OK button clicked');
+      e.preventDefault();
+      e.stopPropagation();
+      hideAchievementsModal();
+    });
+  }
+  
+  // Добавляем обработчик клика по фону модального окна
+  const achievementsModal = document.getElementById('achievementsModal');
+  if (achievementsModal) {
+    achievementsModal.addEventListener('click', (e) => {
+      if (e.target === achievementsModal) {
+        console.log('🔍 Background clicked, closing modal');
+        hideAchievementsModal();
+      }
+    });
   }
   
   if (exportStatsBtn) {
