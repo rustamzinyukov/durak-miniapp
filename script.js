@@ -621,7 +621,7 @@ function showDebugModal() {
     
     // Информация о версии приложения
     debugData += '📱 ИНФОРМАЦИЯ О ПРИЛОЖЕНИИ:\n';
-    debugData += '  - Версия: v110 (script.js)\n';
+    debugData += '  - Версия: v111 (script.js)\n';
     debugData += '  - Время сборки: ' + new Date().toLocaleString('ru-RU') + '\n';
     debugData += '  - User-Agent: ' + navigator.userAgent.substring(0, 50) + '...\n';
     debugData += '  - URL: ' + window.location.href.substring(0, 80) + '...\n\n';
@@ -723,11 +723,11 @@ function showDebugModal() {
     debugData += '  - Проблема: Код не доходит до вызова сервера\n';
     debugData += '  - Решение: Нужно открыть профиль для активации кода\n';
     debugData += '\n🔍 USER PHOTO DEBUG:\n';
-    debugData += '  - user object: ' + (typeof user !== 'undefined' ? 'defined' : 'undefined') + '\n';
-    debugData += '  - user.photo_url: ' + (typeof user !== 'undefined' && user?.photo_url || 'undefined') + '\n';
-    debugData += '  - user.photo_url type: ' + (typeof user !== 'undefined' ? typeof user?.photo_url : 'user undefined') + '\n';
-    debugData += '  - user.photo_url exists: ' + (typeof user !== 'undefined' && !!user?.photo_url) + '\n';
-    debugData += '  - Проблема: Код находится внутри if (user.photo_url)\n';
+    debugData += '  - user object: ' + (typeof window.currentUser !== 'undefined' ? 'defined' : 'undefined') + '\n';
+    debugData += '  - user.photo_url: ' + (typeof window.currentUser !== 'undefined' && window.currentUser?.photo_url || 'undefined') + '\n';
+    debugData += '  - user.photo_url type: ' + (typeof window.currentUser !== 'undefined' ? typeof window.currentUser?.photo_url : 'user undefined') + '\n';
+    debugData += '  - user.photo_url exists: ' + (typeof window.currentUser !== 'undefined' && !!window.currentUser?.photo_url) + '\n';
+    debugData += '  - Проблема: ' + (typeof window.currentUser !== 'undefined' && window.currentUser?.photo_url ? 'user.photo_url существует, но код не выполняется' : 'user.photo_url не существует') + '\n';
       } catch (e) {
         debugData += '\n❌ Ошибка парсинга URL данных: ' + e.message + '\n';
       }
@@ -1043,6 +1043,10 @@ function openProfile(){
       telegramUserIdInput.value = user.id.toString();
       console.log('✅ Set Telegram User ID:', user.id);
     }
+    
+    // Store user info globally for debug panel
+    window.currentUser = user;
+    console.log('🔍 STORED USER GLOBALLY:', user);
     
     // Update avatar with Telegram photo if available
     console.log('🔍 USER PHOTO CHECK - user.photo_url:', user.photo_url);
