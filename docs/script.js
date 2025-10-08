@@ -124,64 +124,99 @@ function cardImagePath(card){
 
 // API клиент для работы со статистикой
 const StatsAPI = {
-  baseUrl: '/api/stats',
+  // Используем Telegram Cloud Storage для хранения статистики
   
   async loadStats() {
-    const userId = getTelegramUserId();
-    if (!userId) {
-      // Fallback на localStorage
-      return this.loadFromLocalStorage();
+    // Проверяем доступность Telegram Cloud Storage
+    if (window.Telegram?.WebApp?.CloudStorage) {
+      try {
+        return await this.loadFromTelegramCloud();
+      } catch (error) {
+        console.error('❌ Ошибка загрузки из Telegram Cloud, используем localStorage:', error);
+        return this.loadFromLocalStorage();
+      }
     }
     
-    try {
-      const response = await fetch(`${this.baseUrl}/load/${userId}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        }
-      });
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
-      const data = await response.json();
-      console.log('📊 Статистика загружена с сервера:', data);
-      return data;
-    } catch (error) {
-      console.error('Ошибка загрузки статистики с сервера, используем localStorage:', error);
-      return this.loadFromLocalStorage();
-    }
+    // Fallback на localStorage если не в Telegram
+    console.log('📱 Telegram Cloud недоступен, используем localStorage');
+    return this.loadFromLocalStorage();
   },
   
   async saveStats(stats) {
-    const userId = getTelegramUserId();
-    if (!userId) {
-      // Fallback на localStorage
-      return this.saveToLocalStorage(stats);
+    // Проверяем доступность Telegram Cloud Storage
+    if (window.Telegram?.WebApp?.CloudStorage) {
+      try {
+        await this.saveToTelegramCloud(stats);
+        console.log('✅ Статистика сохранена в Telegram Cloud');
+        // Также сохраняем локально как backup
+        this.saveToLocalStorage(stats);
+        return true;
+      } catch (error) {
+        console.error('❌ Ошибка сохранения в Telegram Cloud, используем localStorage:', error);
+        return this.saveToLocalStorage(stats);
+      }
     }
     
-    try {
-      const response = await fetch(`${this.baseUrl}/save`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ userId, stats })
+    // Fallback на localStorage если не в Telegram
+    console.log('📱 Telegram Cloud недоступен, сохраняем в localStorage');
+    return this.saveToLocalStorage(stats);
+  },
+  
+  // Новые методы для работы с Telegram Cloud Storage
+  async loadFromTelegramCloud() {
+    return new Promise((resolve, reject) => {
+      const keys = ['totalGames', 'wins', 'losses', 'currentStreak', 'bestStreak', 'lastResult'];
+      
+      window.Telegram.WebApp.CloudStorage.getItems(keys, (error, result) => {
+        if (error) {
+          console.error('❌ Telegram Cloud getItems error:', error);
+          reject(error);
+          return;
+        }
+        
+        console.log('📊 Данные из Telegram Cloud:', result);
+        
+        // Преобразуем данные из Cloud Storage
+        const stats = {
+          totalGames: parseInt(result.totalGames) || 0,
+          wins: parseInt(result.wins) || 0,
+          losses: parseInt(result.losses) || 0,
+          currentStreak: parseInt(result.currentStreak) || 0,
+          bestStreak: parseInt(result.bestStreak) || 0,
+          lastResult: result.lastResult || null
+        };
+        
+        console.log('✅ Статистика загружена из Telegram Cloud:', stats);
+        resolve(stats);
       });
+    });
+  },
+  
+  async saveToTelegramCloud(stats) {
+    return new Promise((resolve, reject) => {
+      // Преобразуем все значения в строки для Cloud Storage
+      const data = {
+        totalGames: String(stats.totalGames || 0),
+        wins: String(stats.wins || 0),
+        losses: String(stats.losses || 0),
+        currentStreak: String(stats.currentStreak || 0),
+        bestStreak: String(stats.bestStreak || 0),
+        lastResult: String(stats.lastResult || '')
+      };
       
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
+      console.log('💾 Сохраняем в Telegram Cloud:', data);
       
-      console.log('📊 Статистика сохранена на сервере');
-      // Также сохраняем локально как backup
-      this.saveToLocalStorage(stats);
-      return true;
-    } catch (error) {
-      console.error('Ошибка сохранения статистики на сервере, используем localStorage:', error);
-      return this.saveToLocalStorage(stats);
-    }
+      window.Telegram.WebApp.CloudStorage.setItems(data, (error, success) => {
+        if (error) {
+          console.error('❌ Telegram Cloud setItems error:', error);
+          reject(error);
+          return;
+        }
+        
+        console.log('✅ Данные сохранены в Telegram Cloud');
+        resolve(true);
+      });
+    });
   },
   
   loadFromLocalStorage() {
@@ -215,6 +250,31 @@ const StatsAPI = {
     } catch (e) {
       console.error('Ошибка сохранения в localStorage:', e);
       return false;
+    }
+  },
+  
+  // Функция для очистки статистики (для отладки или сброса)
+  async clearStats() {
+    if (window.Telegram?.WebApp?.CloudStorage) {
+      return new Promise((resolve, reject) => {
+        const keys = ['totalGames', 'wins', 'losses', 'currentStreak', 'bestStreak', 'lastResult'];
+        
+        window.Telegram.WebApp.CloudStorage.removeItems(keys, (error, success) => {
+          if (error) {
+            console.error('❌ Ошибка очистки Telegram Cloud:', error);
+            reject(error);
+            return;
+          }
+          
+          console.log('✅ Статистика очищена в Telegram Cloud');
+          localStorage.removeItem('playerStats');
+          resolve(true);
+        });
+      });
+    } else {
+      localStorage.removeItem('playerStats');
+      console.log('✅ Статистика очищена в localStorage');
+      return true;
     }
   }
 };
@@ -4335,6 +4395,36 @@ async function main(){
     openProfile();
   };
   console.log('🔍 openProfile test function available as window.testOpenProfile()');
+  
+  // Make stats management globally accessible for testing
+  window.clearStats = async function() {
+    console.log('🗑️ Clearing stats...');
+    try {
+      await StatsAPI.clearStats();
+      state.playerStats = {
+        totalGames: 0,
+        wins: 0,
+        losses: 0,
+        currentStreak: 0,
+        bestStreak: 0,
+        lastResult: null
+      };
+      console.log('✅ Stats cleared successfully!');
+      return true;
+    } catch (error) {
+      console.error('❌ Error clearing stats:', error);
+      return false;
+    }
+  };
+  
+  window.showStats = function() {
+    console.log('📊 Current stats:', state.playerStats);
+    return state.playerStats;
+  };
+  
+  console.log('📊 Stats management functions available:');
+  console.log('  - window.showStats() - показать текущую статистику');
+  console.log('  - window.clearStats() - очистить статистику');
   console.log('🔍 ========================================');
   
   // AUTOMATIC TEST: Disabled (feature working correctly)
