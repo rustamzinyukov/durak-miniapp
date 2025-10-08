@@ -618,7 +618,7 @@ function showDebugModal() {
     
     // Информация о версии приложения
     debugData += '📱 ИНФОРМАЦИЯ О ПРИЛОЖЕНИИ:\n';
-    debugData += '  - Версия: v99 (script.js)\n';
+    debugData += '  - Версия: v100 (script.js)\n';
     debugData += '  - Время сборки: ' + new Date().toLocaleString('ru-RU') + '\n';
     debugData += '  - User-Agent: ' + navigator.userAgent.substring(0, 50) + '...\n';
     debugData += '  - URL: ' + window.location.href.substring(0, 80) + '...\n\n';
@@ -735,10 +735,10 @@ function showVersionModal() {
     let versionData = '📱 ИНФОРМАЦИЯ О ВЕРСИИ ПРИЛОЖЕНИЯ\n';
     versionData += '=====================================\n\n';
     
-    versionData += '🔢 Версия приложения:\n';
-    versionData += '  - script.js: v98\n';
-    versionData += '  - style.css: v74\n';
-    versionData += '  - index.html: v98\n\n';
+        versionData += '🔢 Версия приложения:\n';
+        versionData += '  - script.js: v100\n';
+        versionData += '  - style.css: v74\n';
+        versionData += '  - index.html: v100\n\n';
     
     versionData += '⏰ Время сборки:\n';
     versionData += '  - Текущее время: ' + new Date().toLocaleString('ru-RU') + '\n';
@@ -1038,6 +1038,10 @@ function openProfile(){
       }
       
       // Try to get photo through server API (if available)
+      console.log('🔍 User object for server check:', user);
+      console.log('🔍 User ID:', user.id);
+      console.log('🔍 User ID type:', typeof user.id);
+      
       if (user.id) {
         console.log('🔄 Trying to get photo through server API...');
         console.log('🔍 Server URL:', `https://durak-miniapp-production.up.railway.app/api/user-photo/${user.id}`);
