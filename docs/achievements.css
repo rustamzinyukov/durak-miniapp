@@ -4,8 +4,22 @@
 
 .achievements-modal {
   max-width: 800px;
-  max-height: 90vh;
+  width: 90%;
+  max-height: 85vh;
   overflow: hidden;
+  margin: 20px;
+  background: var(--secondary-bg);
+  border-radius: 20px;
+  box-shadow: 
+    0 25px 50px rgba(0, 0, 0, 0.6),
+    0 0 0 1px rgba(255, 215, 0, 0.2);
+  border: 1px solid rgba(255, 215, 0, 0.1);
+}
+
+.achievements-modal .modal-body {
+  padding: 20px;
+  max-height: calc(85vh - 200px);
+  overflow-y: auto;
 }
 
 .player-level-info {
