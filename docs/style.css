@@ -1287,6 +1287,7 @@ html::before {
   height: 100%;
   padding-left: 8px;
   justify-content: flex-start;
+  gap: 12px; /* Отступ между кнопками профиля и достижений */
 }
 
 .header-center {
