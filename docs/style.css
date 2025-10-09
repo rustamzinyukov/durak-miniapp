@@ -995,19 +995,7 @@ html::before {
   pointer-events: none;
 }
 
-.theme-underground .app-header::after {
-  content: '★';
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  color: var(--underground-panel-border);
-  font-size: 14px;
-  text-shadow: 
-    1px 1px 0 rgba(0, 0, 0, 0.8),
-    -1px -1px 0 rgba(0, 0, 0, 0.8),
-    0 0 4px rgba(0, 0, 0, 0.6);
-  filter: drop-shadow(0 0 2px rgba(212, 175, 55, 0.5));
-}
+/* Удалено: декоративная звездочка в заголовке underground темы */
 
 /* Кнопка статистики */
 .stats-button {
@@ -1082,19 +1070,7 @@ html::before {
   pointer-events: none;
 }
 
-.theme-tavern .app-header::after {
-  content: '⚔️';
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  color: rgba(139, 94, 60, 0.8);
-  font-size: 14px;
-  text-shadow: 
-    1px 1px 0 rgba(0, 0, 0, 0.8),
-    -1px -1px 0 rgba(0, 0, 0, 0.8),
-    0 0 4px rgba(0, 0, 0, 0.6);
-  pointer-events: none;
-}
+/* Удалено: декоративные скрещенные мечи в заголовке tavern темы */
 
 /* Tavern theme header button styles */
 .theme-tavern .stats-button {
@@ -1564,6 +1540,13 @@ html::before {
   color: #000000;
 }
 
+/* Светлый цвет для casino и tavern тем */
+.theme-casino .opponent .count,
+.theme-tavern .opponent .count {
+  color: #FFFFFF;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+
 .table-wrap { 
   display: grid; 
   grid-template-columns: 1fr auto; 
@@ -1786,19 +1769,7 @@ html::before {
   position: relative;
 }
 
-.theme-underground .opponent-panel::after {
-  content: '★';
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  color: var(--underground-panel-border);
-  font-size: 16px;
-  text-shadow: 
-    1px 1px 0 rgba(0, 0, 0, 0.8),
-    -1px -1px 0 rgba(0, 0, 0, 0.8),
-    0 0 4px rgba(0, 0, 0, 0.6);
-  filter: drop-shadow(0 0 2px rgba(212, 175, 55, 0.5));
-}
+/* Удалено: декоративная звездочка в панели противника underground темы */
 
 .theme-underground .opponent-panel::before {
   background: none;
@@ -1815,19 +1786,7 @@ html::before {
   position: relative;
 }
 
-.theme-tavern .opponent-panel::after {
-  content: '⚔️';
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  color: rgba(139, 94, 60, 0.8);
-  font-size: 16px;
-  text-shadow: 
-    1px 1px 0 rgba(0, 0, 0, 0.8),
-    -1px -1px 0 rgba(0, 0, 0, 0.8),
-    0 0 4px rgba(0, 0, 0, 0.6);
-  pointer-events: none;
-}
+/* Удалено: декоративные скрещенные мечи в панели противника tavern темы */
 
 .theme-tavern .opponent-panel::before {
   background: none;
