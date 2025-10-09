@@ -2498,7 +2498,7 @@ html::before {
               linear-gradient(145deg, #0a1a15 0%, #0f2a20 50%, #051510 100%);
   padding: clamp(8px, 2vw, 12px) clamp(6px, 1.5vw, 10px) clamp(6px, 1.5vw, 12px);
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: wrap; /* По умолчанию разрешаем перенос */
   min-height: clamp(100px, 20vh, 140px);
   border-top: 1px solid rgba(212, 175, 55, 0.2);
   justify-content: center;
@@ -2507,6 +2507,12 @@ html::before {
     0 -8px 32px rgba(0, 0, 0, 0.4),
     inset 0 1px 0 rgba(212, 175, 55, 0.1);
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Для 1-9 карт: запрещаем перенос на новую строку */
+.hand.cards-1, .hand.cards-2, .hand.cards-3, .hand.cards-4, .hand.cards-5, 
+.hand.cards-6, .hand.cards-7, .hand.cards-8, .hand.cards-9 {
+  flex-wrap: nowrap !important;
 }
 
 /* Динамические размеры карт в зависимости от количества */
@@ -2543,11 +2549,12 @@ html::before {
 }
 
 /* Адаптивное наезжание в зависимости от количества карт */
+/* Для 1-9 карт: оптимизированное наезжание, чтобы всегда помещались в одну строку */
 .hand.cards-5 .card:not(:last-child) { margin-right: -18px !important; }
-.hand.cards-6 .card:not(:last-child) { margin-right: -18px !important; }
-.hand.cards-7 .card:not(:last-child) { margin-right: -25px !important; }
-.hand.cards-8 .card:not(:last-child) { margin-right: -23px !important; }
-.hand.cards-9 .card:not(:last-child) { margin-right: -28px !important; }
+.hand.cards-6 .card:not(:last-child) { margin-right: -25px !important; }
+.hand.cards-7 .card:not(:last-child) { margin-right: -35px !important; }
+.hand.cards-8 .card:not(:last-child) { margin-right: -40px !important; }
+.hand.cards-9 .card:not(:last-child) { margin-right: -45px !important; }
 .hand.cards-10 .card:not(:last-child) { margin-right: -26px !important; }
 .hand.cards-11 .card:not(:last-child) { margin-right: -24px !important; }
 .hand.cards-12 .card:not(:last-child) { margin-right: -22px !important; }
