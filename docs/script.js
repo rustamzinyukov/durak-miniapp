@@ -774,14 +774,14 @@ function showAchievementNotification(achievements) {
   });
 }
 
-function loadPlayerStats() {
-  StatsAPI.loadStats().then(stats => {
-    state.playerStats = { ...state.playerStats, ...stats };
-    console.log('📊 Статистика загружена:', state.playerStats);
-  });
+async function loadPlayerStats() {
+  const stats = await StatsAPI.loadStats();
+  state.playerStats = { ...state.playerStats, ...stats };
+  console.log('📊 Статистика загружена:', state.playerStats);
+  return stats;
 }
 
-function showAchievementsModal() {
+async function showAchievementsModal() {
   console.log('🏆 showAchievementsModal called');
   console.trace('🏆 Call stack:'); // Выводим стек вызова
   
@@ -798,6 +798,13 @@ function showAchievementsModal() {
   updatePlayerLevelDisplay();
   
   console.log('🏆 Rendering achievements...');
+  // Убеждаемся, что статистика загружена
+  if (!state.playerStats || !state.playerStats.achievements) {
+    console.log('🏆 Loading player stats first...');
+    await loadPlayerStats();
+    // Небольшая задержка для загрузки
+    await new Promise(resolve => setTimeout(resolve, 100));
+  }
   // Рендерим достижения
   renderAchievements();
   
@@ -836,19 +843,32 @@ function updatePlayerLevelDisplay() {
 }
 
 function renderAchievements() {
+  console.log('🎯 renderAchievements called');
   const grid = document.getElementById('achievementsGrid');
-  if (!grid) return;
+  if (!grid) {
+    console.error('❌ achievementsGrid not found!');
+    return;
+  }
   
+  console.log('🎯 Clearing grid...');
   grid.innerHTML = '';
   
   const achievements = state.playerStats.achievements || { unlocked: [] };
   const unlocked = achievements.unlocked || [];
+  console.log('🎯 Achievements data:', achievements);
+  console.log('🎯 Unlocked achievements:', unlocked);
   
-  Object.values(ACHIEVEMENTS).forEach(achievement => {
+  const achievementsList = Object.values(ACHIEVEMENTS);
+  console.log('🎯 Total achievements to render:', achievementsList.length);
+  
+  achievementsList.forEach((achievement, index) => {
     const isUnlocked = unlocked.includes(achievement.id);
+    console.log(`🎯 Achievement ${index + 1}: ${achievement.name}, unlocked: ${isUnlocked}`);
     const card = createAchievementCard(achievement, isUnlocked);
     grid.appendChild(card);
   });
+  
+  console.log('✅ All achievements rendered');
 }
 
 function createAchievementCard(achievement, isUnlocked) {
