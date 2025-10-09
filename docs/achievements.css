@@ -11,13 +11,18 @@
   height: 100% !important;
   background: rgba(0, 0, 0, 0.8) !important;
   backdrop-filter: blur(5px) !important;
-  display: flex !important;
+  /* НЕ используем display: flex !important здесь - это переопределит display: none */
   align-items: center !important;
   justify-content: center !important;
   z-index: 1000 !important;
   animation: fadeIn 300ms ease-out !important;
   padding: 0 !important;
   margin: 0 !important;
+}
+
+/* Когда модальное окно видимо */
+#achievementsModal:not(.hidden) {
+  display: flex !important;
 }
 
 /* Основной контейнер модального окна */
