@@ -885,41 +885,8 @@ function hideAchievementsModal() {
 }
 
 function filterAchievements(tabType) {
-  const grid = document.getElementById('achievementsGrid');
-  if (!grid) return;
-  
-  const achievements = state.playerStats.achievements || { unlocked: [] };
-  const unlocked = achievements.unlocked || [];
-  
-  // Очищаем сетку
-  grid.innerHTML = '';
-  
-  Object.values(ACHIEVEMENTS).forEach(achievement => {
-    const isUnlocked = unlocked.includes(achievement.id);
-    let shouldShow = true;
-    
-    switch (tabType) {
-      case 'unlocked':
-        shouldShow = isUnlocked;
-        break;
-      case 'locked':
-        shouldShow = !isUnlocked;
-        break;
-      case 'progress':
-        // Показываем только заблокированные достижения (в процессе)
-        shouldShow = !isUnlocked;
-        break;
-      case 'all':
-      default:
-        shouldShow = true;
-        break;
-    }
-    
-    if (shouldShow) {
-      const card = createAchievementCard(achievement, isUnlocked);
-      grid.appendChild(card);
-    }
-  });
+  // Теперь всегда показываем все достижения с подсветкой
+  renderAchievements();
 }
 
 function hideStatsModal() {
@@ -4283,18 +4250,12 @@ function bindEvents(){
     });
   }
   
-  // Обработчики для табов достижений
+  // Обработчики для табов достижений (теперь только один таб "Все")
   const tabs = document.querySelectorAll('.achievements-tabs .tab');
   tabs.forEach(tab => {
     tab.addEventListener('click', () => {
-      // Убираем активный класс со всех табов
-      tabs.forEach(t => t.classList.remove('active'));
-      // Добавляем активный класс к текущему табу
-      tab.classList.add('active');
-      
-      // Фильтруем достижения
-      const tabType = tab.dataset.tab;
-      filterAchievements(tabType);
+      // Всегда показываем все достижения
+      renderAchievements();
     });
   });
   
