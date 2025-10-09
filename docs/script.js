@@ -4356,17 +4356,13 @@ function bindEvents(){
     console.log('🔍 el.profileButton:', el.profileButton);
   }
     
-  // Debug button event listeners
+  // Debug button event listeners (только в профиле)
   const debugBtn = document.getElementById('profileDebugBtn');
-  const debugBtnMain = document.getElementById('debugButton');
   const debugModalClose = document.getElementById('debugModalClose');
   const debugModalOk = document.getElementById('debugModalOk');
   
   if (debugBtn) {
     debugBtn.addEventListener('click', showDebugModal);
-  }
-  if (debugBtnMain) {
-    debugBtnMain.addEventListener('click', showDebugModal);
   }
   if (debugModalClose) {
     debugModalClose.addEventListener('click', hideDebugModal);
