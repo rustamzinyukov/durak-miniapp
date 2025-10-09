@@ -850,6 +850,12 @@ function renderAchievements() {
     return;
   }
   
+  // Проверяем, что ACHIEVEMENTS определен
+  if (typeof ACHIEVEMENTS === 'undefined' || !ACHIEVEMENTS) {
+    console.error('❌ ACHIEVEMENTS is not defined!');
+    return;
+  }
+  
   console.log('🎯 Clearing grid...');
   grid.innerHTML = '';
   
@@ -860,6 +866,11 @@ function renderAchievements() {
   
   const achievementsList = Object.values(ACHIEVEMENTS);
   console.log('🎯 Total achievements to render:', achievementsList.length);
+  
+  if (achievementsList.length === 0) {
+    console.error('❌ No achievements found in ACHIEVEMENTS object!');
+    return;
+  }
   
   achievementsList.forEach((achievement, index) => {
     const isUnlocked = unlocked.includes(achievement.id);
