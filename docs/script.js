@@ -613,8 +613,13 @@ function updatePlayerStats(result, gameData = {}) {
     showAchievementNotification(newAchievements);
   }
   
-  // Сохраняем статистику
+  // Сохраняем статистику локально
   StatsAPI.saveStats(state.playerStats);
+  
+  // Отправляем статистику на сервер (асинхронно, не блокируем игру)
+  sendStatsToServer(state.playerStats, result, gameData).catch(err => {
+    console.warn('⚠️ Failed to send stats to server:', err);
+  });
   
   console.log('📊 Статистика обновлена:', state.playerStats);
   if (newAchievements.length > 0) {
@@ -670,6 +675,68 @@ function updateDetailedStats(result, gameData) {
   
   if (gameData.trumpCardsUsed !== undefined) {
     stats.trumpCardsUsed += gameData.trumpCardsUsed;
+  }
+}
+
+// Функция для отправки статистики на сервер
+async function sendStatsToServer(playerStats, result, gameData = {}) {
+  try {
+    // Получаем информацию о пользователе Telegram
+    const tg = window.Telegram?.WebApp;
+    const user = tg?.initDataUnsafe?.user;
+    
+    if (!user || !user.id) {
+      console.log('⚠️ Telegram user not available, skipping server sync');
+      return;
+    }
+    
+    const SERVER_URL = 'https://durak-miniapp-production.up.railway.app';
+    
+    // Отправляем общую статистику
+    const statsResponse = await fetch(`${SERVER_URL}/api/stats`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        telegram_user_id: user.id,
+        username: user.username,
+        first_name: user.first_name,
+        last_name: user.last_name,
+        stats: playerStats
+      })
+    });
+    
+    if (!statsResponse.ok) {
+      throw new Error(`Stats API returned ${statsResponse.status}`);
+    }
+    
+    console.log('✅ Stats successfully sent to server');
+    
+    // Отправляем запись об отдельной игре (опционально)
+    const gameResponse = await fetch(`${SERVER_URL}/api/stats/game`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        telegram_user_id: user.id,
+        result: result,
+        duration: gameData.duration,
+        cards_played: gameData.cardsPlayed,
+        theme: state.theme
+      })
+    });
+    
+    if (!gameResponse.ok) {
+      throw new Error(`Game API returned ${gameResponse.status}`);
+    }
+    
+    console.log('✅ Game record successfully sent to server');
+    
+  } catch (error) {
+    console.error('❌ Error sending stats to server:', error);
+    // Не прерываем игру при ошибке отправки статистики
   }
 }
 

@@ -4,6 +4,8 @@
 require('dotenv').config({ path: __dirname + '/.env' });
 const express = require('express');
 const axios = require('axios');
+const db = require('./database/db');
+const statsRouter = require('./api/stats');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -26,6 +28,12 @@ app.use((req, res, next) => {
 });
 
 app.use(express.json());
+
+// Serve static files for admin panel
+app.use('/admin', express.static(__dirname + '/public'));
+
+// Mount stats API router
+app.use('/api', statsRouter);
 
 // Endpoint для получения фотографии профиля
 app.get('/api/user-photo/:userId', async (req, res) => {
@@ -130,10 +138,19 @@ app.get('/test', (req, res) => {
   });
 });
 
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
   console.log(`Server running on port ${PORT}`);
   console.log(`Health check: http://localhost:${PORT}/health`);
   console.log(`User photo endpoint: http://localhost:${PORT}/api/user-photo/:userId`);
+  console.log(`Stats API: http://localhost:${PORT}/api/stats`);
+  
+  // Initialize database
+  try {
+    await db.initializeDatabase();
+    console.log('✅ Database initialized successfully');
+  } catch (error) {
+    console.error('❌ Failed to initialize database:', error);
+  }
 });
 
 module.exports = app;
