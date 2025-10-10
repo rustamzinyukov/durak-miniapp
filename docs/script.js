@@ -602,6 +602,9 @@ function updatePlayerStats(result, gameData = {}) {
   
   state.playerStats.lastResult = result;
   
+  // Добавляем временную метку обновления
+  state.playerStats.updated_at = new Date().toISOString();
+  
   // Обновляем детальную статистику
   updateDetailedStats(result, gameData);
   
@@ -740,6 +743,120 @@ async function sendStatsToServer(playerStats, result, gameData = {}) {
   }
 }
 
+// Конвертер данных сервера в локальный формат
+function convertServerToLocal(serverStats) {
+  return {
+    totalGames: serverStats.total_games || 0,
+    wins: serverStats.wins || 0,
+    losses: serverStats.losses || 0,
+    currentStreak: serverStats.current_streak || 0,
+    bestStreak: serverStats.best_streak || 0,
+    lastResult: serverStats.last_result || null,
+    achievements: serverStats.achievements || { unlocked: [], points: 0, level: 1, title: "Новичок" },
+    detailed: serverStats.detailed_stats || {},
+    updated_at: serverStats.updated_at
+  };
+}
+
+// Конвертер локальных данных в формат сервера
+function convertLocalToServer(localStats, userInfo) {
+  return {
+    telegram_user_id: userInfo.id,
+    username: userInfo.username,
+    first_name: userInfo.first_name,
+    last_name: userInfo.last_name,
+    stats: localStats
+  };
+}
+
+// Функция синхронизации с сервером
+async function syncWithServer() {
+  try {
+    const tg = window.Telegram?.WebApp;
+    const user = tg?.initDataUnsafe?.user;
+    
+    if (!user || !user.id) {
+      console.log('⚠️ Telegram user not available, skipping sync');
+      return;
+    }
+    
+    const SERVER_URL = 'https://durak-miniapp-production.up.railway.app';
+    
+    console.log('🔄 Starting sync with server...');
+    
+    // Получаем статистику с сервера
+    const response = await fetch(`${SERVER_URL}/api/stats/${user.id}`);
+    
+    if (response.ok) {
+      const data = await response.json();
+      
+      if (data.success && data.data) {
+        const serverStats = data.data;
+        console.log('📥 Server stats received:', serverStats);
+        
+        // Сравниваем временные метки
+        const localUpdated = new Date(state.playerStats.updated_at || 0);
+        const serverUpdated = new Date(serverStats.updated_at || 0);
+        
+        console.log('🕐 Local updated:', localUpdated.toISOString());
+        console.log('🕐 Server updated:', serverUpdated.toISOString());
+        
+        // Сравниваем количество игр (для надежности)
+        const localGames = state.playerStats.totalGames || 0;
+        const serverGames = serverStats.total_games || 0;
+        
+        console.log('🎮 Local games:', localGames);
+        console.log('🎮 Server games:', serverGames);
+        
+        // СТРАТЕГИЯ РАЗРЕШЕНИЯ КОНФЛИКТОВ
+        let shouldUpdateLocal = false;
+        
+        if (serverGames > localGames) {
+          // На сервере больше игр → используем серверные данные
+          console.log('✅ Server has more games, updating local...');
+          shouldUpdateLocal = true;
+        } else if (serverGames === localGames && serverUpdated > localUpdated) {
+          // Одинаково игр, но сервер обновлен позже → используем серверные данные
+          console.log('✅ Server is newer, updating local...');
+          shouldUpdateLocal = true;
+        } else {
+          // Локально свежее → отправляем на сервер
+          console.log('⬆️ Local stats are newer, syncing to server...');
+          await sendStatsToServer(state.playerStats, null, {});
+        }
+        
+        if (shouldUpdateLocal) {
+          // Конвертируем и сохраняем
+          const convertedStats = convertServerToLocal(serverStats);
+          state.playerStats = { ...state.playerStats, ...convertedStats };
+          await StatsAPI.saveStats(state.playerStats);
+          
+          console.log('✅ Local stats updated from server');
+          
+          // Обновляем UI если открыто окно достижений
+          const modal = document.getElementById('achievementsModal');
+          if (modal && !modal.classList.contains('hidden')) {
+            updatePlayerLevelDisplay();
+            renderAchievements();
+          }
+        }
+      }
+    } else if (response.status === 404) {
+      // Игрок новый на сервере → отправляем локальные данные
+      console.log('📤 First time sync, sending local stats to server...');
+      await sendStatsToServer(state.playerStats, null, {});
+    } else {
+      console.warn('⚠️ Server returned:', response.status);
+    }
+    
+    console.log('✅ Sync completed successfully');
+    
+  } catch (error) {
+    console.error('❌ Sync error:', error);
+    // Не критично - продолжаем работать с локальными данными
+  }
+}
+
 // Функция для показа уведомлений о достижениях
 function showAchievementNotification(achievements) {
   achievements.forEach((achievement, index) => {
@@ -842,9 +959,16 @@ function showAchievementNotification(achievements) {
 }
 
 async function loadPlayerStats() {
+  // Быстро загружаем из локального хранилища (Telegram Cloud Storage)
   const stats = await StatsAPI.loadStats();
-    state.playerStats = { ...state.playerStats, ...stats };
-    console.log('📊 Статистика загружена:', state.playerStats);
+  state.playerStats = { ...state.playerStats, ...stats };
+  console.log('📊 Локальная статистика загружена:', state.playerStats);
+  
+  // В фоне синхронизируем с сервером (не блокируем загрузку)
+  syncWithServer().catch(err => {
+    console.warn('⚠️ Background sync failed (non-critical):', err);
+  });
+  
   return stats;
 }
 
@@ -1150,7 +1274,8 @@ const state = {
     losses: 0,
     currentStreak: 0,
     bestStreak: 0,
-    lastResult: null // 'win' or 'loss'
+    lastResult: null, // 'win' or 'loss'
+    updated_at: null // Timestamp последнего обновления
   },
   opponentProfile: {     // AI opponent profile
     name: "Дональд",
@@ -5170,6 +5295,12 @@ async function main(){
     }
   };
   
+  // Ручная синхронизация с сервером
+  window.syncStats = async function() {
+    console.log('🔄 Manual sync triggered...');
+    await syncWithServer();
+  };
+  
   console.log('📊 Stats management functions available:');
   console.log('  - window.showStats() - показать текущую статистику');
   console.log('  - window.showAchievements() - показать достижения');
@@ -5178,6 +5309,7 @@ async function main(){
   console.log('  - window.exportStats() - экспортировать в JSON файл');
   console.log('  - window.importStats(json) - импортировать из JSON');
   console.log('  - window.clearStats() - очистить статистику');
+  console.log('  - window.syncStats() - синхронизировать с сервером');
   console.log('🔍 ========================================');
   
   // AUTOMATIC TEST: Disabled (feature working correctly)
