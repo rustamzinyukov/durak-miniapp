@@ -776,8 +776,8 @@ function showAchievementNotification(achievements) {
 
 async function loadPlayerStats() {
   const stats = await StatsAPI.loadStats();
-  state.playerStats = { ...state.playerStats, ...stats };
-  console.log('📊 Статистика загружена:', state.playerStats);
+    state.playerStats = { ...state.playerStats, ...stats };
+    console.log('📊 Статистика загружена:', state.playerStats);
   return stats;
 }
 
@@ -2804,7 +2804,7 @@ function updateButtons(){
   const isHumanDefender = state.defenderIndex === 0;
 
   if (state.phase === "attacking" && isHumanAttacker){
-    el.btnAdd.innerHTML = `<span class="icon"></span> Сыграть выбранные`;
+    el.btnAdd.innerHTML = `<span class="icon"></span> Атака`;
     el.btnAdd.setAttribute('data-phase', 'attacking');
     el.btnAdd.disabled = ui.selected.size === 0;
     // В фазе "attacking" кнопка "Бито" НЕ доступна (еще нет пар)
@@ -2818,7 +2818,7 @@ function updateButtons(){
     // Защищающийся НИКОГДА не нажимает "Бито"
     el.btnEnough.disabled = true;
   } else if (state.phase === "adding" && isHumanAttacker){
-    el.btnAdd.innerHTML = `<span class="icon"></span> Подкинуть выбранные`;
+    el.btnAdd.innerHTML = `<span class="icon"></span> Подкинуть`;
     el.btnAdd.setAttribute('data-phase', 'adding');
     el.btnAdd.disabled = ui.selected.size === 0;
     // Кнопка "Бито" доступна ТОЛЬКО когда ВСЕ пары покрыты
