@@ -2377,8 +2377,10 @@ function updateCommentaryIfNeeded(){
     // Проверяем козыри
     const lastCard = state.table.pairs[state.table.pairs.length - 1];
     const trumpSuit = state.trumpSuit;
-    const isPlayerTrump = lastCard && lastCard.attack && lastCard.attack.suit === trumpSuit;
-    const isAiTrump = lastCard && lastCard.defense && lastCard.defense && lastCard.defense.suit === trumpSuit;
+    // Проверяем, кто атаковал козырем: если атакует человек и карта козырь - это playerTrump
+    const isPlayerTrump = lastCard && lastCard.attack && lastCard.attack.suit === trumpSuit && isHumanAtt;
+    // Проверяем, кто атаковал козырем: если атакует AI и карта козырь - это aiTrump
+    const isAiTrump = lastCard && lastCard.attack && lastCard.attack.suit === trumpSuit && !isHumanAtt;
     
     // Специальные комментарии для особых ситуаций
     if (isManyCards && L.special && L.special.manyCards) {
