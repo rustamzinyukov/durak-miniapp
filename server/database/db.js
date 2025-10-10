@@ -3,10 +3,14 @@ const { Pool } = require('pg');
 // PostgreSQL connection pool
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL || process.env.PGURL,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+  ssl: {
+    rejectUnauthorized: false // Railway требует SSL, но без проверки сертификата
+  },
   max: 20, // Maximum number of clients in the pool
   idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 2000,
+  connectionTimeoutMillis: 10000, // Увеличен таймаут до 10 секунд
+  statement_timeout: 30000, // Таймаут выполнения запроса
+  query_timeout: 30000,
 });
 
 // Test connection
@@ -41,18 +45,38 @@ async function initializeDatabase() {
   try {
     console.log('🔄 Initializing database...');
     
+    // Проверяем переменные окружения
+    if (!process.env.DATABASE_URL && !process.env.PGURL) {
+      console.warn('⚠️ DATABASE_URL not set, database features will be disabled');
+      return false;
+    }
+    
+    console.log('🔍 DATABASE_URL:', process.env.DATABASE_URL ? 'Set' : 'Not set');
+    console.log('🔍 PGURL:', process.env.PGURL ? 'Set' : 'Not set');
+    
+    // Проверяем подключение
+    console.log('🔌 Testing database connection...');
+    const testResult = await pool.query('SELECT NOW()');
+    console.log('✅ Database connection successful:', testResult.rows[0].now);
+    
     // Read and execute schema.sql
     const schemaPath = path.join(__dirname, 'schema.sql');
     if (fs.existsSync(schemaPath)) {
+      console.log('📄 Reading schema.sql...');
       const schema = fs.readFileSync(schemaPath, 'utf8');
+      console.log('📝 Executing schema...');
       await pool.query(schema);
       console.log('✅ Database schema initialized successfully');
     } else {
       console.warn('⚠️ schema.sql not found, skipping initialization');
     }
+    
+    return true;
   } catch (error) {
     console.error('❌ Error initializing database:', error);
-    throw error;
+    console.error('❌ Error details:', error.message);
+    console.warn('⚠️ Database features will be disabled, but app will continue');
+    return false;
   }
 }
 
