@@ -5506,32 +5506,44 @@ function setupMainMenuEvents() {
   // Играть с ИИ
   const playWithAI = document.getElementById('playWithAI');
   if (playWithAI) {
+    showDebugInfo('🔧 AI кнопка', 'Найдена и настроена');
     playWithAI.addEventListener('click', () => {
+      showDebugInfo('🎮 AI кнопка', 'Нажата кнопка "Играть с ИИ"');
       console.log('🤖 Starting AI game...');
       state.gameMode = 'ai';
       hideMainMenu();
       startNewGame();
     });
+  } else {
+    showDebugInfo('❌ AI кнопка', 'Не найдена!');
   }
   
   // Играть с другом
   const playWithFriend = document.getElementById('playWithFriend');
   if (playWithFriend) {
+    showDebugInfo('🔧 Friend кнопка', 'Найдена и настроена');
     playWithFriend.addEventListener('click', () => {
+      showDebugInfo('👥 Friend кнопка', 'Нажата кнопка "Играть с другом"');
       console.log('👥 Starting friend game...');
       state.gameMode = 'friend';
       showFriendGameModal();
     });
+  } else {
+    showDebugInfo('❌ Friend кнопка', 'Не найдена!');
   }
   
   // Играть онлайн
   const playOnline = document.getElementById('playOnline');
   if (playOnline) {
+    showDebugInfo('🔧 Online кнопка', 'Найдена и настроена');
     playOnline.addEventListener('click', () => {
+      showDebugInfo('🌐 Online кнопка', 'Нажата кнопка "Играть онлайн"');
       console.log('🌐 Starting online game...');
       state.gameMode = 'online';
       showOnlineGameModal();
     });
+  } else {
+    showDebugInfo('❌ Online кнопка', 'Не найдена!');
   }
 }
 
