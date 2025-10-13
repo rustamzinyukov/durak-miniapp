@@ -3818,8 +3818,11 @@ function commitAttackFromPlayer(player, selectedIds){
         }
         render();
         
-        // Continue AI after animation (only for the last card)
+        // Send move to server in multiplayer mode (only for the last card)
         if (index === selected.length - 1) {
+          if (state.gameMode === 'multiplayer') {
+            sendMoveToServer('attack', selected.map(c => ({ suit: c.suit, rank: c.rank })), getCurrentGameState());
+          }
           setTimeout(continueGame, 250);
         }
       }, 'attack');
@@ -3871,6 +3874,11 @@ function commitDefenseFromPlayer(player, selectedId){
       state.phase = state.table.pairs.every(p=>p.defense) ? "adding" : "defending";
       render();
       
+      // Send move to server in multiplayer mode
+      if (state.gameMode === 'multiplayer') {
+        sendMoveToServer('defend', [{ suit: card.suit, rank: card.rank, targetIndex: targetIndex }], getCurrentGameState());
+      }
+      
       // Continue AI after animation
       setTimeout(continueGame, 250);
     }, 'defense', targetIndex);
@@ -3905,6 +3913,11 @@ function commitAddFromPlayer(player, selectedIds){
         
         // Continue AI after animation (only for the last card)
         if (index === selected.length - 1) {
+          // Send move to server in multiplayer mode
+          if (state.gameMode === 'multiplayer') {
+            sendMoveToServer('add', selected.map(c => ({ suit: c.suit, rank: c.rank })), getCurrentGameState());
+          }
+          
           // Даем время на обновление UI, затем вызываем AI
           setTimeout(() => {
             console.log('🎯 Player added cards, calling aiLoopStep');
