@@ -5620,13 +5620,17 @@ async function createMultiplayerGame(mode) {
     
     const data = await response.json();
     
+    showDebugInfo('📊 Ответ сервера', JSON.stringify(data, null, 2));
+    
     if (data.success) {
       state.multiplayerGameId = data.data.gameId;
       const inviteCode = data.data.inviteCode;
       
+      showDebugInfo('✅ Игра создана', `ID: ${data.data.gameId}, Код: ${inviteCode}`);
       // Показываем код приглашения
       showInviteCodeModal(inviteCode);
     } else {
+      showDebugInfo('❌ Ошибка создания', data.error || 'Failed to create game');
       throw new Error(data.error || 'Failed to create game');
     }
     
@@ -5644,6 +5648,8 @@ async function createMultiplayerGame(mode) {
 
 // Показать модальное окно с кодом приглашения
 function showInviteCodeModal(inviteCode) {
+  showDebugInfo('📱 Показ модального окна', `Код приглашения: ${inviteCode}`);
+  
   const modal = document.createElement('div');
   modal.className = 'modal';
   modal.innerHTML = `
@@ -5692,6 +5698,7 @@ function showInviteCodeModal(inviteCode) {
 
 // Ждать присоединения друга
 async function waitForFriendToJoin() {
+  showDebugInfo('⏳ Ожидание друга', 'Начинаем ожидание присоединения...');
   console.log('⏳ Waiting for friend to join...');
   
   // Показываем экран ожидания
