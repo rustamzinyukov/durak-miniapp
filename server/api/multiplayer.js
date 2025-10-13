@@ -560,4 +560,34 @@ router.get('/stats/multiplayer/:telegram_user_id', async (req, res) => {
   }
 });
 
+// Endpoint для просмотра логов (только для отладки)
+router.get('/debug/logs', (req, res) => {
+  try {
+    const fs = require('fs');
+    const path = require('path');
+    const logFile = path.join(__dirname, '../logs/debug.log');
+    
+    if (fs.existsSync(logFile)) {
+      const logs = fs.readFileSync(logFile, 'utf8');
+      const recentLogs = logs.split('\n').slice(-50).join('\n'); // Последние 50 строк
+      res.json({
+        success: true,
+        logs: recentLogs,
+        totalLines: logs.split('\n').length
+      });
+    } else {
+      res.json({
+        success: true,
+        logs: 'No logs found',
+        totalLines: 0
+      });
+    }
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
 module.exports = router;
