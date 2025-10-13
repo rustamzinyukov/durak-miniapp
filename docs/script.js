@@ -5693,15 +5693,19 @@ async function joinGameByCode(inviteCode) {
       return;
     }
     
+    const requestBody = {
+      invite_code: inviteCode,
+      telegram_user_id: user.id,
+      username: user.username,
+      first_name: user.first_name
+    };
+    
+    showDebugInfo('📤 Запрос присоединения', JSON.stringify(requestBody, null, 2));
+    
     const response = await fetch('https://durak-miniapp-production.up.railway.app/api/games/join-by-code', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        invite_code: inviteCode,
-        telegram_user_id: user.id,
-        username: user.username,
-        first_name: user.first_name
-      })
+      body: JSON.stringify(requestBody)
     });
     
     showDebugInfo('📥 Ответ сервера', `Статус: ${response.status}`);

@@ -103,13 +103,13 @@ router.post('/games/join-by-code', async (req, res) => {
 
     const invite = inviteResult.rows[0];
 
-    // Проверяем, что игрок не пытается присоединиться к своей игре
-    if (invite.host_telegram_id === telegram_user_id) {
-      return res.status(400).json({ 
-        success: false, 
-        error: 'Cannot join your own game' 
-      });
-    }
+    // Разрешаем присоединение к своей игре (для тестирования)
+    // if (invite.host_telegram_id === telegram_user_id) {
+    //   return res.status(400).json({ 
+    //     success: false, 
+    //     error: 'Cannot join your own game' 
+    //   });
+    // }
 
     // Проверяем статус игры
     if (invite.status !== 'waiting') {
