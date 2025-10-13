@@ -1,6 +1,7 @@
 const express = require('express');
 const { v4: uuidv4 } = require('uuid');
 const { query } = require('../database/db');
+const logger = require('../utils/logger');
 
 const router = express.Router();
 
@@ -51,6 +52,9 @@ router.post('/games/create', async (req, res) => {
       VALUES ($1, $2, $3, $4, $5, $6)
     `, [inviteCode, gameId, telegram_user_id, username, first_name, expiresAt]);
 
+    // Логируем создание игры
+    logger.gameCreated(gameId, telegram_user_id, inviteCode);
+
     res.json({
       success: true,
       data: {
@@ -87,7 +91,7 @@ router.post('/games/join-by-code', async (req, res) => {
     }
 
     // Проверяем код приглашения
-    console.log(`🔍 Checking invite code: ${invite_code}`);
+    logger.debug('INVITE', `Checking invite code: ${invite_code}`);
     const inviteResult = await query(`
       SELECT gi.*, mg.id as game_id, mg.status, mg.host_telegram_id
       FROM game_invites gi
@@ -95,7 +99,7 @@ router.post('/games/join-by-code', async (req, res) => {
       WHERE gi.code = $1 AND gi.expires_at > NOW() AND gi.used_at IS NULL
     `, [invite_code]);
     
-    console.log(`🔍 Found ${inviteResult.rows.length} valid invites for code: ${invite_code}`);
+    logger.inviteCodeCheck(invite_code, inviteResult);
 
     if (inviteResult.rows.length === 0) {
       return res.status(404).json({ 
@@ -136,6 +140,9 @@ router.post('/games/join-by-code', async (req, res) => {
       SET used_at = NOW() 
       WHERE code = $1
     `, [invite_code]);
+
+    // Логируем успешное присоединение
+    logger.gameJoined(invite.game_id, telegram_user_id, invite_code);
 
     res.json({
       success: true,
