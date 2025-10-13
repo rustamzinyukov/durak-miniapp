@@ -5083,6 +5083,11 @@ function hideLoadingScreen() {
   // Показываем debug информацию
   showInitialDebugInfo();
   
+  // Принудительно показываем debug панель
+  setTimeout(() => {
+    showDebugInfo('🚀 Загрузка завершена', 'Игра готова к работе');
+  }, 100);
+  
   // Показываем главное меню вместо игры
   showMainMenu();
   
@@ -6204,40 +6209,27 @@ function showGameResult(result) {
 
 // Показать debug информацию в игре
 function showDebugInfo(title, message) {
-  // Создаем или обновляем debug панель
-  let debugPanel = document.getElementById('debugPanel');
+  // Используем статическую debug панель из HTML
+  let debugPanel = document.getElementById('globalDebugPanel');
   if (!debugPanel) {
-    debugPanel = document.createElement('div');
-    debugPanel.id = 'debugPanel';
-    debugPanel.style.cssText = `
-      position: fixed;
-      top: 10px;
-      left: 10px;
-      right: 10px;
-      background: rgba(0, 0, 0, 0.9);
-      color: white;
-      padding: 10px;
-      border-radius: 5px;
-      font-family: monospace;
-      font-size: 12px;
-      z-index: 10000;
-      max-height: 200px;
-      overflow-y: auto;
-    `;
-    document.body.appendChild(debugPanel);
+    console.error('❌ Debug panel not found in HTML');
+    return;
   }
   
   const timestamp = new Date().toLocaleTimeString();
   const logEntry = `[${timestamp}] ${title}: ${message}`;
   
-  debugPanel.innerHTML += logEntry + '\n';
+  // Показываем панель
+  debugPanel.style.display = 'block';
+  
+  // Добавляем новую запись
+  debugPanel.innerHTML += logEntry + '<br>';
   debugPanel.scrollTop = debugPanel.scrollHeight;
   
   // Автоматически скрываем через 15 секунд
-  setTimeout(() => {
-    if (debugPanel) {
-      debugPanel.remove();
-    }
+  clearTimeout(debugPanel.hideTimeout);
+  debugPanel.hideTimeout = setTimeout(() => {
+    debugPanel.style.display = 'none';
   }, 15000);
 }
 
