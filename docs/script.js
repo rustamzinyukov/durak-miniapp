@@ -3826,8 +3826,10 @@ function commitAttackFromPlayer(player, selectedIds){
               console.log('📤 Sending attack to server. Table pairs:', state.table.pairs.length);
               sendMoveToServer('attack', selected.map(c => ({ suit: c.suit, rank: c.rank })), getCurrentGameState());
             }, 500);
+          } else {
+            // В режиме AI вызываем continueGame
+            setTimeout(continueGame, 250);
           }
-          setTimeout(continueGame, 250);
         }
       }, 'attack');
     }, 100 + (index * 300)); // Increased stagger time for better sequence
@@ -3885,10 +3887,10 @@ function commitDefenseFromPlayer(player, selectedId){
           console.log('📤 Sending defend to server. Table pairs:', state.table.pairs.length);
           sendMoveToServer('defend', [{ suit: card.suit, rank: card.rank, targetIndex: targetIndex }], getCurrentGameState());
         }, 500);
+      } else {
+        // В режиме AI вызываем continueGame
+        setTimeout(continueGame, 250);
       }
-      
-      // Continue AI after animation
-      setTimeout(continueGame, 250);
     }, 'defense', targetIndex);
   }, 200);
   
@@ -3928,13 +3930,13 @@ function commitAddFromPlayer(player, selectedIds){
               console.log('📤 Sending add to server. Table pairs:', state.table.pairs.length);
               sendMoveToServer('add', selected.map(c => ({ suit: c.suit, rank: c.rank })), getCurrentGameState());
             }, 500);
+          } else {
+            // В режиме AI вызываем aiLoopStep
+            setTimeout(() => {
+              console.log('🎯 Player added cards, calling aiLoopStep');
+              aiLoopStep();
+            }, 100);
           }
-          
-          // Даем время на обновление UI, затем вызываем AI
-          setTimeout(() => {
-            console.log('🎯 Player added cards, calling aiLoopStep');
-            aiLoopStep();
-          }, 100);
         }
       }, 'attack');
     }, 100 + (index * 200)); // Stagger animations
@@ -3983,10 +3985,10 @@ function defenderTakes(){
           console.log('📤 Sending take to server. Table pairs:', state.table.pairs.length);
           sendMoveToServer('take', all, getCurrentGameState());
         }, 500);
+      } else {
+        // В режиме AI продолжаем игру после анимации
+        setTimeout(continueGame, 300);
       }
-      
-      // Продолжаем игру после анимации
-      setTimeout(continueGame, 300);
     });
   } else {
     // Для ИИ - создаем анимацию полета карт к противнику
@@ -4020,10 +4022,10 @@ function defenderTakes(){
           // Отправляем ход на сервер для мультиплеера
           if (state.gameMode === 'multiplayer') {
             sendMoveToServer('take', all, getCurrentGameState());
+          } else {
+            // В режиме AI продолжаем игру после анимации
+            setTimeout(continueGame, 300);
           }
-          
-          // Продолжаем игру после анимации
-          setTimeout(continueGame, 300);
         });
       }, 1500); // 1.5 секунды на чтение комментария
     } else {
@@ -4044,10 +4046,10 @@ function defenderTakes(){
           console.log('📤 Sending take to server. Table pairs:', state.table.pairs.length);
           sendMoveToServer('take', all, getCurrentGameState());
         }, 500);
+      } else {
+        // В режиме AI продолжаем игру
+        setTimeout(continueGame, 300);
       }
-      
-      // Продолжаем игру
-      setTimeout(continueGame, 300);
     }
   }
 }
@@ -4142,8 +4144,10 @@ function defenderEnough(){
     checkEndgame();
     render();
     
-    // Продолжаем игру
-    setTimeout(continueGame, 300);
+    // Продолжаем игру только в режиме AI
+    if (state.gameMode !== 'multiplayer') {
+      setTimeout(continueGame, 300);
+    }
   }
   
   // Отправляем ход на сервер для мультиплеера
@@ -4571,7 +4575,11 @@ function bindEvents(){
       return;
     }
     if (state.defenderIndex !== 0) return;
-    defenderTakes(); render(); setTimeout(continueGame, 250);
+    defenderTakes(); 
+    render(); 
+    if (state.gameMode !== 'multiplayer') {
+      setTimeout(continueGame, 250);
+    }
   });
 
   el.btnEnough.addEventListener("click", ()=>{
