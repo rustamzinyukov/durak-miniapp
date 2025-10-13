@@ -6346,6 +6346,13 @@ function loadGameDataFromServer(gameData) {
   console.log('  P0 (Me):', state.players[0].telegramUserId, '- Cards:', state.players[0].hand.length);
   console.log('  P1 (Opponent):', state.players[1].telegramUserId, '- Cards:', state.players[1].hand.length);
   
+  // DEBUG: Показываем первые 3 карты каждого игрока
+  console.log('  P0 (Me) first 3 cards:', state.players[0].hand.slice(0, 3).map(c => `${c.suit}${c.rank}`));
+  console.log('  P1 (Opponent) first 3 cards:', state.players[1].hand.slice(0, 3).map(c => `${c.suit}${c.rank}`));
+  
+  showDebugInfo('🔍 Мои карты', state.players[0].hand.slice(0, 3).map(c => `${c.suit}${c.rank}`).join(', '));
+  showDebugInfo('🔍 Карты противника', state.players[1].hand.slice(0, 3).map(c => `${c.suit}${c.rank}`).join(', '));
+  
   // Перемаппиваем индексы атакующего и защищающегося
   // Если на сервере атакующий - это я (myIndex), то локально это 0
   // Если на сервере атакующий - противник (opponentIndex), то локально это 1
@@ -6539,8 +6546,8 @@ function updateGameFromServer(serverState) {
       let opponentIndex = myIndex === 0 ? 1 : 0;
       
       if (myIndex !== -1) {
-        // Обновляем руки игроков с правильным порядком
-        state.players[0].hand = gameData.players[myIndex].hand;
+        // ВАЖНО: Обновляем только руку противника, чтобы не перезаписывать локальные изменения
+        // Свою руку НЕ обновляем, т.к. она может быть изменена локально (карты удалены/добавлены)
         state.players[1].hand = gameData.players[opponentIndex].hand;
         
         // Обновляем индексы атакующего/защищающегося
@@ -6647,6 +6654,22 @@ async function sendMoveToServer(action, cards = [], gameData = null) {
     
     if (data.success) {
       console.log('✅ Move sent to server:', action);
+      
+      // Переключаем ход локально после успешной отправки
+      const currentUserId = getCurrentTelegramUserId();
+      const currentGameState = gameData || getCurrentGameState();
+      
+      // Находим индекс текущего игрока
+      const myIndex = currentGameState.players.findIndex(p => p.telegramUserId === currentUserId);
+      const opponentIndex = myIndex === 0 ? 1 : 0;
+      
+      // Переключаем ход на противника
+      state.current_player_telegram_id = currentGameState.players[opponentIndex].telegramUserId;
+      
+      console.log('🔄 Turn switched to opponent:', state.current_player_telegram_id);
+      
+      // Перерисовываем UI
+      render();
     } else {
       console.error('❌ Move failed:', data.error);
     }
