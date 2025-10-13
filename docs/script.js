@@ -5190,28 +5190,28 @@ function initializeGame() {
 // Главная функция с предзагрузкой
 async function main(){
   try {
-    console.log('🚀 main() called with preloading');
+  console.log('🚀 main() called with preloading');
     showDebugInfo('🚀 Запуск игры', 'Начинаем инициализацию...');
-    
-    // Принудительно показываем экран загрузки
-    const loadingScreen = document.getElementById('loadingScreen');
-    const app = document.getElementById('app');
-    
-    if (loadingScreen) {
-      loadingScreen.style.display = 'flex';
-      loadingScreen.classList.remove('hidden');
-      console.log('📱 Loading screen shown');
+  
+  // Принудительно показываем экран загрузки
+  const loadingScreen = document.getElementById('loadingScreen');
+  const app = document.getElementById('app');
+  
+  if (loadingScreen) {
+    loadingScreen.style.display = 'flex';
+    loadingScreen.classList.remove('hidden');
+    console.log('📱 Loading screen shown');
       showDebugInfo('📱 Экран загрузки', 'Показываем загрузку...');
-    }
-    if (app) {
-      app.style.display = 'none';
-      console.log('🎮 Game hidden');
-    }
-    
-    // Инициализируем DOM ссылки
+  }
+  if (app) {
+    app.style.display = 'none';
+    console.log('🎮 Game hidden');
+  }
+  
+  // Инициализируем DOM ссылки
     showDebugInfo('🔗 DOM ссылки', 'Инициализируем элементы...');
-    initDomRefs();
-    console.log('🔗 DOM refs initialized');
+  initDomRefs();
+  console.log('🔗 DOM refs initialized');
     showDebugInfo('✅ DOM ссылки', 'Инициализированы успешно');
   
   try {
@@ -5717,12 +5717,20 @@ async function joinGameByCode(inviteCode) {
     }
     
     const data = await response.json();
-    showDebugInfo('📊 Ответ сервера', JSON.stringify(data, null, 2));
+    showDebugInfo('📊 Данные ответа', JSON.stringify(data, null, 2));
     
     if (data.success) {
       showDebugInfo('✅ Присоединение успешно', `Игра: ${data.data.gameId}`);
       state.multiplayerGameId = data.data.gameId;
-      startMultiplayerGame(data.data);
+      
+      showDebugInfo('🎮 Запуск игры...', 'Вызов startMultiplayerGame');
+      try {
+        startMultiplayerGame(data.data);
+        showDebugInfo('✅ Игра запущена', 'startMultiplayerGame завершен');
+      } catch (startError) {
+        showDebugInfo('❌ Ошибка запуска игры', startError.message + '\n' + startError.stack);
+        throw startError;
+      }
     } else {
       showDebugInfo('❌ Ошибка присоединения', data.error || 'Failed to join game');
       throw new Error(data.error || 'Failed to join game');
@@ -5730,6 +5738,7 @@ async function joinGameByCode(inviteCode) {
     
   } catch (error) {
     console.error('❌ Error joining game:', error);
+    showDebugInfo('🚨 Полная ошибка', error.message + '\nStack: ' + error.stack);
     showTelegramConfirm('Ошибка присоединения к игре. Попробовать снова?', (confirmed) => {
       if (confirmed) {
         showJoinGameModal();
@@ -6119,17 +6128,30 @@ async function createOnlineGame() {
 // Начать мультиплеер игру
 function startMultiplayerGame(gameData) {
   console.log('🎮 Starting multiplayer game:', gameData);
+  showDebugInfo('🎮 startMultiplayerGame', 'Начало функции');
   
-  // Инициализируем мультиплеер состояние
-  state.multiplayerGameId = gameData.gameId;
-  state.gameMode = 'multiplayer';
-  
-  // Запускаем игру с синхронизацией
-  hideMainMenu();
-  startNewGame();
-  
-  // Начинаем опрос состояния игры
-  startGameSync();
+  try {
+    // Инициализируем мультиплеер состояние
+    showDebugInfo('📝 Установка состояния', `gameId: ${gameData.gameId}`);
+    state.multiplayerGameId = gameData.gameId;
+    state.gameMode = 'multiplayer';
+    
+    // Запускаем игру с синхронизацией
+    showDebugInfo('🎮 Скрытие меню', 'Вызов hideMainMenu');
+    hideMainMenu();
+    
+    showDebugInfo('🎮 Запуск игры', 'Вызов startNewGame');
+    startNewGame();
+    
+    // Начинаем опрос состояния игры
+    showDebugInfo('🔄 Синхронизация', 'Вызов startGameSync');
+    startGameSync();
+    
+    showDebugInfo('✅ startMultiplayerGame', 'Завершено успешно');
+  } catch (error) {
+    showDebugInfo('❌ Ошибка в startMultiplayerGame', error.message + '\n' + error.stack);
+    throw error;
+  }
 }
 
 // Создать игру с тестовыми данными
