@@ -1305,6 +1305,61 @@ const state = {
 };
 
 // ========================================
+// 🎮 MULTIPLAYER UTILITIES
+// ========================================
+
+// Получить Telegram User ID текущего пользователя
+function getCurrentTelegramUserId() {
+  const tg = window.Telegram?.WebApp;
+  const user = tg?.initDataUnsafe?.user;
+  return user?.id || null;
+}
+
+// Проверить, является ли текущий пользователь атакующим
+function isCurrentPlayerAttacker() {
+  if (state.gameMode !== 'multiplayer') return false;
+  
+  const currentUserId = getCurrentTelegramUserId();
+  if (!currentUserId) return false;
+  
+  const attacker = state.players[state.attackerIndex];
+  return attacker.telegramUserId === currentUserId;
+}
+
+// Проверить, является ли текущий пользователь защищающимся
+function isCurrentPlayerDefender() {
+  if (state.gameMode !== 'multiplayer') return false;
+  
+  const currentUserId = getCurrentTelegramUserId();
+  if (!currentUserId) return false;
+  
+  const defender = state.players[state.defenderIndex];
+  return defender.telegramUserId === currentUserId;
+}
+
+// Проверить, является ли сейчас ход текущего игрока
+function isCurrentPlayerTurn() {
+  if (state.gameMode !== 'multiplayer') return true; // В режиме AI всегда разрешаем ход
+  
+  const currentUserId = getCurrentTelegramUserId();
+  if (!currentUserId) return false;
+  
+  // Проверяем в зависимости от фазы
+  if (state.phase === 'attacking' || state.phase === 'adding') {
+    return isCurrentPlayerAttacker();
+  } else if (state.phase === 'defending') {
+    return isCurrentPlayerDefender();
+  }
+  
+  return false;
+}
+
+// Получить индекс игрока по Telegram User ID
+function getPlayerIndexByTelegramId(telegramUserId) {
+  return state.players.findIndex(p => p.telegramUserId === telegramUserId);
+}
+
+// ========================================
 // 🎨 THEMES
 // ========================================
 
@@ -2350,8 +2405,17 @@ function initDomRefs(){
 }
 
 function initPlayers(numOpp=1){
-  state.players = [{ id:"P0", name:"You", isHuman:true, hand:[] }];
-  for (let i=1;i<=numOpp;i++) state.players.push({ id:`AI${i}`, name:"Дональд", isHuman:false, hand:[] });
+  // В мультиплеере используем Telegram User ID
+  if (state.gameMode === 'multiplayer') {
+    const currentUserId = getCurrentTelegramUserId();
+    state.players = [
+      { id:"P0", name:"You", isHuman:true, hand:[], telegramUserId: currentUserId },
+      { id:"P1", name:"Opponent", isHuman:true, hand:[], telegramUserId: null } // ID противника будет установлен позже
+    ];
+  } else {
+    state.players = [{ id:"P0", name:"You", isHuman:true, hand:[], telegramUserId: null }];
+    for (let i=1;i<=numOpp;i++) state.players.push({ id:`AI${i}`, name:"Дональд", isHuman:false, hand:[], telegramUserId: null });
+  }
 }
 
 function dealInitial(){
@@ -2739,11 +2803,15 @@ function renderTable(){
 
     // Выбор цели для защиты
     const isHumanDefender = state.defenderIndex === 0 && state.phase === "defending";
-    const canSelect = isHumanDefender && !pair.defense;
+    const canSelect = isHumanDefender && !pair.defense && isCurrentPlayerTurn();
     if (canSelect){
       a.classList.add("playable");
       if (state.selectedAttackIndex === idx) a.classList.add("selected");
       a.addEventListener("click", ()=>{
+        if (!isCurrentPlayerTurn()) {
+          console.log('⛔ Not your turn!');
+          return;
+        }
         state.selectedAttackIndex = (state.selectedAttackIndex === idx ? -1 : idx);
         renderHand();
         renderTable();
@@ -2970,6 +3038,10 @@ function renderHand(){
       // Наезжание теперь управляется CSS классами
       
       d.addEventListener("click", ()=>{
+        if (!isCurrentPlayerTurn()) {
+          console.log('⛔ Not your turn!');
+          return;
+        }
         if (!playable.has(card.id)) return;
         if (ui.selected.has(card.id)) ui.selected.delete(card.id);
         else ui.selected.add(card.id);
@@ -3744,7 +3816,7 @@ function commitAttackFromPlayer(player, selectedIds){
         
         // Continue AI after animation (only for the last card)
         if (index === selected.length - 1) {
-          setTimeout(aiLoopStep, 250);
+          setTimeout(continueGame, 250);
         }
       }, 'attack');
     }, 100 + (index * 300)); // Increased stagger time for better sequence
@@ -3796,7 +3868,7 @@ function commitDefenseFromPlayer(player, selectedId){
       render();
       
       // Continue AI after animation
-      setTimeout(aiLoopStep, 250);
+      setTimeout(continueGame, 250);
     }, 'defense', targetIndex);
   }, 200);
   
@@ -3881,7 +3953,7 @@ function defenderTakes(){
       }
       
       // Продолжаем игру после анимации
-      setTimeout(aiLoopStep, 300);
+      setTimeout(continueGame, 300);
     });
   } else {
     // Для ИИ - создаем анимацию полета карт к противнику
@@ -3918,7 +3990,7 @@ function defenderTakes(){
           }
           
           // Продолжаем игру после анимации
-          setTimeout(aiLoopStep, 300);
+          setTimeout(continueGame, 300);
         });
       }, 1500); // 1.5 секунды на чтение комментария
     } else {
@@ -3938,7 +4010,7 @@ function defenderTakes(){
       }
       
       // Продолжаем игру
-      setTimeout(aiLoopStep, 300);
+      setTimeout(continueGame, 300);
     }
   }
 }
@@ -4020,7 +4092,7 @@ function defenderEnough(){
          render();
 
          // Продолжаем игру
-         setTimeout(aiLoopStep, 300);
+         setTimeout(continueGame, 300);
        }, 1500);
     
   } else {
@@ -4034,7 +4106,7 @@ function defenderEnough(){
     render();
     
     // Продолжаем игру
-    setTimeout(aiLoopStep, 300);
+    setTimeout(continueGame, 300);
   }
   
   // Отправляем ход на сервер для мультиплеера
@@ -4104,7 +4176,7 @@ function restartGame(){
   initPlayers(1);
   dealInitial();
   render();
-  setTimeout(aiLoopStep, 400);
+  setTimeout(continueGame, 400);
 }
 
 // ========================================
@@ -4216,7 +4288,7 @@ function aiAttack(player){
     render();
     checkEndgame();
     // Продолжаем ход ИИ после атаки
-    setTimeout(aiLoopStep, 400);
+    setTimeout(continueGame, 400);
   }, 800); // 0.8 секунды на планирование атаки
   
   return true;
@@ -4281,7 +4353,7 @@ function aiDefense(player){
     render();
     checkEndgame();
     // Продолжаем ход ИИ после защиты
-    setTimeout(aiLoopStep, 400);
+    setTimeout(continueGame, 400);
   }, 1000); // 1 секунда на размышление
   
   return true;
@@ -4311,11 +4383,26 @@ function aiAdd(player){
     render();
     checkEndgame();
     // Продолжаем ход ИИ после подкидывания
-    setTimeout(aiLoopStep, 400);
+    setTimeout(continueGame, 400);
   }, 900); // 0.9 секунды на тактическое решение
   
   return true;
 }
+// Универсальная функция продолжения игры (для AI и мультиплеера)
+function continueGame() {
+  console.log('🔄 continueGame called, gameMode:', state.gameMode);
+  
+  // В мультиплеере не вызываем aiLoopStep, игра управляется через сервер
+  if (state.gameMode === 'multiplayer') {
+    console.log('🌐 Multiplayer mode: waiting for server updates, not calling aiLoopStep');
+    render(); // Обновляем UI, но не вызываем ИИ
+    return;
+  }
+  
+  // В режиме AI вызываем aiLoopStep как обычно
+  setTimeout(continueGame, 300);
+}
+
 function aiLoopStep(){
   console.log('🤖 aiLoopStep called');
   const attacker = state.players[state.attackerIndex];
@@ -4331,7 +4418,7 @@ function aiLoopStep(){
   if (state.phase === "defending" && state.table.pairs.every(p => p.defense)) {
     state.phase = "adding";
     console.log(`🤖 AI Loop: all cards defended, switching to adding phase`);
-    setTimeout(aiLoopStep, 100);
+    setTimeout(continueGame, 100);
     return;
   }
   
@@ -4408,7 +4495,7 @@ function aiLoopStep(){
     // render() теперь вызывается в самих функциях ИИ с задержкой
     console.log(`🤖 AI Loop: scheduling next aiLoopStep in ${delay}ms`);
     checkEndgame();
-    setTimeout(aiLoopStep, delay);
+    setTimeout(continueGame, delay);
   } else {
     console.log(`🤖 AI Loop: no move made, ending aiLoopStep`);
   }
@@ -4420,6 +4507,10 @@ function aiLoopStep(){
 
 function bindEvents(){
   el.btnAdd.addEventListener("click", ()=>{
+    if (!isCurrentPlayerTurn()) {
+      console.log('⛔ Not your turn!');
+      return;
+    }
     const me = state.players[0];
     if (state.phase === "attacking" && state.attackerIndex === 0){
       if (!commitAttackFromPlayer(me, ui.selected)) return;
@@ -4430,12 +4521,16 @@ function bindEvents(){
       if (!commitAddFromPlayer(me, ui.selected)) return;
     }
     render(); 
-    setTimeout(aiLoopStep, 250);
+    setTimeout(continueGame, 250);
   });
 
   el.btnTake.addEventListener("click", ()=>{
+    if (!isCurrentPlayerTurn()) {
+      console.log('⛔ Not your turn!');
+      return;
+    }
     if (state.defenderIndex !== 0) return;
-    defenderTakes(); render(); setTimeout(aiLoopStep, 250);
+    defenderTakes(); render(); setTimeout(continueGame, 250);
   });
 
   el.btnEnough.addEventListener("click", ()=>{
@@ -5257,7 +5352,7 @@ async function main(){
     });
   }
   
-  setTimeout(aiLoopStep, 800);
+  setTimeout(continueGame, 800);
   
   // Initialize Telegram integration
   if (isTelegram) {
