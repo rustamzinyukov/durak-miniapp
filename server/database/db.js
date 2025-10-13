@@ -70,6 +70,18 @@ async function initializeDatabase() {
     } else {
       console.warn('⚠️ schema.sql not found, skipping initialization');
     }
+
+    // Read and execute multiplayer-schema.sql
+    const multiplayerSchemaPath = path.join(__dirname, 'multiplayer-schema.sql');
+    if (fs.existsSync(multiplayerSchemaPath)) {
+      console.log('📄 Reading multiplayer-schema.sql...');
+      const multiplayerSchema = fs.readFileSync(multiplayerSchemaPath, 'utf8');
+      console.log('📝 Executing multiplayer schema...');
+      await pool.query(multiplayerSchema);
+      console.log('✅ Multiplayer database schema initialized successfully');
+    } else {
+      console.warn('⚠️ multiplayer-schema.sql not found, skipping multiplayer initialization');
+    }
     
     return true;
   } catch (error) {

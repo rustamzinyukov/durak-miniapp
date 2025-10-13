@@ -6,6 +6,7 @@ const express = require('express');
 const axios = require('axios');
 const db = require('./database/db');
 const statsRouter = require('./api/stats');
+const multiplayerRouter = require('./api/multiplayer');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -34,6 +35,7 @@ app.use('/admin', express.static(__dirname + '/public'));
 
 // Mount stats API router
 app.use('/api', statsRouter);
+app.use('/api', multiplayerRouter);
 
 // Endpoint для получения фотографии профиля
 app.get('/api/user-photo/:userId', async (req, res) => {
@@ -143,6 +145,7 @@ app.listen(PORT, async () => {
   console.log(`Health check: http://localhost:${PORT}/health`);
   console.log(`User photo endpoint: http://localhost:${PORT}/api/user-photo/:userId`);
   console.log(`Stats API: http://localhost:${PORT}/api/stats`);
+  console.log(`Multiplayer API: http://localhost:${PORT}/api/games`);
   
   // Initialize database
   try {
