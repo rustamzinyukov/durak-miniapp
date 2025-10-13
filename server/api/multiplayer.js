@@ -768,4 +768,69 @@ router.get('/debug/logs', (req, res) => {
   }
 });
 
+// Endpoint для приема клиентских логов
+router.post('/debug/client-logs', async (req, res) => {
+  try {
+    const { gameId, userId, logs } = req.body;
+    
+    if (!logs || logs.length === 0) {
+      return res.json({ success: true, message: 'No logs to save' });
+    }
+    
+    const fs = require('fs');
+    const path = require('path');
+    const logFile = path.join(__dirname, '../logs/client-debug.log');
+    
+    // Форматируем логи
+    const formattedLogs = logs.map(log => 
+      `[${log.timestamp}] [User:${log.userId}] [Game:${log.gameId}] ${log.title}: ${log.message}`
+    ).join('\n') + '\n';
+    
+    // Дописываем в файл
+    fs.appendFileSync(logFile, formattedLogs, 'utf8');
+    
+    res.json({ 
+      success: true, 
+      message: `Saved ${logs.length} log entries` 
+    });
+    
+  } catch (error) {
+    logger.error('CLIENT_LOGS', 'Failed to save client logs', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// Endpoint для просмотра клиентских логов
+router.get('/debug/client-logs', (req, res) => {
+  try {
+    const fs = require('fs');
+    const path = require('path');
+    const logFile = path.join(__dirname, '../logs/client-debug.log');
+    
+    if (fs.existsSync(logFile)) {
+      const logs = fs.readFileSync(logFile, 'utf8');
+      const recentLogs = logs.split('\n').slice(-100).join('\n'); // Последние 100 строк
+      res.json({
+        success: true,
+        logs: recentLogs,
+        totalLines: logs.split('\n').length
+      });
+    } else {
+      res.json({
+        success: true,
+        logs: 'No client logs found',
+        totalLines: 0
+      });
+    }
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
 module.exports = router;

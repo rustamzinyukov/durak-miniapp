@@ -6694,6 +6694,9 @@ function showGameResult(result) {
 }
 
 // Показать debug информацию в игре
+// Массив для хранения всех логов
+window.clientDebugLogs = window.clientDebugLogs || [];
+
 function showDebugInfo(title, message) {
   // Используем статическую debug панель из HTML
   let debugPanel = document.getElementById('globalDebugPanel');
@@ -6704,6 +6707,20 @@ function showDebugInfo(title, message) {
   
   const timestamp = new Date().toLocaleTimeString();
   const logEntry = `[${timestamp}] ${title}: ${message}`;
+  
+  // Сохраняем лог в массив
+  window.clientDebugLogs.push({
+    timestamp: new Date().toISOString(),
+    title,
+    message,
+    gameId: state.multiplayerGameId,
+    userId: getCurrentTelegramUserId()
+  });
+  
+  // Ограничиваем размер массива (последние 100 записей)
+  if (window.clientDebugLogs.length > 100) {
+    window.clientDebugLogs = window.clientDebugLogs.slice(-100);
+  }
   
   // Показываем панель
   debugPanel.style.display = 'block';
@@ -6717,6 +6734,36 @@ function showDebugInfo(title, message) {
   debugPanel.hideTimeout = setTimeout(() => {
     debugPanel.style.display = 'none';
   }, 15000);
+  
+  // Отправляем логи на сервер (батчами каждые 5 секунд)
+  if (!window.debugLogSendTimer) {
+    window.debugLogSendTimer = setInterval(sendDebugLogsToServer, 5000);
+  }
+}
+
+// Отправить debug логи на сервер
+async function sendDebugLogsToServer() {
+  if (!window.clientDebugLogs || window.clientDebugLogs.length === 0) return;
+  if (!state.multiplayerGameId) return;
+  
+  const logsToSend = [...window.clientDebugLogs];
+  window.clientDebugLogs = []; // Очищаем после копирования
+  
+  try {
+    await fetch('https://durak-miniapp-production.up.railway.app/api/debug/client-logs', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        gameId: state.multiplayerGameId,
+        userId: getCurrentTelegramUserId(),
+        logs: logsToSend
+      })
+    });
+  } catch (error) {
+    console.error('Failed to send debug logs:', error);
+    // Возвращаем логи обратно при ошибке
+    window.clientDebugLogs = logsToSend.concat(window.clientDebugLogs);
+  }
 }
 
 // Показать debug панель при загрузке
