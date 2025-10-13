@@ -961,7 +961,7 @@ function showAchievementNotification(achievements) {
 async function loadPlayerStats() {
   // Быстро загружаем из локального хранилища (Telegram Cloud Storage)
   const stats = await StatsAPI.loadStats();
-  state.playerStats = { ...state.playerStats, ...stats };
+    state.playerStats = { ...state.playerStats, ...stats };
   console.log('📊 Локальная статистика загружена:', state.playerStats);
   
   // В фоне синхронизируем с сервером (не блокируем загрузку)
@@ -1263,6 +1263,8 @@ const state = {
   commentary: "",
   theme: "casino",        // current theme
   cardSet: "classic",    // current card set
+  gameMode: 'ai',        // 'ai', 'friend', 'online'
+  multiplayerGameId: null,
   userProfile: {         // user profile data
     nickname: "Игрок",
     avatar: "👤"
@@ -5056,7 +5058,9 @@ function hideLoadingScreen() {
   const app = document.getElementById('app');
   
   loadingScreen.classList.add('hidden');
-  app.style.display = 'block';
+  
+  // Показываем главное меню вместо игры
+  showMainMenu();
   
   // Удаляем экран загрузки из DOM через некоторое время
   setTimeout(() => {
@@ -5416,6 +5420,412 @@ function sendTelegramHaptic(type = 'light') {
   if (tg && tg.HapticFeedback) {
     tg.HapticFeedback.impactOccurred(type);
   }
+}
+
+// ========================================
+// 🎮 MAIN MENU FUNCTIONS
+// ========================================
+
+// Показать главное меню
+function showMainMenu() {
+  console.log('🎯 Showing main menu...');
+  
+  const mainMenu = document.getElementById('mainMenu');
+  const app = document.getElementById('app');
+  
+  if (mainMenu) {
+    mainMenu.style.display = 'flex';
+    app.style.display = 'none';
+    
+    // Добавляем обработчики событий
+    setupMainMenuEvents();
+  }
+}
+
+// Скрыть главное меню и показать игру
+function hideMainMenu() {
+  console.log('🎮 Hiding main menu, starting game...');
+  
+  const mainMenu = document.getElementById('mainMenu');
+  const app = document.getElementById('app');
+  
+  if (mainMenu) {
+    mainMenu.style.display = 'none';
+    app.style.display = 'block';
+  }
+}
+
+// Настройка обработчиков событий главного меню
+function setupMainMenuEvents() {
+  // Играть с ИИ
+  const playWithAI = document.getElementById('playWithAI');
+  if (playWithAI) {
+    playWithAI.addEventListener('click', () => {
+      console.log('🤖 Starting AI game...');
+      state.gameMode = 'ai';
+      hideMainMenu();
+      startNewGame();
+    });
+  }
+  
+  // Играть с другом
+  const playWithFriend = document.getElementById('playWithFriend');
+  if (playWithFriend) {
+    playWithFriend.addEventListener('click', () => {
+      console.log('👥 Starting friend game...');
+      state.gameMode = 'friend';
+      showFriendGameModal();
+    });
+  }
+  
+  // Играть онлайн
+  const playOnline = document.getElementById('playOnline');
+  if (playOnline) {
+    playOnline.addEventListener('click', () => {
+      console.log('🌐 Starting online game...');
+      state.gameMode = 'online';
+      showOnlineGameModal();
+    });
+  }
+}
+
+// Модальное окно для игры с другом
+function showFriendGameModal() {
+  // Создаем игру
+  createMultiplayerGame('friend');
+}
+
+// Модальное окно для онлайн игры
+function showOnlineGameModal() {
+  // Ищем доступные игры или создаем новую
+  findOnlineGame();
+}
+
+// Создать мультиплеер игру
+async function createMultiplayerGame(mode) {
+  try {
+    const tg = window.Telegram?.WebApp;
+    const user = tg?.initDataUnsafe?.user;
+    
+    if (!user || !user.id) {
+      console.error('❌ Telegram user not available');
+      showTelegramConfirm('Для игры с друзьями нужен доступ к Telegram. Продолжить?', (confirmed) => {
+        if (confirmed) {
+          // Продолжаем с тестовыми данными
+          createGameWithTestData(mode);
+        }
+      });
+      return;
+    }
+    
+    console.log('🎮 Creating multiplayer game...');
+    
+    const response = await fetch('https://durak-miniapp-production.up.railway.app/api/games/create', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        telegram_user_id: user.id,
+        username: user.username,
+        first_name: user.first_name,
+        theme: state.theme,
+        time_limit: 10
+      })
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+    
+    const data = await response.json();
+    
+    if (data.success) {
+      state.multiplayerGameId = data.data.gameId;
+      const inviteCode = data.data.inviteCode;
+      
+      // Показываем код приглашения
+      showInviteCodeModal(inviteCode);
+    } else {
+      throw new Error(data.error || 'Failed to create game');
+    }
+    
+  } catch (error) {
+    console.error('❌ Error creating multiplayer game:', error);
+    showTelegramConfirm('Ошибка создания игры. Попробовать снова?', (confirmed) => {
+      if (confirmed) {
+        createMultiplayerGame(mode);
+      } else {
+        showMainMenu();
+      }
+    });
+  }
+}
+
+// Показать модальное окно с кодом приглашения
+function showInviteCodeModal(inviteCode) {
+  const modal = document.createElement('div');
+  modal.className = 'modal';
+  modal.innerHTML = `
+    <div class="modal-content" style="max-width: 400px; text-align: center;">
+      <div class="modal-header">
+        <h2>👥 Игра с другом</h2>
+        <button class="modal-close" onclick="this.closest('.modal').remove()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p>Отправьте этот код другу:</p>
+        <div style="background: #f0f0f0; padding: 20px; border-radius: 10px; margin: 20px 0;">
+          <h1 style="font-size: 2rem; font-weight: bold; color: #333; margin: 0;">${inviteCode}</h1>
+        </div>
+        <p>Друг должен ввести этот код в игре</p>
+        <div style="margin: 20px 0;">
+          <button onclick="copyInviteCode('${inviteCode}')" style="background: #667eea; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;">
+            📋 Скопировать код
+          </button>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button onclick="this.closest('.modal').remove(); showMainMenu();" style="background: #666; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;">
+          Отмена
+        </button>
+        <button onclick="waitForFriend()" style="background: #28a745; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;">
+          Ждать друга
+        </button>
+      </div>
+    </div>
+  `;
+  
+  document.body.appendChild(modal);
+  
+  // Добавляем глобальные функции
+  window.copyInviteCode = (code) => {
+    navigator.clipboard.writeText(code).then(() => {
+      alert('Код скопирован!');
+    });
+  };
+  
+  window.waitForFriend = () => {
+    modal.remove();
+    waitForFriendToJoin();
+  };
+}
+
+// Ждать присоединения друга
+async function waitForFriendToJoin() {
+  console.log('⏳ Waiting for friend to join...');
+  
+  // Показываем экран ожидания
+  const waitingScreen = document.createElement('div');
+  waitingScreen.id = 'waitingScreen';
+  waitingScreen.innerHTML = `
+    <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 2000;">
+      <div style="background: white; padding: 40px; border-radius: 20px; text-align: center; max-width: 400px;">
+        <h2>⏳ Ожидание друга</h2>
+        <p>Ждем, когда друг присоединится к игре...</p>
+        <div style="margin: 20px 0;">
+          <div class="spinner" style="width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #667eea; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto;"></div>
+        </div>
+        <button onclick="cancelWaiting()" style="background: #dc3545; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;">
+          Отмена
+        </button>
+      </div>
+    </div>
+  `;
+  
+  document.body.appendChild(waitingScreen);
+  
+  // Добавляем CSS для анимации
+  const style = document.createElement('style');
+  style.textContent = `
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  `;
+  document.head.appendChild(style);
+  
+  // Добавляем глобальную функцию отмены
+  window.cancelWaiting = () => {
+    waitingScreen.remove();
+    showMainMenu();
+  };
+  
+  // Начинаем опрос сервера
+  pollGameState();
+}
+
+// Опрос состояния игры
+async function pollGameState() {
+  if (!state.multiplayerGameId) return;
+  
+  try {
+    const response = await fetch(`https://durak-miniapp-production.up.railway.app/api/games/${state.multiplayerGameId}/state?telegram_user_id=${window.Telegram?.WebApp?.initDataUnsafe?.user?.id || 'test'}`);
+    
+    if (response.ok) {
+      const data = await response.json();
+      
+      if (data.success && data.data.status === 'playing') {
+        // Друг присоединился!
+        document.getElementById('waitingScreen')?.remove();
+        hideMainMenu();
+        startMultiplayerGame(data.data);
+      } else {
+        // Продолжаем ждать
+        setTimeout(pollGameState, 2000);
+      }
+    } else {
+      // Ошибка, пробуем еще раз
+      setTimeout(pollGameState, 2000);
+    }
+  } catch (error) {
+    console.error('❌ Error polling game state:', error);
+    setTimeout(pollGameState, 2000);
+  }
+}
+
+// Найти онлайн игру
+async function findOnlineGame() {
+  try {
+    const tg = window.Telegram?.WebApp;
+    const user = tg?.initDataUnsafe?.user;
+    
+    if (!user || !user.id) {
+      console.error('❌ Telegram user not available');
+      showTelegramConfirm('Для онлайн игры нужен доступ к Telegram. Продолжить?', (confirmed) => {
+        if (confirmed) {
+          findOnlineGameWithTestData();
+        }
+      });
+      return;
+    }
+    
+    console.log('🌐 Finding online game...');
+    
+    // Ищем доступные игры
+    const response = await fetch(`https://durak-miniapp-production.up.railway.app/api/games/available?telegram_user_id=${user.id}`);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+    
+    const data = await response.json();
+    
+    if (data.success && data.data.length > 0) {
+      // Нашли игру, присоединяемся
+      const game = data.data[0];
+      await joinOnlineGame(game.id);
+    } else {
+      // Игр нет, создаем новую
+      await createOnlineGame();
+    }
+    
+  } catch (error) {
+    console.error('❌ Error finding online game:', error);
+    showTelegramConfirm('Ошибка поиска игры. Попробовать снова?', (confirmed) => {
+      if (confirmed) {
+        findOnlineGame();
+      } else {
+        showMainMenu();
+      }
+    });
+  }
+}
+
+// Присоединиться к онлайн игре
+async function joinOnlineGame(gameId) {
+  try {
+    const tg = window.Telegram?.WebApp;
+    const user = tg?.initDataUnsafe?.user;
+    
+    const response = await fetch(`https://durak-miniapp-production.up.railway.app/api/games/join/${gameId}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        telegram_user_id: user.id,
+        username: user.username,
+        first_name: user.first_name
+      })
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+    
+    const data = await response.json();
+    
+    if (data.success) {
+      state.multiplayerGameId = gameId;
+      hideMainMenu();
+      startMultiplayerGame({ gameId, status: 'playing' });
+    } else {
+      throw new Error(data.error || 'Failed to join game');
+    }
+    
+  } catch (error) {
+    console.error('❌ Error joining online game:', error);
+    showTelegramConfirm('Ошибка присоединения к игре. Попробовать снова?', (confirmed) => {
+      if (confirmed) {
+        findOnlineGame();
+      } else {
+        showMainMenu();
+      }
+    });
+  }
+}
+
+// Создать онлайн игру
+async function createOnlineGame() {
+  console.log('🌐 Creating online game...');
+  
+  // Показываем экран ожидания
+  const waitingScreen = document.createElement('div');
+  waitingScreen.id = 'waitingScreen';
+  waitingScreen.innerHTML = `
+    <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 2000;">
+      <div style="background: white; padding: 40px; border-radius: 20px; text-align: center; max-width: 400px;">
+        <h2>🌐 Поиск соперника</h2>
+        <p>Ищем игрока для игры...</p>
+        <div style="margin: 20px 0;">
+          <div class="spinner" style="width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #667eea; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto;"></div>
+        </div>
+        <button onclick="cancelWaiting()" style="background: #dc3545; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;">
+          Отмена
+        </button>
+      </div>
+    </div>
+  `;
+  
+  document.body.appendChild(waitingScreen);
+  
+  // Создаем игру
+  await createMultiplayerGame('online');
+  
+  // Начинаем опрос
+  pollGameState();
+}
+
+// Начать мультиплеер игру
+function startMultiplayerGame(gameData) {
+  console.log('🎮 Starting multiplayer game:', gameData);
+  
+  // Пока что просто запускаем обычную игру
+  // TODO: Реализовать синхронизацию состояния
+  hideMainMenu();
+  startNewGame();
+}
+
+// Создать игру с тестовыми данными
+function createGameWithTestData(mode) {
+  console.log('🧪 Creating game with test data...');
+  state.gameMode = mode;
+  hideMainMenu();
+  startNewGame();
+}
+
+// Найти онлайн игру с тестовыми данными
+function findOnlineGameWithTestData() {
+  console.log('🧪 Finding online game with test data...');
+  state.gameMode = 'online';
+  hideMainMenu();
+  startNewGame();
 }
 
 window.addEventListener("load", main);
