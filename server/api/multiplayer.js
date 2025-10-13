@@ -560,6 +560,55 @@ router.get('/stats/multiplayer/:telegram_user_id', async (req, res) => {
   }
 });
 
+// Endpoint для тестирования базы данных
+router.get('/debug/db-test', async (req, res) => {
+  try {
+    const { query } = require('../../database/db');
+    
+    // Проверяем существование таблиц
+    const tables = await query(`
+      SELECT table_name 
+      FROM information_schema.tables 
+      WHERE table_schema = 'public' 
+      AND (table_name LIKE '%multiplayer%' OR table_name LIKE '%game%')
+    `);
+    
+    const foundTables = tables.rows.map(r => r.table_name);
+    
+    // Проверяем конкретные таблицы
+    let multiplayerGamesExists = false;
+    let gameInvitesExists = false;
+    
+    try {
+      await query('SELECT 1 FROM multiplayer_games LIMIT 1');
+      multiplayerGamesExists = true;
+    } catch (error) {
+      // Таблица не существует
+    }
+    
+    try {
+      await query('SELECT 1 FROM game_invites LIMIT 1');
+      gameInvitesExists = true;
+    } catch (error) {
+      // Таблица не существует
+    }
+    
+    res.json({
+      success: true,
+      foundTables,
+      multiplayerGamesExists,
+      gameInvitesExists,
+      message: 'Database test completed'
+    });
+    
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
 // Endpoint для просмотра логов (только для отладки)
 router.get('/debug/logs', (req, res) => {
   try {
