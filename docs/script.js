@@ -33,6 +33,7 @@ if (typeof window !== 'undefined' && window.Telegram && window.Telegram.WebApp) 
   console.log('🎮 Telegram Mini App initialized');
   console.log('👤 User:', tg.initDataUnsafe?.user);
   console.log('🌍 Language:', tg.initDataUnsafe?.user?.language_code);
+  console.log('📱 initData:', tg.initData);
 } else {
   console.log('🌐 Running in browser mode');
 }
@@ -5079,6 +5080,9 @@ function hideLoadingScreen() {
   
   loadingScreen.classList.add('hidden');
   
+  // Показываем debug информацию
+  showInitialDebugInfo();
+  
   // Показываем главное меню вместо игры
   showMainMenu();
   
@@ -5529,6 +5533,14 @@ async function createMultiplayerGame(mode) {
     
     if (!user || !user.id) {
       console.error('❌ Telegram user not available');
+      showDebugInfo('❌ Ошибка Telegram', 'Нет данных пользователя');
+      
+      // Проверяем, действительно ли это Telegram Mini App
+      if (window.Telegram?.WebApp) {
+        showDebugInfo('🔍 Telegram WebApp', 'Есть, но нет user данных');
+        showDebugInfo('📱 initData', window.Telegram.WebApp.initData || 'Пусто');
+      }
+      
       showTelegramConfirm('Для игры с друзьями нужен доступ к Telegram. Продолжить в тестовом режиме?', (confirmed) => {
         if (confirmed) {
           // Продолжаем с тестовыми данными
@@ -6221,12 +6233,23 @@ function showDebugInfo(title, message) {
   debugPanel.innerHTML += logEntry + '\n';
   debugPanel.scrollTop = debugPanel.scrollHeight;
   
-  // Автоматически скрываем через 10 секунд
+  // Автоматически скрываем через 15 секунд
   setTimeout(() => {
     if (debugPanel) {
       debugPanel.remove();
     }
-  }, 10000);
+  }, 15000);
+}
+
+// Показать debug панель при загрузке
+function showInitialDebugInfo() {
+  const tg = window.Telegram?.WebApp;
+  const user = tg?.initDataUnsafe?.user;
+  
+  showDebugInfo('🔍 Telegram Debug', `WebApp: ${!!tg}`);
+  showDebugInfo('👤 User Data', user ? `ID: ${user.id}, Name: ${user.first_name}` : 'Нет данных пользователя');
+  showDebugInfo('📱 initData', tg?.initData ? 'Есть' : 'Нет');
+  showDebugInfo('🌐 Environment', tg ? 'Telegram Mini App' : 'Браузер');
 }
 
 window.addEventListener("load", main);
