@@ -36,6 +36,23 @@ if (typeof window !== 'undefined' && window.Telegram && window.Telegram.WebApp) 
   console.log('📱 initData:', tg.initData);
 } else {
   console.log('🌐 Running in browser mode');
+  
+  // Попытка принудительной инициализации Telegram
+  if (typeof window !== 'undefined' && window.Telegram) {
+    console.log('🔧 Telegram object exists, trying to access WebApp...');
+    console.log('🔧 Telegram keys:', Object.keys(window.Telegram));
+    
+    // Пробуем разные способы доступа
+    if (window.Telegram.WebApp) {
+      console.log('🔧 Found WebApp directly');
+      tg = window.Telegram.WebApp;
+      isTelegram = true;
+    } else if (window.Telegram.webApp) {
+      console.log('🔧 Found webApp (lowercase)');
+      tg = window.Telegram.webApp;
+      isTelegram = true;
+    }
+  }
 }
 
 const SUITS = ["♣","♦","♥","♠"];
@@ -6239,9 +6256,18 @@ function showInitialDebugInfo() {
   const user = tg?.initDataUnsafe?.user;
   
   showDebugInfo('🔍 Telegram Debug', `WebApp: ${!!tg}`);
+  showDebugInfo('📦 Telegram SDK', `window.Telegram: ${!!window.Telegram}`);
+  showDebugInfo('🌐 User Agent', navigator.userAgent.substring(0, 50) + '...');
   showDebugInfo('👤 User Data', user ? `ID: ${user.id}, Name: ${user.first_name}` : 'Нет данных пользователя');
   showDebugInfo('📱 initData', tg?.initData ? 'Есть' : 'Нет');
   showDebugInfo('🌐 Environment', tg ? 'Telegram Mini App' : 'Браузер');
+  
+  // Дополнительная диагностика
+  if (window.Telegram) {
+    showDebugInfo('🔧 Telegram Object', `Keys: ${Object.keys(window.Telegram).join(', ')}`);
+  } else {
+    showDebugInfo('❌ Telegram SDK', 'SDK не загружен!');
+  }
 }
 
 window.addEventListener("load", main);
