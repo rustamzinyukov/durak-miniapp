@@ -6261,8 +6261,55 @@ function startMultiplayerGame(serverGameData) {
 function loadGameDataFromServer(gameData) {
   console.log('📥 Loading game data from server:', gameData);
   
-  // Устанавливаем игроков (с telegramUserId противника!)
-  state.players = gameData.players;
+  const currentUserId = getCurrentTelegramUserId();
+  console.log('👤 Current user ID:', currentUserId);
+  
+  // ВАЖНО: Переставляем игроков так, чтобы я был всегда players[0]
+  let myIndex = gameData.players.findIndex(p => p.telegramUserId === currentUserId);
+  let opponentIndex = myIndex === 0 ? 1 : 0;
+  
+  console.log('👤 My index in server data:', myIndex);
+  console.log('👥 Opponent index in server data:', opponentIndex);
+  
+  if (myIndex === -1) {
+    console.error('❌ Current user not found in players!');
+    showDebugInfo('❌ Ошибка', 'Вас нет в списке игроков!');
+    return;
+  }
+  
+  // Создаем локальный массив игроков: [Я, Противник]
+  state.players = [
+    {
+      ...gameData.players[myIndex],
+      id: 'P0',
+      name: 'You',
+      isHuman: true
+    },
+    {
+      ...gameData.players[opponentIndex],
+      id: 'P1',
+      name: 'Opponent',
+      isHuman: true
+    }
+  ];
+  
+  console.log('👥 Remapped players:');
+  console.log('  P0 (Me):', state.players[0].telegramUserId, '- Cards:', state.players[0].hand.length);
+  console.log('  P1 (Opponent):', state.players[1].telegramUserId, '- Cards:', state.players[1].hand.length);
+  
+  // Перемаппиваем индексы атакующего и защищающегося
+  // Если на сервере атакующий - это я (myIndex), то локально это 0
+  // Если на сервере атакующий - противник (opponentIndex), то локально это 1
+  if (gameData.attackerIndex === myIndex) {
+    state.attackerIndex = 0; // Я атакую
+    state.defenderIndex = 1; // Противник защищается
+  } else {
+    state.attackerIndex = 1; // Противник атакует
+    state.defenderIndex = 0; // Я защищаюсь
+  }
+  
+  console.log('🎯 Remapped attacker index:', state.attackerIndex, '(', state.players[state.attackerIndex].name, ')');
+  console.log('🛡️ Remapped defender index:', state.defenderIndex, '(', state.players[state.defenderIndex].name, ')');
   
   // Устанавливаем колоду
   state.deck = gameData.deck;
@@ -6274,10 +6321,6 @@ function loadGameDataFromServer(gameData) {
   // Устанавливаем стол
   state.table = gameData.table;
   
-  // Устанавливаем индексы игроков
-  state.attackerIndex = gameData.attackerIndex;
-  state.defenderIndex = gameData.defenderIndex;
-  
   // Устанавливаем фазу
   state.phase = gameData.phase;
   
@@ -6285,9 +6328,11 @@ function loadGameDataFromServer(gameData) {
   state.maxTableThisRound = gameData.maxTableThisRound;
   
   console.log('✅ Game data loaded successfully');
-  console.log('👥 Players:', state.players.map(p => `${p.name} (ID: ${p.telegramUserId})`));
   console.log('🃏 Trump:', state.trumpCard ? `${state.trumpCard.rank}${state.trumpCard.suit}` : 'None');
-  console.log('🎯 First player:', state.players[state.attackerIndex].name);
+  console.log('🎯 Current attacker:', state.players[state.attackerIndex].name);
+  console.log('🛡️ Current defender:', state.players[state.defenderIndex].name);
+  
+  showDebugInfo('✅ Игра загружена', `Атакует: ${state.players[state.attackerIndex].name}`);
   
   // Отрисовываем игру
   render();
@@ -6437,10 +6482,27 @@ function updateGameFromServer(serverState) {
   // Обновляем основное состояние
   if (serverState.gameData) {
     const gameData = serverState.gameData;
+    const currentUserId = getCurrentTelegramUserId();
     
-    // Обновляем карты игроков
+    // Обновляем карты игроков (с правильным маппингом!)
     if (gameData.players) {
-      state.players = gameData.players;
+      let myIndex = gameData.players.findIndex(p => p.telegramUserId === currentUserId);
+      let opponentIndex = myIndex === 0 ? 1 : 0;
+      
+      if (myIndex !== -1) {
+        // Обновляем руки игроков с правильным порядком
+        state.players[0].hand = gameData.players[myIndex].hand;
+        state.players[1].hand = gameData.players[opponentIndex].hand;
+        
+        // Обновляем индексы атакующего/защищающегося
+        if (gameData.attackerIndex === myIndex) {
+          state.attackerIndex = 0;
+          state.defenderIndex = 1;
+        } else {
+          state.attackerIndex = 1;
+          state.defenderIndex = 0;
+        }
+      }
     }
     
     // Обновляем стол
