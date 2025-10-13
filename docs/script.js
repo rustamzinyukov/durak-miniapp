@@ -5529,7 +5529,7 @@ async function createMultiplayerGame(mode) {
     
     if (!user || !user.id) {
       console.error('❌ Telegram user not available');
-      showTelegramConfirm('Для игры с друзьями нужен доступ к Telegram. Продолжить?', (confirmed) => {
+      showTelegramConfirm('Для игры с друзьями нужен доступ к Telegram. Продолжить в тестовом режиме?', (confirmed) => {
         if (confirmed) {
           // Продолжаем с тестовыми данными
           createGameWithTestData(mode);
@@ -5709,7 +5709,7 @@ async function findOnlineGame() {
     
     if (!user || !user.id) {
       console.error('❌ Telegram user not available');
-      showTelegramConfirm('Для онлайн игры нужен доступ к Telegram. Продолжить?', (confirmed) => {
+      showTelegramConfirm('Для онлайн игры нужен доступ к Telegram. Продолжить в тестовом режиме?', (confirmed) => {
         if (confirmed) {
           findOnlineGameWithTestData();
         }
@@ -5739,9 +5739,9 @@ async function findOnlineGame() {
     
   } catch (error) {
     console.error('❌ Error finding online game:', error);
-    showTelegramConfirm('Ошибка поиска игры. Попробовать снова?', (confirmed) => {
+    showTelegramConfirm('Ошибка поиска игры. Попробовать в тестовом режиме?', (confirmed) => {
       if (confirmed) {
-        findOnlineGame();
+        findOnlineGameWithTestData();
       } else {
         showMainMenu();
       }
@@ -5842,16 +5842,37 @@ function startMultiplayerGame(gameData) {
 function createGameWithTestData(mode) {
   console.log('🧪 Creating game with test data...');
   state.gameMode = mode;
-  hideMainMenu();
-  startNewGame();
+  
+  // Для тестирования создаем фиктивную мультиплеер игру
+  if (mode === 'friend' || mode === 'online') {
+    state.multiplayerGameId = 'test-game-' + Date.now();
+    state.gameMode = 'multiplayer';
+    
+    // Показываем сообщение о тестовом режиме
+    showTelegramConfirm('🧪 Тестовый режим: игра запущена локально. В реальном Telegram будет работать мультиплеер.', (confirmed) => {
+      hideMainMenu();
+      startNewGame();
+    });
+  } else {
+    hideMainMenu();
+    startNewGame();
+  }
 }
 
 // Найти онлайн игру с тестовыми данными
 function findOnlineGameWithTestData() {
   console.log('🧪 Finding online game with test data...');
   state.gameMode = 'online';
-  hideMainMenu();
-  startNewGame();
+  
+  // Для тестирования создаем фиктивную онлайн игру
+  state.multiplayerGameId = 'test-online-' + Date.now();
+  state.gameMode = 'multiplayer';
+  
+  // Показываем сообщение о тестовом режиме
+  showTelegramConfirm('🧪 Тестовый режим: онлайн игра запущена локально. В реальном Telegram будет работать поиск соперников.', (confirmed) => {
+    hideMainMenu();
+    startNewGame();
+  });
 }
 
 // ========================================
@@ -5862,6 +5883,12 @@ function findOnlineGameWithTestData() {
 function startGameSync() {
   if (state.gameMode !== 'multiplayer' || !state.multiplayerGameId) {
     console.log('⚠️ Not in multiplayer mode, skipping sync');
+    return;
+  }
+  
+  // Проверяем, не тестовый ли режим
+  if (state.multiplayerGameId.startsWith('test-')) {
+    console.log('🧪 Test mode detected, skipping server sync');
     return;
   }
   
