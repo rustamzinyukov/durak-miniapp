@@ -6267,6 +6267,35 @@ function showInitialDebugInfo() {
     showDebugInfo('🔧 Telegram Object', `Keys: ${Object.keys(window.Telegram).join(', ')}`);
   } else {
     showDebugInfo('❌ Telegram SDK', 'SDK не загружен!');
+    
+    // Проверяем, загружается ли SDK асинхронно
+    showDebugInfo('⏳ Проверка SDK...', 'Ждем загрузки SDK...');
+    
+    // Ждем загрузки SDK до 5 секунд
+    let attempts = 0;
+    const checkSDK = setInterval(() => {
+      attempts++;
+      if (window.Telegram) {
+        clearInterval(checkSDK);
+        showDebugInfo('✅ SDK загружен!', `Попытка ${attempts}, Keys: ${Object.keys(window.Telegram).join(', ')}`);
+        
+        // Пробуем инициализировать заново
+        if (window.Telegram.WebApp) {
+          showDebugInfo('🎮 Инициализация WebApp', 'Пробуем инициализировать...');
+          try {
+            window.Telegram.WebApp.ready();
+            showDebugInfo('✅ WebApp готов!', 'Telegram WebApp инициализирован');
+          } catch (e) {
+            showDebugInfo('❌ Ошибка WebApp', e.message);
+          }
+        }
+      } else if (attempts >= 10) {
+        clearInterval(checkSDK);
+        showDebugInfo('❌ SDK не загрузился', 'Проверьте CDN или интернет');
+      } else {
+        showDebugInfo('⏳ Ожидание SDK...', `Попытка ${attempts}/10`);
+      }
+    }, 500);
   }
 }
 
