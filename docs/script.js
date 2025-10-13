@@ -5539,21 +5539,30 @@ async function createMultiplayerGame(mode) {
     }
     
     console.log('🎮 Creating multiplayer game...');
+    console.log('🎮 User data:', { id: user.id, username: user.username, first_name: user.first_name });
+    
+    const requestBody = {
+      telegram_user_id: user.id,
+      username: user.username,
+      first_name: user.first_name,
+      theme: state.theme,
+      time_limit: 10
+    };
+    console.log('🎮 Request body:', requestBody);
     
     const response = await fetch('https://durak-miniapp-production.up.railway.app/api/games/create', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        telegram_user_id: user.id,
-        username: user.username,
-        first_name: user.first_name,
-        theme: state.theme,
-        time_limit: 10
-      })
+      body: JSON.stringify(requestBody)
     });
     
+    console.log('🎮 Response status:', response.status);
+    console.log('🎮 Response headers:', Object.fromEntries(response.headers.entries()));
+    
     if (!response.ok) {
-      throw new Error(`HTTP ${response.status}`);
+      const errorText = await response.text();
+      console.error('🎮 Error response:', errorText);
+      throw new Error(`HTTP ${response.status}: ${errorText}`);
     }
     
     const data = await response.json();
@@ -5718,12 +5727,20 @@ async function findOnlineGame() {
     }
     
     console.log('🌐 Finding online game...');
+    console.log('🌐 User ID:', user.id);
     
     // Ищем доступные игры
-    const response = await fetch(`https://durak-miniapp-production.up.railway.app/api/games/available?telegram_user_id=${user.id}`);
+    const url = `https://durak-miniapp-production.up.railway.app/api/games/available?telegram_user_id=${user.id}`;
+    console.log('🌐 Fetching URL:', url);
+    
+    const response = await fetch(url);
+    console.log('🌐 Response status:', response.status);
+    console.log('🌐 Response headers:', Object.fromEntries(response.headers.entries()));
     
     if (!response.ok) {
-      throw new Error(`HTTP ${response.status}`);
+      const errorText = await response.text();
+      console.error('🌐 Error response:', errorText);
+      throw new Error(`HTTP ${response.status}: ${errorText}`);
     }
     
     const data = await response.json();
