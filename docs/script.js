@@ -6068,20 +6068,22 @@ async function pollGameState() {
       
       if (data.success && data.data.status === 'playing') {
         // Друг присоединился!
+        console.log('✅ Friend joined! Starting game...');
+        showDebugInfo('✅ Друг присоединился!', 'Запускаем игру...');
         document.getElementById('waitingScreen')?.remove();
         hideMainMenu();
         startMultiplayerGame(data.data);
       } else {
-        // Продолжаем ждать
-        setTimeout(pollGameState, 2000);
+        // Продолжаем ждать (каждые 500мс для быстрого отклика)
+        setTimeout(pollGameState, 500);
       }
     } else {
       // Ошибка, пробуем еще раз
-      setTimeout(pollGameState, 2000);
+      setTimeout(pollGameState, 500);
     }
   } catch (error) {
     console.error('❌ Error polling game state:', error);
-    setTimeout(pollGameState, 2000);
+    setTimeout(pollGameState, 500);
   }
 }
 
