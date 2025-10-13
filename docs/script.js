@@ -3821,7 +3821,10 @@ function commitAttackFromPlayer(player, selectedIds){
         // Send move to server in multiplayer mode (only for the last card)
         if (index === selected.length - 1) {
           if (state.gameMode === 'multiplayer') {
-            sendMoveToServer('attack', selected.map(c => ({ suit: c.suit, rank: c.rank })), getCurrentGameState());
+            // Отправляем ПОСЛЕ того, как карта добавлена на стол
+            setTimeout(() => {
+              sendMoveToServer('attack', selected.map(c => ({ suit: c.suit, rank: c.rank })), getCurrentGameState());
+            }, 100);
           }
           setTimeout(continueGame, 250);
         }
@@ -3876,7 +3879,10 @@ function commitDefenseFromPlayer(player, selectedId){
       
       // Send move to server in multiplayer mode
       if (state.gameMode === 'multiplayer') {
-        sendMoveToServer('defend', [{ suit: card.suit, rank: card.rank, targetIndex: targetIndex }], getCurrentGameState());
+        // Отправляем ПОСЛЕ того, как карта добавлена на стол
+        setTimeout(() => {
+          sendMoveToServer('defend', [{ suit: card.suit, rank: card.rank, targetIndex: targetIndex }], getCurrentGameState());
+        }, 100);
       }
       
       // Continue AI after animation
@@ -3915,7 +3921,10 @@ function commitAddFromPlayer(player, selectedIds){
         if (index === selected.length - 1) {
           // Send move to server in multiplayer mode
           if (state.gameMode === 'multiplayer') {
-            sendMoveToServer('add', selected.map(c => ({ suit: c.suit, rank: c.rank })), getCurrentGameState());
+            // Отправляем ПОСЛЕ того, как карты добавлены на стол
+            setTimeout(() => {
+              sendMoveToServer('add', selected.map(c => ({ suit: c.suit, rank: c.rank })), getCurrentGameState());
+            }, 100);
           }
           
           // Даем время на обновление UI, затем вызываем AI
@@ -3966,7 +3975,10 @@ function defenderTakes(){
       
       // Отправляем ход на сервер для мультиплеера
       if (state.gameMode === 'multiplayer') {
-        sendMoveToServer('take', all, getCurrentGameState());
+        // Отправляем ПОСЛЕ того, как карты взяты
+        setTimeout(() => {
+          sendMoveToServer('take', all, getCurrentGameState());
+        }, 100);
       }
       
       // Продолжаем игру после анимации
@@ -4023,7 +4035,10 @@ function defenderTakes(){
       
       // Отправляем ход на сервер для мультиплеера
       if (state.gameMode === 'multiplayer') {
-        sendMoveToServer('take', all, getCurrentGameState());
+        // Отправляем ПОСЛЕ того, как карты взяты
+        setTimeout(() => {
+          sendMoveToServer('take', all, getCurrentGameState());
+        }, 100);
       }
       
       // Продолжаем игру
@@ -4128,7 +4143,10 @@ function defenderEnough(){
   
   // Отправляем ход на сервер для мультиплеера
   if (state.gameMode === 'multiplayer') {
-    sendMoveToServer('enough', [], getCurrentGameState());
+    // Отправляем ПОСЛЕ того, как карты убраны со стола
+    setTimeout(() => {
+      sendMoveToServer('enough', [], getCurrentGameState());
+    }, 100);
   }
   
   // Сбрасываем флаг в конце функции
