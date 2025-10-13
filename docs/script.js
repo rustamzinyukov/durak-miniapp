@@ -5652,6 +5652,18 @@ function showInviteCodeModal(inviteCode) {
   
   const modal = document.createElement('div');
   modal.className = 'modal';
+  modal.style.cssText = `
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    background: rgba(0, 0, 0, 0.8) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    z-index: 99999 !important;
+  `;
   modal.innerHTML = `
     <div class="modal-content" style="max-width: 400px; text-align: center;">
       <div class="modal-header">
@@ -5682,6 +5694,20 @@ function showInviteCodeModal(inviteCode) {
   `;
   
   document.body.appendChild(modal);
+  showDebugInfo('✅ Модальное окно', 'Создано и добавлено в DOM');
+  
+  // Проверяем видимость
+  setTimeout(() => {
+    const rect = modal.getBoundingClientRect();
+    const computedStyle = window.getComputedStyle(modal);
+    showDebugInfo('🔍 Проверка модального окна', `
+      Позиция: ${rect.top}, ${rect.left}
+      Размер: ${rect.width}x${rect.height}
+      Display: ${computedStyle.display}
+      Z-index: ${computedStyle.zIndex}
+      Visibility: ${computedStyle.visibility}
+    `);
+  }, 100);
   
   // Добавляем глобальные функции
   window.copyInviteCode = (code) => {
