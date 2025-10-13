@@ -3823,8 +3823,9 @@ function commitAttackFromPlayer(player, selectedIds){
           if (state.gameMode === 'multiplayer') {
             // Отправляем ПОСЛЕ того, как карта добавлена на стол
             setTimeout(() => {
+              console.log('📤 Sending attack to server. Table pairs:', state.table.pairs.length);
               sendMoveToServer('attack', selected.map(c => ({ suit: c.suit, rank: c.rank })), getCurrentGameState());
-            }, 100);
+            }, 500);
           }
           setTimeout(continueGame, 250);
         }
@@ -3881,8 +3882,9 @@ function commitDefenseFromPlayer(player, selectedId){
       if (state.gameMode === 'multiplayer') {
         // Отправляем ПОСЛЕ того, как карта добавлена на стол
         setTimeout(() => {
+          console.log('📤 Sending defend to server. Table pairs:', state.table.pairs.length);
           sendMoveToServer('defend', [{ suit: card.suit, rank: card.rank, targetIndex: targetIndex }], getCurrentGameState());
-        }, 100);
+        }, 500);
       }
       
       // Continue AI after animation
@@ -3923,8 +3925,9 @@ function commitAddFromPlayer(player, selectedIds){
           if (state.gameMode === 'multiplayer') {
             // Отправляем ПОСЛЕ того, как карты добавлены на стол
             setTimeout(() => {
+              console.log('📤 Sending add to server. Table pairs:', state.table.pairs.length);
               sendMoveToServer('add', selected.map(c => ({ suit: c.suit, rank: c.rank })), getCurrentGameState());
-            }, 100);
+            }, 500);
           }
           
           // Даем время на обновление UI, затем вызываем AI
@@ -3977,8 +3980,9 @@ function defenderTakes(){
       if (state.gameMode === 'multiplayer') {
         // Отправляем ПОСЛЕ того, как карты взяты
         setTimeout(() => {
+          console.log('📤 Sending take to server. Table pairs:', state.table.pairs.length);
           sendMoveToServer('take', all, getCurrentGameState());
-        }, 100);
+        }, 500);
       }
       
       // Продолжаем игру после анимации
@@ -4037,8 +4041,9 @@ function defenderTakes(){
       if (state.gameMode === 'multiplayer') {
         // Отправляем ПОСЛЕ того, как карты взяты
         setTimeout(() => {
+          console.log('📤 Sending take to server. Table pairs:', state.table.pairs.length);
           sendMoveToServer('take', all, getCurrentGameState());
-        }, 100);
+        }, 500);
       }
       
       // Продолжаем игру
@@ -4145,8 +4150,9 @@ function defenderEnough(){
   if (state.gameMode === 'multiplayer') {
     // Отправляем ПОСЛЕ того, как карты убраны со стола
     setTimeout(() => {
+      console.log('📤 Sending enough to server. Table pairs:', state.table.pairs.length);
       sendMoveToServer('enough', [], getCurrentGameState());
-    }, 100);
+    }, 500);
   }
   
   // Сбрасываем флаг в конце функции
