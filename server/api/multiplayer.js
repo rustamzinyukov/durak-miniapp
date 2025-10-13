@@ -93,7 +93,7 @@ router.post('/games/join-by-code', async (req, res) => {
     // Проверяем код приглашения
     logger.debug('INVITE', `Checking invite code: ${invite_code}`);
     const inviteResult = await query(`
-      SELECT gi.*, mg.id as game_id, mg.status, mg.host_telegram_id
+      SELECT gi.*, mg.id as game_id, mg.status, mg.host_telegram_id, mg.guest_telegram_id
       FROM game_invites gi
       JOIN multiplayer_games mg ON gi.game_id = mg.id
       WHERE gi.code = $1 AND gi.expires_at > NOW()
@@ -117,6 +117,14 @@ router.post('/games/join-by-code', async (req, res) => {
     //     error: 'Cannot join your own game' 
     //   });
     // }
+
+    // Проверяем, не занята ли игра уже
+    if (invite.guest_telegram_id) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Game is full (already has 2 players)' 
+      });
+    }
 
     // Проверяем статус игры
     if (invite.status !== 'waiting') {
