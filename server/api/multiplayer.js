@@ -44,7 +44,7 @@ router.post('/games/create', async (req, res) => {
 
     // Создаем код приглашения
     const inviteCode = generateInviteCode();
-    const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 минут
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 60 минут (1 час)
 
     await query(`
       INSERT INTO game_invites (code, game_id, from_telegram_id, from_username, from_first_name, expires_at)
@@ -87,12 +87,15 @@ router.post('/games/join-by-code', async (req, res) => {
     }
 
     // Проверяем код приглашения
+    console.log(`🔍 Checking invite code: ${invite_code}`);
     const inviteResult = await query(`
       SELECT gi.*, mg.id as game_id, mg.status, mg.host_telegram_id
       FROM game_invites gi
       JOIN multiplayer_games mg ON gi.game_id = mg.id
       WHERE gi.code = $1 AND gi.expires_at > NOW() AND gi.used_at IS NULL
     `, [invite_code]);
+    
+    console.log(`🔍 Found ${inviteResult.rows.length} valid invites for code: ${invite_code}`);
 
     if (inviteResult.rows.length === 0) {
       return res.status(404).json({ 
