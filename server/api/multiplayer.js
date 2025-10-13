@@ -531,16 +531,58 @@ router.post('/games/:gameId/move', async (req, res) => {
     }
 
     // Обновляем состояние игры и переключаем ход
-    const nextPlayer = game.current_player_telegram_id === game.host_telegram_id 
-      ? game.guest_telegram_id 
-      : game.host_telegram_id;
+    // ВАЖНО: Обновляем attackerIndex, defenderIndex и phase на основе action
+    let updatedGameData = { ...gameData };
+    
+    if (action === 'attack') {
+      // После атаки - переходим в фазу защиты
+      updatedGameData.phase = 'defending';
+    } else if (action === 'defend') {
+      // После защиты - проверяем, все ли пары защищены
+      const allDefended = updatedGameData.table.pairs.every(p => p.defense);
+      updatedGameData.phase = allDefended ? 'adding' : 'defending';
+    } else if (action === 'add') {
+      // После подкидывания - переходим в фазу защиты
+      updatedGameData.phase = 'defending';
+    } else if (action === 'enough') {
+      // После "Бито" - меняем местами атакующего и защищающегося, очищаем стол
+      const temp = updatedGameData.attackerIndex;
+      updatedGameData.attackerIndex = updatedGameData.defenderIndex;
+      updatedGameData.defenderIndex = temp;
+      updatedGameData.phase = 'attacking';
+      updatedGameData.table = { pairs: [] };
+      
+      // Раздаём карты до 6
+      updatedGameData.players.forEach(player => {
+        while (player.hand.length < 6 && updatedGameData.deck.length > 0) {
+          player.hand.push(updatedGameData.deck.pop());
+        }
+      });
+    } else if (action === 'take') {
+      // После "Взять" - меняем местами атакующего и защищающегося, очищаем стол
+      const temp = updatedGameData.attackerIndex;
+      updatedGameData.attackerIndex = updatedGameData.defenderIndex;
+      updatedGameData.defenderIndex = temp;
+      updatedGameData.phase = 'attacking';
+      updatedGameData.table = { pairs: [] };
+      
+      // Раздаём карты до 6
+      updatedGameData.players.forEach(player => {
+        while (player.hand.length < 6 && updatedGameData.deck.length > 0) {
+          player.hand.push(updatedGameData.deck.pop());
+        }
+      });
+    }
+    
+    // Определяем следующего игрока на основе attackerIndex
+    const nextPlayer = updatedGameData.players[updatedGameData.attackerIndex].telegramUserId;
     
     await query(`
       UPDATE multiplayer_games 
       SET game_data = $1, current_player_telegram_id = $2, 
           last_action_at = NOW(), updated_at = NOW()
       WHERE id = $3
-    `, [JSON.stringify(gameData), nextPlayer, gameId]);
+    `, [JSON.stringify(updatedGameData), nextPlayer, gameId]);
 
     res.json({
       success: true,
