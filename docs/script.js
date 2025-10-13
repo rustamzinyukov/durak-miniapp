@@ -1319,22 +1319,18 @@ function getCurrentTelegramUserId() {
 function isCurrentPlayerAttacker() {
   if (state.gameMode !== 'multiplayer') return false;
   
-  const currentUserId = getCurrentTelegramUserId();
-  if (!currentUserId) return false;
-  
-  const attacker = state.players[state.attackerIndex];
-  return attacker.telegramUserId === currentUserId;
+  // После маппинга players[0] всегда текущий игрок
+  // Если attackerIndex === 0, значит я атакую
+  return state.attackerIndex === 0;
 }
 
 // Проверить, является ли текущий пользователь защищающимся
 function isCurrentPlayerDefender() {
   if (state.gameMode !== 'multiplayer') return false;
   
-  const currentUserId = getCurrentTelegramUserId();
-  if (!currentUserId) return false;
-  
-  const defender = state.players[state.defenderIndex];
-  return defender.telegramUserId === currentUserId;
+  // После маппинга players[0] всегда текущий игрок
+  // Если defenderIndex === 0, значит я защищаюсь
+  return state.defenderIndex === 0;
 }
 
 // Проверить, является ли сейчас ход текущего игрока
