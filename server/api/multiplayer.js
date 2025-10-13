@@ -241,6 +241,9 @@ router.post('/games/join-by-code', async (req, res) => {
       first_name || username || 'Guest'
     );
     
+    // Логируем инициализацию игры
+    logger.gameInitialized(invite.game_id, invite.host_telegram_id, telegram_user_id, gameData);
+    
     // Определяем текущего игрока (кто ходит первым)
     const currentPlayer = gameData.players[gameData.attackerIndex].telegramUserId;
 
@@ -270,6 +273,7 @@ router.post('/games/join-by-code', async (req, res) => {
 
     // Логируем успешное присоединение
     logger.gameJoined(invite.game_id, telegram_user_id, invite_code);
+    logger.turnSwitched(invite.game_id, null, currentPlayer);
 
     res.json({
       success: true,
@@ -445,6 +449,10 @@ router.get('/games/:gameId/state', async (req, res) => {
       timeLeft = Math.max(0, game.time_limit - elapsed);
     }
 
+    // Логируем запрос состояния
+    logger.gameStateRequested(gameId, telegram_user_id);
+    logger.gameStateSent(gameId, telegram_user_id, game.game_data);
+
     res.json({
       success: true,
       data: {
@@ -530,6 +538,9 @@ router.post('/games/:gameId/move', async (req, res) => {
       });
     }
 
+    // Логируем получение хода
+    logger.playerMove(gameId, telegram_user_id, action, cards, gameData);
+    
     // Обновляем состояние игры и переключаем ход
     // ВАЖНО: Обновляем attackerIndex, defenderIndex и phase на основе action
     let updatedGameData = { ...gameData };
@@ -552,10 +563,17 @@ router.post('/games/:gameId/move', async (req, res) => {
       updatedGameData.phase = 'attacking';
       updatedGameData.table = { pairs: [] };
       
+      logger.tableCleared(gameId, 'enough');
+      
       // Раздаём карты до 6
-      updatedGameData.players.forEach(player => {
+      updatedGameData.players.forEach((player, index) => {
+        const cardsBefore = player.hand.length;
         while (player.hand.length < 6 && updatedGameData.deck.length > 0) {
           player.hand.push(updatedGameData.deck.pop());
+        }
+        const cardsAfter = player.hand.length;
+        if (cardsAfter > cardsBefore) {
+          logger.cardsDealt(gameId, player.telegramUserId, cardsAfter - cardsBefore);
         }
       });
     } else if (action === 'take') {
@@ -566,16 +584,29 @@ router.post('/games/:gameId/move', async (req, res) => {
       updatedGameData.phase = 'attacking';
       updatedGameData.table = { pairs: [] };
       
+      logger.tableCleared(gameId, 'take');
+      
       // Раздаём карты до 6
-      updatedGameData.players.forEach(player => {
+      updatedGameData.players.forEach((player, index) => {
+        const cardsBefore = player.hand.length;
         while (player.hand.length < 6 && updatedGameData.deck.length > 0) {
           player.hand.push(updatedGameData.deck.pop());
+        }
+        const cardsAfter = player.hand.length;
+        if (cardsAfter > cardsBefore) {
+          logger.cardsDealt(gameId, player.telegramUserId, cardsAfter - cardsBefore);
         }
       });
     }
     
     // Определяем следующего игрока на основе attackerIndex
     const nextPlayer = updatedGameData.players[updatedGameData.attackerIndex].telegramUserId;
+    
+    // Логируем обновление состояния
+    logger.gameStateUpdated(gameId, action, updatedGameData);
+    
+    // Логируем переключение хода
+    logger.turnSwitched(gameId, telegram_user_id, nextPlayer);
     
     await query(`
       UPDATE multiplayer_games 
@@ -837,6 +868,36 @@ router.post('/debug/client-logs', async (req, res) => {
     
   } catch (error) {
     logger.error('CLIENT_LOGS', 'Failed to save client logs', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// Endpoint для просмотра игровых логов
+router.get('/debug/game-logs', (req, res) => {
+  try {
+    const fs = require('fs');
+    const path = require('path');
+    const logFile = path.join(__dirname, '../logs/games.log');
+    
+    if (fs.existsSync(logFile)) {
+      const logs = fs.readFileSync(logFile, 'utf8');
+      const recentLogs = logs.split('\n').slice(-100).join('\n'); // Последние 100 строк
+      res.json({
+        success: true,
+        logs: recentLogs,
+        totalLines: logs.split('\n').length
+      });
+    } else {
+      res.json({
+        success: true,
+        logs: 'No game logs found',
+        totalLines: 0
+      });
+    }
+  } catch (error) {
     res.status(500).json({
       success: false,
       error: error.message
