@@ -6666,8 +6666,21 @@ async function sendMoveToServer(action, cards = [], gameData = null) {
 
 // Получить текущее состояние игры
 function getCurrentGameState() {
+  const currentUserId = getCurrentTelegramUserId();
+  
+  // ВАЖНО: Возвращаем игроков в оригинальном порядке (как на сервере)
+  // Если я гость, то на сервере я players[1], а не players[0]
+  let myIndex = state.players.findIndex(p => p.telegramUserId === currentUserId);
+  let opponentIndex = myIndex === 0 ? 1 : 0;
+  
+  // Переставляем игроков обратно в оригинальный порядок
+  const originalPlayers = [
+    state.players[myIndex],      // players[0] на сервере
+    state.players[opponentIndex] // players[1] на сервере
+  ];
+  
   return {
-    players: state.players,
+    players: originalPlayers,
     table: state.table,
     phase: state.phase,
     trumpSuit: state.trumpSuit,
