@@ -5189,25 +5189,30 @@ function initializeGame() {
 
 // Главная функция с предзагрузкой
 async function main(){
-  console.log('🚀 main() called with preloading');
-  
-  // Принудительно показываем экран загрузки
-  const loadingScreen = document.getElementById('loadingScreen');
-  const app = document.getElementById('app');
-  
-  if (loadingScreen) {
-    loadingScreen.style.display = 'flex';
-    loadingScreen.classList.remove('hidden');
-    console.log('📱 Loading screen shown');
-  }
-  if (app) {
-    app.style.display = 'none';
-    console.log('🎮 Game hidden');
-  }
-  
-  // Инициализируем DOM ссылки
-  initDomRefs();
-  console.log('🔗 DOM refs initialized');
+  try {
+    console.log('🚀 main() called with preloading');
+    showDebugInfo('🚀 Запуск игры', 'Начинаем инициализацию...');
+    
+    // Принудительно показываем экран загрузки
+    const loadingScreen = document.getElementById('loadingScreen');
+    const app = document.getElementById('app');
+    
+    if (loadingScreen) {
+      loadingScreen.style.display = 'flex';
+      loadingScreen.classList.remove('hidden');
+      console.log('📱 Loading screen shown');
+      showDebugInfo('📱 Экран загрузки', 'Показываем загрузку...');
+    }
+    if (app) {
+      app.style.display = 'none';
+      console.log('🎮 Game hidden');
+    }
+    
+    // Инициализируем DOM ссылки
+    showDebugInfo('🔗 DOM ссылки', 'Инициализируем элементы...');
+    initDomRefs();
+    console.log('🔗 DOM refs initialized');
+    showDebugInfo('✅ DOM ссылки', 'Инициализированы успешно');
   
   try {
     // Предзагружаем все ресурсы
@@ -5234,9 +5239,22 @@ async function main(){
     }
   } catch (error) {
     console.error('❌ Error during preloading:', error);
+    showDebugInfo('🚨 Ошибка загрузки', `${error.message} at ${error.stack}`);
     // В случае ошибки все равно показываем игру
     hideLoadingScreen();
     initializeGame();
+  }
+  
+  } catch (error) {
+    console.error('🚨 Critical error in main:', error);
+    showDebugInfo('🚨 Критическая ошибка', `${error.message} at ${error.stack}`);
+    
+    // Показываем ошибку пользователю
+    showTelegramConfirm(`Критическая ошибка: ${error.message}. Перезагрузить игру?`, (confirmed) => {
+      if (confirmed) {
+        location.reload();
+      }
+    });
   }
   
   setTimeout(aiLoopStep, 800);
@@ -6506,5 +6524,16 @@ function showInitialDebugInfo() {
     }, 500);
   }
 }
+
+// Глобальный обработчик ошибок
+window.addEventListener('error', (event) => {
+  console.error('🚨 Global Error:', event.error);
+  showDebugInfo('🚨 JavaScript Error', `${event.error.message} at ${event.filename}:${event.lineno}`);
+});
+
+window.addEventListener('unhandledrejection', (event) => {
+  console.error('🚨 Unhandled Promise Rejection:', event.reason);
+  showDebugInfo('🚨 Promise Error', event.reason.toString());
+});
 
 window.addEventListener("load", main);
