@@ -5,6 +5,102 @@ const logger = require('../utils/logger');
 
 const router = express.Router();
 
+// ========================================
+// 🎮 GAME INITIALIZATION LOGIC
+// ========================================
+
+const SUITS = ["♣", "♦", "♥", "♠"];
+const RANKS = ["6", "7", "8", "9", "10", "J", "Q", "K", "A"];
+const RANK_VALUE = Object.fromEntries(RANKS.map((r, i) => [r, i]));
+
+// Создать колоду из 36 карт
+function createDeck36() {
+  const deck = [];
+  for (const s of SUITS) {
+    for (const r of RANKS) {
+      deck.push({ suit: s, rank: r, id: `${s}-${r}` });
+    }
+  }
+  return deck;
+}
+
+// Перемешать массив
+function shuffle(array) {
+  const a = [...array]; // Создаем копию
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+// Инициализировать игру (раздать карты, определить козырь и первый ход)
+function initializeGame(hostTelegramId, guestTelegramId, hostName, guestName) {
+  // Создаем и перемешиваем колоду
+  let deck = shuffle(createDeck36());
+  
+  // Создаем игроков
+  const players = [
+    { 
+      id: "P0", 
+      name: hostName || "Host", 
+      isHuman: true, 
+      hand: [], 
+      telegramUserId: hostTelegramId 
+    },
+    { 
+      id: "P1", 
+      name: guestName || "Guest", 
+      isHuman: true, 
+      hand: [], 
+      telegramUserId: guestTelegramId 
+    }
+  ];
+  
+  // Раздаем по 6 карт каждому игроку
+  for (let round = 0; round < 6; round++) {
+    for (const player of players) {
+      player.hand.push(deck.pop());
+    }
+  }
+  
+  // Определяем козырь (последняя карта в колоде)
+  const trumpCard = deck[deck.length - 1];
+  const trumpSuit = trumpCard.suit;
+  
+  // Определяем, кто ходит первым (у кого младший козырь)
+  const lowestTrump = (hand) => 
+    hand
+      .filter(c => c.suit === trumpSuit)
+      .sort((a, b) => RANK_VALUE[a.rank] - RANK_VALUE[b.rank])[0];
+  
+  let attackerIndex = 0;
+  let bestRank = 999;
+  
+  players.forEach((p, idx) => {
+    const lt = lowestTrump(p.hand);
+    if (lt && RANK_VALUE[lt.rank] < bestRank) {
+      bestRank = RANK_VALUE[lt.rank];
+      attackerIndex = idx;
+    }
+  });
+  
+  const defenderIndex = (attackerIndex + 1) % 2;
+  
+  // Формируем начальное состояние игры
+  return {
+    players,
+    deck,
+    trumpCard,
+    trumpSuit,
+    table: { pairs: [] },
+    attackerIndex,
+    defenderIndex,
+    phase: "attacking",
+    maxTableThisRound: 6
+  };
+}
+
 // Генерация кода приглашения
 function generateInviteCode() {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -93,7 +189,8 @@ router.post('/games/join-by-code', async (req, res) => {
     // Проверяем код приглашения
     logger.debug('INVITE', `Checking invite code: ${invite_code}`);
     const inviteResult = await query(`
-      SELECT gi.*, mg.id as game_id, mg.status, mg.host_telegram_id, mg.guest_telegram_id
+      SELECT gi.*, mg.id as game_id, mg.status, mg.host_telegram_id, mg.guest_telegram_id,
+             mg.host_username, mg.host_first_name
       FROM game_invites gi
       JOIN multiplayer_games mg ON gi.game_id = mg.id
       WHERE gi.code = $1 AND gi.expires_at > NOW()
@@ -136,13 +233,33 @@ router.post('/games/join-by-code', async (req, res) => {
       });
     }
 
+    // Инициализируем игру (раздача карт, козырь, первый ход)
+    const gameData = initializeGame(
+      invite.host_telegram_id,
+      telegram_user_id,
+      invite.host_first_name || invite.host_username || 'Host',
+      first_name || username || 'Guest'
+    );
+    
+    // Определяем текущего игрока (кто ходит первым)
+    const currentPlayer = gameData.players[gameData.attackerIndex].telegramUserId;
+
     // Обновляем игру
     await query(`
       UPDATE multiplayer_games 
       SET guest_telegram_id = $1, guest_username = $2, guest_first_name = $3,
-          status = 'playing', started_at = NOW(), updated_at = NOW()
+          status = 'playing', started_at = NOW(), updated_at = NOW(),
+          game_data = $5, current_player_telegram_id = $6, phase = $7
       WHERE id = $4
-    `, [telegram_user_id, username, first_name, invite.game_id]);
+    `, [
+      telegram_user_id, 
+      username, 
+      first_name, 
+      invite.game_id,
+      JSON.stringify(gameData),
+      currentPlayer,
+      gameData.phase
+    ]);
 
     // Отмечаем код как использованный
     await query(`
@@ -158,7 +275,9 @@ router.post('/games/join-by-code', async (req, res) => {
       success: true,
       data: {
         gameId: invite.game_id,
-        hostTelegramId: invite.host_telegram_id
+        hostTelegramId: invite.host_telegram_id,
+        gameData: gameData,
+        currentPlayer: currentPlayer
       }
     });
 

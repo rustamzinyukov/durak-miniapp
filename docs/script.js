@@ -6221,22 +6221,28 @@ async function createOnlineGame() {
 }
 
 // Начать мультиплеер игру
-function startMultiplayerGame(gameData) {
-  console.log('🎮 Starting multiplayer game:', gameData);
+function startMultiplayerGame(serverGameData) {
+  console.log('🎮 Starting multiplayer game:', serverGameData);
   showDebugInfo('🎮 startMultiplayerGame', 'Начало функции');
   
   try {
     // Инициализируем мультиплеер состояние
-    showDebugInfo('📝 Установка состояния', `gameId: ${gameData.gameId}`);
-    state.multiplayerGameId = gameData.gameId;
+    showDebugInfo('📝 Установка состояния', `gameId: ${serverGameData.gameId}`);
+    state.multiplayerGameId = serverGameData.gameId;
     state.gameMode = 'multiplayer';
     
     // Запускаем игру с синхронизацией
     showDebugInfo('🎮 Скрытие меню', 'Вызов hideMainMenu');
     hideMainMenu();
     
-    showDebugInfo('🎮 Запуск игры', 'Вызов startNewGame');
-    startNewGame();
+    // Загружаем gameData с сервера вместо startNewGame()
+    if (serverGameData.gameData) {
+      showDebugInfo('📥 Загрузка gameData', 'Получены данные с сервера');
+      loadGameDataFromServer(serverGameData.gameData);
+    } else {
+      showDebugInfo('⚠️ Нет gameData', 'Используем startNewGame()');
+      startNewGame();
+    }
     
     // Начинаем опрос состояния игры
     showDebugInfo('🔄 Синхронизация', 'Вызов startGameSync');
@@ -6247,6 +6253,42 @@ function startMultiplayerGame(gameData) {
     showDebugInfo('❌ Ошибка в startMultiplayerGame', error.message + '\n' + error.stack);
     throw error;
   }
+}
+
+// Загрузить данные игры с сервера
+function loadGameDataFromServer(gameData) {
+  console.log('📥 Loading game data from server:', gameData);
+  
+  // Устанавливаем игроков (с telegramUserId противника!)
+  state.players = gameData.players;
+  
+  // Устанавливаем колоду
+  state.deck = gameData.deck;
+  
+  // Устанавливаем козырь
+  state.trumpCard = gameData.trumpCard;
+  state.trumpSuit = gameData.trumpSuit;
+  
+  // Устанавливаем стол
+  state.table = gameData.table;
+  
+  // Устанавливаем индексы игроков
+  state.attackerIndex = gameData.attackerIndex;
+  state.defenderIndex = gameData.defenderIndex;
+  
+  // Устанавливаем фазу
+  state.phase = gameData.phase;
+  
+  // Устанавливаем максимум карт на столе
+  state.maxTableThisRound = gameData.maxTableThisRound;
+  
+  console.log('✅ Game data loaded successfully');
+  console.log('👥 Players:', state.players.map(p => `${p.name} (ID: ${p.telegramUserId})`));
+  console.log('🃏 Trump:', state.trumpCard ? `${state.trumpCard.rank}${state.trumpCard.suit}` : 'None');
+  console.log('🎯 First player:', state.players[state.attackerIndex].name);
+  
+  // Отрисовываем игру
+  render();
 }
 
 // Создать игру с тестовыми данными
