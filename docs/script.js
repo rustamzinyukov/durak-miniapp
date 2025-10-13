@@ -6654,22 +6654,7 @@ async function sendMoveToServer(action, cards = [], gameData = null) {
     
     if (data.success) {
       console.log('✅ Move sent to server:', action);
-      
-      // Переключаем ход локально после успешной отправки
-      const currentUserId = getCurrentTelegramUserId();
-      const currentGameState = gameData || getCurrentGameState();
-      
-      // Находим индекс текущего игрока
-      const myIndex = currentGameState.players.findIndex(p => p.telegramUserId === currentUserId);
-      const opponentIndex = myIndex === 0 ? 1 : 0;
-      
-      // Переключаем ход на противника
-      state.current_player_telegram_id = currentGameState.players[opponentIndex].telegramUserId;
-      
-      console.log('🔄 Turn switched to opponent:', state.current_player_telegram_id);
-      
-      // Перерисовываем UI
-      render();
+      // НЕ переключаем ход локально! Сервер сделает это через syncGameState()
     } else {
       console.error('❌ Move failed:', data.error);
     }

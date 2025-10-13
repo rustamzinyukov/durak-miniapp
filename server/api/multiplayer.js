@@ -530,15 +530,17 @@ router.post('/games/:gameId/move', async (req, res) => {
       });
     }
 
-    // Обновляем состояние игры
-    // ВАЖНО: НЕ переключаем ход сразу! Ход переключается только после того, как второй игрок получит обновлённое состояние
-    // Это происходит в syncGameState на клиенте
+    // Обновляем состояние игры и переключаем ход
+    const nextPlayer = game.current_player_telegram_id === game.host_telegram_id 
+      ? game.guest_telegram_id 
+      : game.host_telegram_id;
     
     await query(`
       UPDATE multiplayer_games 
-      SET game_data = $1, last_action_at = NOW(), updated_at = NOW()
-      WHERE id = $2
-    `, [JSON.stringify(gameData), gameId]);
+      SET game_data = $1, current_player_telegram_id = $2, 
+          last_action_at = NOW(), updated_at = NOW()
+      WHERE id = $3
+    `, [JSON.stringify(gameData), nextPlayer, gameId]);
 
     res.json({
       success: true,
