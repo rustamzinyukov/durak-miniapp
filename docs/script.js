@@ -5541,6 +5541,9 @@ async function createMultiplayerGame(mode) {
     console.log('🎮 Creating multiplayer game...');
     console.log('🎮 User data:', { id: user.id, username: user.username, first_name: user.first_name });
     
+    // Показываем debug информацию в игре
+    showDebugInfo('🎮 Создание игры...', `Пользователь: ${user.first_name} (${user.id})`);
+    
     const requestBody = {
       telegram_user_id: user.id,
       username: user.username,
@@ -5549,6 +5552,7 @@ async function createMultiplayerGame(mode) {
       time_limit: 10
     };
     console.log('🎮 Request body:', requestBody);
+    showDebugInfo('📤 Отправка запроса...', JSON.stringify(requestBody, null, 2));
     
     const response = await fetch('https://durak-miniapp-production.up.railway.app/api/games/create', {
       method: 'POST',
@@ -5559,9 +5563,12 @@ async function createMultiplayerGame(mode) {
     console.log('🎮 Response status:', response.status);
     console.log('🎮 Response headers:', Object.fromEntries(response.headers.entries()));
     
+    showDebugInfo('📥 Ответ сервера:', `Статус: ${response.status}`);
+    
     if (!response.ok) {
       const errorText = await response.text();
       console.error('🎮 Error response:', errorText);
+      showDebugInfo('❌ Ошибка сервера:', `HTTP ${response.status}: ${errorText}`);
       throw new Error(`HTTP ${response.status}: ${errorText}`);
     }
     
@@ -5729,17 +5736,23 @@ async function findOnlineGame() {
     console.log('🌐 Finding online game...');
     console.log('🌐 User ID:', user.id);
     
+    showDebugInfo('🌐 Поиск онлайн игры...', `Пользователь: ${user.id}`);
+    
     // Ищем доступные игры
     const url = `https://durak-miniapp-production.up.railway.app/api/games/available?telegram_user_id=${user.id}`;
     console.log('🌐 Fetching URL:', url);
+    showDebugInfo('📤 Запрос к серверу:', url);
     
     const response = await fetch(url);
     console.log('🌐 Response status:', response.status);
     console.log('🌐 Response headers:', Object.fromEntries(response.headers.entries()));
     
+    showDebugInfo('📥 Ответ сервера:', `Статус: ${response.status}`);
+    
     if (!response.ok) {
       const errorText = await response.text();
       console.error('🌐 Error response:', errorText);
+      showDebugInfo('❌ Ошибка сервера:', `HTTP ${response.status}: ${errorText}`);
       throw new Error(`HTTP ${response.status}: ${errorText}`);
     }
     
@@ -6175,6 +6188,45 @@ function showGameResult(result) {
       showMainMenu();
     }
   });
+}
+
+// Показать debug информацию в игре
+function showDebugInfo(title, message) {
+  // Создаем или обновляем debug панель
+  let debugPanel = document.getElementById('debugPanel');
+  if (!debugPanel) {
+    debugPanel = document.createElement('div');
+    debugPanel.id = 'debugPanel';
+    debugPanel.style.cssText = `
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      right: 10px;
+      background: rgba(0, 0, 0, 0.9);
+      color: white;
+      padding: 10px;
+      border-radius: 5px;
+      font-family: monospace;
+      font-size: 12px;
+      z-index: 10000;
+      max-height: 200px;
+      overflow-y: auto;
+    `;
+    document.body.appendChild(debugPanel);
+  }
+  
+  const timestamp = new Date().toLocaleTimeString();
+  const logEntry = `[${timestamp}] ${title}: ${message}`;
+  
+  debugPanel.innerHTML += logEntry + '\n';
+  debugPanel.scrollTop = debugPanel.scrollHeight;
+  
+  // Автоматически скрываем через 10 секунд
+  setTimeout(() => {
+    if (debugPanel) {
+      debugPanel.remove();
+    }
+  }, 10000);
 }
 
 window.addEventListener("load", main);
