@@ -1342,15 +1342,23 @@ function isCurrentPlayerTurn() {
   if (state.gameMode !== 'multiplayer') return true; // В режиме AI всегда разрешаем ход
   
   const currentUserId = getCurrentTelegramUserId();
-  if (!currentUserId) return false;
+  if (!currentUserId) {
+    console.log('⛔ isCurrentPlayerTurn: No current user ID');
+    return false;
+  }
   
   // Проверяем в зависимости от фазы
   if (state.phase === 'attacking' || state.phase === 'adding') {
-    return isCurrentPlayerAttacker();
+    const isAttacker = isCurrentPlayerAttacker();
+    console.log(`🎯 isCurrentPlayerTurn: phase=${state.phase}, isAttacker=${isAttacker}, attackerIndex=${state.attackerIndex}`);
+    return isAttacker;
   } else if (state.phase === 'defending') {
-    return isCurrentPlayerDefender();
+    const isDefender = isCurrentPlayerDefender();
+    console.log(`🛡️ isCurrentPlayerTurn: phase=${state.phase}, isDefender=${isDefender}, defenderIndex=${state.defenderIndex}`);
+    return isDefender;
   }
   
+  console.log('❓ isCurrentPlayerTurn: Unknown phase', state.phase);
   return false;
 }
 
@@ -6263,6 +6271,10 @@ function loadGameDataFromServer(gameData) {
   
   const currentUserId = getCurrentTelegramUserId();
   console.log('👤 Current user ID:', currentUserId);
+  console.log('👥 Server players:', gameData.players.map(p => `${p.name} (ID: ${p.telegramUserId})`));
+  
+  showDebugInfo('🔍 Отладка маппинга', `Мой ID: ${currentUserId}`);
+  showDebugInfo('🔍 Игроки на сервере', gameData.players.map(p => `${p.name} (ID: ${p.telegramUserId})`).join(', '));
   
   // ВАЖНО: Переставляем игроков так, чтобы я был всегда players[0]
   let myIndex = gameData.players.findIndex(p => p.telegramUserId === currentUserId);
@@ -6271,9 +6283,13 @@ function loadGameDataFromServer(gameData) {
   console.log('👤 My index in server data:', myIndex);
   console.log('👥 Opponent index in server data:', opponentIndex);
   
+  showDebugInfo('🔍 Мой индекс', `На сервере: ${myIndex}`);
+  showDebugInfo('🔍 Индекс противника', `На сервере: ${opponentIndex}`);
+  
   if (myIndex === -1) {
     console.error('❌ Current user not found in players!');
-    showDebugInfo('❌ Ошибка', 'Вас нет в списке игроков!');
+    showDebugInfo('❌ Ошибка', `Вас нет в списке игроков! Мой ID: ${currentUserId}`);
+    showDebugInfo('❌ Доступные ID', gameData.players.map(p => p.telegramUserId).join(', '));
     return;
   }
   
