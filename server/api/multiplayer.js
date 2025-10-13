@@ -96,7 +96,7 @@ router.post('/games/join-by-code', async (req, res) => {
       SELECT gi.*, mg.id as game_id, mg.status, mg.host_telegram_id
       FROM game_invites gi
       JOIN multiplayer_games mg ON gi.game_id = mg.id
-      WHERE gi.code = $1 AND gi.expires_at > NOW() AND gi.used_at IS NULL
+      WHERE gi.code = $1 AND gi.expires_at > NOW()
     `, [invite_code]);
     
     logger.inviteCodeCheck(invite_code, inviteResult);
