@@ -3857,6 +3857,11 @@ function defenderTakes(){
       // Сбрасываем флаг
       state.isTakingCards = false;
       
+      // Отправляем ход на сервер для мультиплеера
+      if (state.gameMode === 'multiplayer') {
+        sendMoveToServer('take', all, getCurrentGameState());
+      }
+      
       // Продолжаем игру после анимации
       setTimeout(aiLoopStep, 300);
     });
@@ -3889,6 +3894,11 @@ function defenderTakes(){
           // Сбрасываем флаг
           state.isTakingCards = false;
           
+          // Отправляем ход на сервер для мультиплеера
+          if (state.gameMode === 'multiplayer') {
+            sendMoveToServer('take', all, getCurrentGameState());
+          }
+          
           // Продолжаем игру после анимации
           setTimeout(aiLoopStep, 300);
         });
@@ -3903,6 +3913,11 @@ function defenderTakes(){
       drawUpToSix();
       startNewRound();
       checkEndgame();
+      
+      // Отправляем ход на сервер для мультиплеера
+      if (state.gameMode === 'multiplayer') {
+        sendMoveToServer('take', all, getCurrentGameState());
+      }
       
       // Продолжаем игру
       setTimeout(aiLoopStep, 300);
@@ -4002,6 +4017,11 @@ function defenderEnough(){
     
     // Продолжаем игру
     setTimeout(aiLoopStep, 300);
+  }
+  
+  // Отправляем ход на сервер для мультиплеера
+  if (state.gameMode === 'multiplayer') {
+    sendMoveToServer('enough', [], getCurrentGameState());
   }
   
   // Сбрасываем флаг в конце функции
@@ -5806,10 +5826,16 @@ async function createOnlineGame() {
 function startMultiplayerGame(gameData) {
   console.log('🎮 Starting multiplayer game:', gameData);
   
-  // Пока что просто запускаем обычную игру
-  // TODO: Реализовать синхронизацию состояния
+  // Инициализируем мультиплеер состояние
+  state.multiplayerGameId = gameData.gameId;
+  state.gameMode = 'multiplayer';
+  
+  // Запускаем игру с синхронизацией
   hideMainMenu();
   startNewGame();
+  
+  // Начинаем опрос состояния игры
+  startGameSync();
 }
 
 // Создать игру с тестовыми данными
@@ -5826,6 +5852,285 @@ function findOnlineGameWithTestData() {
   state.gameMode = 'online';
   hideMainMenu();
   startNewGame();
+}
+
+// ========================================
+// 🔄 MULTIPLAYER GAME SYNC FUNCTIONS
+// ========================================
+
+// Начать синхронизацию игры
+function startGameSync() {
+  if (state.gameMode !== 'multiplayer' || !state.multiplayerGameId) {
+    console.log('⚠️ Not in multiplayer mode, skipping sync');
+    return;
+  }
+  
+  console.log('🔄 Starting game synchronization...');
+  
+  // Синхронизируем каждые 2 секунды
+  state.syncInterval = setInterval(syncGameState, 2000);
+  
+  // Синхронизируем сразу
+  syncGameState();
+}
+
+// Остановить синхронизацию игры
+function stopGameSync() {
+  if (state.syncInterval) {
+    clearInterval(state.syncInterval);
+    state.syncInterval = null;
+    console.log('⏹️ Game sync stopped');
+  }
+}
+
+// Синхронизировать состояние игры
+async function syncGameState() {
+  if (!state.multiplayerGameId) return;
+  
+  try {
+    const tg = window.Telegram?.WebApp;
+    const user = tg?.initDataUnsafe?.user;
+    
+    if (!user || !user.id) {
+      console.warn('⚠️ No Telegram user for sync');
+      return;
+    }
+    
+    const response = await fetch(`https://durak-miniapp-production.up.railway.app/api/games/${state.multiplayerGameId}/state?telegram_user_id=${user.id}`);
+    
+    if (!response.ok) {
+      console.warn('⚠️ Failed to fetch game state:', response.status);
+      return;
+    }
+    
+    const data = await response.json();
+    
+    if (data.success) {
+      const gameState = data.data;
+      
+      // Проверяем, изменилось ли состояние
+      if (hasGameStateChanged(gameState)) {
+        console.log('🔄 Game state changed, updating...');
+        updateGameFromServer(gameState);
+      }
+      
+      // Проверяем таймер
+      if (gameState.timeLeft !== undefined) {
+        updateGameTimer(gameState.timeLeft);
+      }
+      
+    } else {
+      console.warn('⚠️ Sync failed:', data.error);
+    }
+    
+  } catch (error) {
+    console.error('❌ Sync error:', error);
+  }
+}
+
+// Проверить, изменилось ли состояние игры
+function hasGameStateChanged(serverState) {
+  // Простая проверка - сравниваем JSON
+  const currentState = {
+    phase: state.phase,
+    table: state.table,
+    players: state.players,
+    currentPlayer: state.current_player_telegram_id
+  };
+  
+  const serverStateData = {
+    phase: serverState.phase,
+    table: serverState.gameData?.table || [],
+    players: serverState.gameData?.players || [],
+    currentPlayer: serverState.currentPlayer
+  };
+  
+  return JSON.stringify(currentState) !== JSON.stringify(serverStateData);
+}
+
+// Обновить игру с сервера
+function updateGameFromServer(serverState) {
+  console.log('📥 Updating game from server:', serverState);
+  
+  // Обновляем основное состояние
+  if (serverState.gameData) {
+    const gameData = serverState.gameData;
+    
+    // Обновляем карты игроков
+    if (gameData.players) {
+      state.players = gameData.players;
+    }
+    
+    // Обновляем стол
+    if (gameData.table) {
+      state.table = gameData.table;
+    }
+    
+    // Обновляем фазу
+    if (serverState.phase) {
+      state.phase = serverState.phase;
+    }
+    
+    // Обновляем текущего игрока
+    if (serverState.currentPlayer) {
+      state.current_player_telegram_id = serverState.currentPlayer;
+    }
+  }
+  
+  // Перерисовываем UI
+  render();
+}
+
+// Обновить таймер игры
+function updateGameTimer(timeLeft) {
+  // Показываем таймер в UI
+  const timerElement = document.getElementById('gameTimer');
+  if (timerElement) {
+    timerElement.textContent = `⏱️ ${timeLeft}с`;
+    timerElement.style.display = timeLeft > 0 ? 'block' : 'none';
+    
+    // Добавляем предупреждение при малом времени
+    if (timeLeft <= 3) {
+      timerElement.classList.add('warning');
+    } else {
+      timerElement.classList.remove('warning');
+    }
+  }
+  
+  // Если время вышло, автоматически делаем ход
+  if (timeLeft <= 0 && state.phase !== 'finished') {
+    handleTimeOut();
+  }
+}
+
+// Обработать истечение времени
+function handleTimeOut() {
+  console.log('⏰ Time out! Making automatic move...');
+  
+  const tg = window.Telegram?.WebApp;
+  const user = tg?.initDataUnsafe?.user;
+  
+  if (user && user.id === state.current_player_telegram_id) {
+    // Это наш ход и время вышло
+    if (state.phase === 'attacking') {
+      // Автоматически говорим "Бито"
+      defenderEnough();
+    } else if (state.phase === 'defending') {
+      // Автоматически берем карты
+      takeCards();
+    }
+  }
+}
+
+// Отправить ход на сервер
+async function sendMoveToServer(action, cards = [], gameData = null) {
+  if (!state.multiplayerGameId) return;
+  
+  try {
+    const tg = window.Telegram?.WebApp;
+    const user = tg?.initDataUnsafe?.user;
+    
+    if (!user || !user.id) {
+      console.warn('⚠️ No Telegram user for move');
+      return;
+    }
+    
+    const response = await fetch(`https://durak-miniapp-production.up.railway.app/api/games/${state.multiplayerGameId}/move`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        telegram_user_id: user.id,
+        action: action,
+        cards: cards,
+        gameData: gameData || getCurrentGameState()
+      })
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+    
+    const data = await response.json();
+    
+    if (data.success) {
+      console.log('✅ Move sent to server:', action);
+    } else {
+      console.error('❌ Move failed:', data.error);
+    }
+    
+  } catch (error) {
+    console.error('❌ Error sending move:', error);
+  }
+}
+
+// Получить текущее состояние игры
+function getCurrentGameState() {
+  return {
+    players: state.players,
+    table: state.table,
+    phase: state.phase,
+    trumpSuit: state.trumpSuit,
+    deck: state.deck,
+    currentPlayer: state.current_player_telegram_id
+  };
+}
+
+// Завершить мультиплеер игру
+async function finishMultiplayerGame(winnerTelegramId) {
+  if (!state.multiplayerGameId) return;
+  
+  try {
+    const tg = window.Telegram?.WebApp;
+    const user = tg?.initDataUnsafe?.user;
+    
+    if (!user || !user.id) {
+      console.warn('⚠️ No Telegram user for finish');
+      return;
+    }
+    
+    const response = await fetch(`https://durak-miniapp-production.up.railway.app/api/games/${state.multiplayerGameId}/finish`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        telegram_user_id: user.id,
+        winner_telegram_id: winnerTelegramId,
+        gameData: getCurrentGameState()
+      })
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+    
+    const data = await response.json();
+    
+    if (data.success) {
+      console.log('✅ Game finished on server');
+      
+      // Останавливаем синхронизацию
+      stopGameSync();
+      
+      // Показываем результат
+      showGameResult(winnerTelegramId === user.id ? 'win' : 'loss');
+    } else {
+      console.error('❌ Finish failed:', data.error);
+    }
+    
+  } catch (error) {
+    console.error('❌ Error finishing game:', error);
+  }
+}
+
+// Показать результат игры
+function showGameResult(result) {
+  const message = result === 'win' ? '🎉 Поздравляем! Вы выиграли!' : '😔 Вы проиграли. Попробуйте еще раз!';
+  
+  showTelegramConfirm(message, (confirmed) => {
+    if (confirmed) {
+      // Возвращаемся в главное меню
+      showMainMenu();
+    }
+  });
 }
 
 window.addEventListener("load", main);
