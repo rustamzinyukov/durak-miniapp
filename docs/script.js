@@ -5549,8 +5549,171 @@ function setupMainMenuEvents() {
 
 // Модальное окно для игры с другом
 function showFriendGameModal() {
-  // Создаем игру
-  createMultiplayerGame('friend');
+  showDebugInfo('👥 Friend Game Modal', 'Показываем выбор: создать или присоединиться');
+  
+  // Создаем модальное окно выбора
+  const modal = document.createElement('div');
+  modal.className = 'modal';
+  modal.style.cssText = `
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    background: rgba(0, 0, 0, 0.8) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    z-index: 99999 !important;
+  `;
+  
+  modal.innerHTML = `
+    <div class="modal-content" style="max-width: 400px; text-align: center; background: white; padding: 30px; border-radius: 15px;">
+      <h2>👥 Игра с другом</h2>
+      <p>Что вы хотите сделать?</p>
+      <div style="margin: 20px 0;">
+        <button onclick="createNewGame()" style="background: #667eea; color: white; border: none; padding: 15px 30px; border-radius: 8px; cursor: pointer; margin: 10px; width: 200px;">
+          🎮 Создать игру
+        </button>
+        <button onclick="joinExistingGame()" style="background: #28a745; color: white; border: none; padding: 15px 30px; border-radius: 8px; cursor: pointer; margin: 10px; width: 200px;">
+          🔗 Присоединиться
+        </button>
+      </div>
+      <button onclick="this.closest('.modal').remove(); showMainMenu();" style="background: #666; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;">
+        Отмена
+      </button>
+    </div>
+  `;
+  
+  document.body.appendChild(modal);
+  
+  // Глобальные функции
+  window.createNewGame = () => {
+    modal.remove();
+    createMultiplayerGame('friend');
+  };
+  
+  window.joinExistingGame = () => {
+    modal.remove();
+    showJoinGameModal();
+  };
+}
+
+// Модальное окно для ввода кода приглашения
+function showJoinGameModal() {
+  showDebugInfo('🔗 Join Game Modal', 'Показываем ввод кода приглашения');
+  
+  const modal = document.createElement('div');
+  modal.className = 'modal';
+  modal.style.cssText = `
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    background: rgba(0, 0, 0, 0.8) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    z-index: 99999 !important;
+  `;
+  
+  modal.innerHTML = `
+    <div class="modal-content" style="max-width: 400px; text-align: center; background: white; padding: 30px; border-radius: 15px;">
+      <h2>🔗 Присоединиться к игре</h2>
+      <p>Введите код приглашения:</p>
+      <div style="margin: 20px 0;">
+        <input type="text" id="inviteCodeInput" placeholder="Введите код..." style="width: 100%; padding: 15px; border: 2px solid #ddd; border-radius: 8px; font-size: 18px; text-align: center; text-transform: uppercase;" maxlength="6">
+      </div>
+      <div style="margin: 20px 0;">
+        <button onclick="joinGameWithCode()" style="background: #28a745; color: white; border: none; padding: 15px 30px; border-radius: 8px; cursor: pointer; margin: 10px;">
+          🎮 Присоединиться
+        </button>
+        <button onclick="this.closest('.modal').remove(); showMainMenu();" style="background: #666; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;">
+          Отмена
+        </button>
+      </div>
+    </div>
+  `;
+  
+  document.body.appendChild(modal);
+  
+  // Фокус на поле ввода
+  setTimeout(() => {
+    document.getElementById('inviteCodeInput').focus();
+  }, 100);
+  
+  // Глобальная функция
+  window.joinGameWithCode = () => {
+    const code = document.getElementById('inviteCodeInput').value.trim().toUpperCase();
+    if (!code) {
+      alert('Введите код приглашения!');
+      return;
+    }
+    
+    showDebugInfo('🔗 Присоединение', `Код: ${code}`);
+    modal.remove();
+    joinGameByCode(code);
+  };
+}
+
+// Присоединиться к игре по коду
+async function joinGameByCode(inviteCode) {
+  try {
+    showDebugInfo('🔗 Присоединение к игре', `Код: ${inviteCode}`);
+    
+    const tg = window.Telegram?.WebApp;
+    const user = tg?.initDataUnsafe?.user;
+    
+    if (!user || !user.id) {
+      showDebugInfo('❌ Ошибка Telegram', 'Нет данных пользователя');
+      showTelegramConfirm('Для игры с друзьями нужен доступ к Telegram. Продолжить в тестовом режиме?', (confirmed) => {
+        if (confirmed) {
+          joinGameWithTestData(inviteCode);
+        }
+      });
+      return;
+    }
+    
+    const response = await fetch('https://durak-miniapp-production.up.railway.app/api/games/join-by-code', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        invite_code: inviteCode,
+        telegram_user_id: user.id,
+        username: user.username,
+        first_name: user.first_name
+      })
+    });
+    
+    showDebugInfo('📥 Ответ сервера', `Статус: ${response.status}`);
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      showDebugInfo('❌ Ошибка сервера', `HTTP ${response.status}: ${errorText}`);
+      throw new Error(`HTTP ${response.status}: ${errorText}`);
+    }
+    
+    const data = await response.json();
+    showDebugInfo('📊 Ответ сервера', JSON.stringify(data, null, 2));
+    
+    if (data.success) {
+      showDebugInfo('✅ Присоединение успешно', `Игра: ${data.data.gameId}`);
+      state.multiplayerGameId = data.data.gameId;
+      startMultiplayerGame(data.data);
+    } else {
+      showDebugInfo('❌ Ошибка присоединения', data.error || 'Failed to join game');
+      throw new Error(data.error || 'Failed to join game');
+    }
+    
+  } catch (error) {
+    console.error('❌ Error joining game:', error);
+    showTelegramConfirm('Ошибка присоединения к игре. Попробовать снова?', (confirmed) => {
+      if (confirmed) {
+        showJoinGameModal();
+      }
+    });
+  }
 }
 
 // Модальное окно для онлайн игры
