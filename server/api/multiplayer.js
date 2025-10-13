@@ -120,6 +120,7 @@ router.post('/games/join-by-code', async (req, res) => {
 
     // Проверяем, не занята ли игра уже
     if (invite.guest_telegram_id) {
+      logger.debug('GAME_FULL', `Game ${invite.game_id} already has guest ${invite.guest_telegram_id}`);
       return res.status(400).json({ 
         success: false, 
         error: 'Game is full (already has 2 players)' 
@@ -128,6 +129,7 @@ router.post('/games/join-by-code', async (req, res) => {
 
     // Проверяем статус игры
     if (invite.status !== 'waiting') {
+      logger.debug('GAME_NOT_WAITING', `Game ${invite.game_id} status is ${invite.status}, not 'waiting'`);
       return res.status(400).json({ 
         success: false, 
         error: 'Game is not available for joining' 
