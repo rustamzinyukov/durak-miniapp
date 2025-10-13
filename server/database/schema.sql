@@ -61,6 +61,7 @@ END;
 $$ language 'plpgsql';
 
 -- Trigger to auto-update updated_at
+DROP TRIGGER IF EXISTS update_player_stats_updated_at ON player_stats;
 CREATE TRIGGER update_player_stats_updated_at BEFORE UPDATE ON player_stats
 FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
