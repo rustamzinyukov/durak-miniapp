@@ -6851,7 +6851,6 @@ function showDebugInfo(title, message) {
 // Отправить debug логи на сервер
 async function sendDebugLogsToServer() {
   if (!window.clientDebugLogs || window.clientDebugLogs.length === 0) return;
-  if (!state.multiplayerGameId) return;
   
   const logsToSend = [...window.clientDebugLogs];
   window.clientDebugLogs = []; // Очищаем после копирования
@@ -6861,8 +6860,8 @@ async function sendDebugLogsToServer() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        gameId: state.multiplayerGameId,
-        userId: getCurrentTelegramUserId(),
+        gameId: state.multiplayerGameId || 'no-game-id',
+        userId: getCurrentTelegramUserId() || 'no-user-id',
         logs: logsToSend
       })
     });
@@ -6923,6 +6922,22 @@ function showInitialDebugInfo() {
 }
 
 // Глобальный обработчик ошибок
+// Перехватываем console.log и отправляем на сервер
+const originalConsoleLog = console.log;
+console.log = function(...args) {
+  originalConsoleLog.apply(console, args);
+  
+  // Добавляем в массив логов для отправки на сервер
+  const message = args.map(arg => typeof arg === 'object' ? JSON.stringify(arg) : String(arg)).join(' ');
+  window.clientDebugLogs.push({
+    timestamp: new Date().toISOString(),
+    title: 'CONSOLE',
+    message: message,
+    gameId: state.multiplayerGameId || 'no-game-id',
+    userId: getCurrentTelegramUserId() || 'no-user-id'
+  });
+};
+
 window.addEventListener('error', (event) => {
   console.error('🚨 Global Error:', event.error);
   showDebugInfo('🚨 JavaScript Error', `${event.error.message} at ${event.filename}:${event.lineno}`);
