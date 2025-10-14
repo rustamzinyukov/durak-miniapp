@@ -3932,10 +3932,10 @@ function commitAddFromPlayer(player, selectedIds){
             }, 500);
           } else {
             // В режиме AI вызываем aiLoopStep
-            setTimeout(() => {
-              console.log('🎯 Player added cards, calling aiLoopStep');
-              aiLoopStep();
-            }, 100);
+          setTimeout(() => {
+            console.log('🎯 Player added cards, calling aiLoopStep');
+            aiLoopStep();
+          }, 100);
           }
         }
       }, 'attack');
@@ -6107,13 +6107,30 @@ async function waitForFriendToJoin() {
 
 // Опрос состояния игры
 async function pollGameState() {
-  if (!state.multiplayerGameId) return;
+  console.log('📡 pollGameState called:', {
+    multiplayerGameId: state.multiplayerGameId,
+    hasTelegram: !!window.Telegram?.WebApp,
+    userId: window.Telegram?.WebApp?.initDataUnsafe?.user?.id
+  });
+  
+  if (!state.multiplayerGameId) {
+    console.log('❌ pollGameState: No multiplayerGameId');
+    return;
+  }
   
   try {
-    const response = await fetch(`https://durak-miniapp-production.up.railway.app/api/games/${state.multiplayerGameId}/state?telegram_user_id=${window.Telegram?.WebApp?.initDataUnsafe?.user?.id || 'test'}`);
+    const userId = window.Telegram?.WebApp?.initDataUnsafe?.user?.id || 'test';
+    console.log('📤 Polling game state for user:', userId);
+    
+    const response = await fetch(`https://durak-miniapp-production.up.railway.app/api/games/${state.multiplayerGameId}/state?telegram_user_id=${userId}`);
     
     if (response.ok) {
       const data = await response.json();
+      console.log('📥 Poll response:', {
+        success: data.success,
+        status: data.data?.status,
+        hasGameData: !!data.data?.gameData
+      });
       
       if (data.success && data.data.status === 'playing') {
         // Друг присоединился!
@@ -6127,6 +6144,7 @@ async function pollGameState() {
         setTimeout(pollGameState, 500);
       }
     } else {
+      console.warn('⚠️ Poll failed:', response.status);
       // Ошибка, пробуем еще раз
       setTimeout(pollGameState, 500);
     }
@@ -6282,6 +6300,12 @@ function startMultiplayerGame(serverGameData) {
     state.multiplayerGameId = serverGameData.gameId;
     state.gameMode = 'multiplayer';
     
+    console.log('🎮 startMultiplayerGame state:', {
+      gameId: state.multiplayerGameId,
+      gameMode: state.gameMode,
+      hasGameData: !!serverGameData.gameData
+    });
+    
     // Запускаем игру с синхронизацией
     showDebugInfo('🎮 Скрытие меню', 'Вызов hideMainMenu');
     hideMainMenu();
@@ -6301,6 +6325,7 @@ function startMultiplayerGame(serverGameData) {
     
     showDebugInfo('✅ startMultiplayerGame', 'Завершено успешно');
   } catch (error) {
+    console.error('❌ Error in startMultiplayerGame:', error);
     showDebugInfo('❌ Ошибка в startMultiplayerGame', error.message + '\n' + error.stack);
     throw error;
   }
@@ -6445,8 +6470,15 @@ function findOnlineGameWithTestData() {
 
 // Начать синхронизацию игры
 function startGameSync() {
+  console.log('🔄 startGameSync called:', {
+    gameMode: state.gameMode,
+    multiplayerGameId: state.multiplayerGameId,
+    isTestMode: state.multiplayerGameId?.startsWith('test-')
+  });
+  
   if (state.gameMode !== 'multiplayer' || !state.multiplayerGameId) {
     console.log('⚠️ Not in multiplayer mode, skipping sync');
+    showDebugInfo('❌ Ошибка синхронизации', `gameMode: ${state.gameMode}, gameId: ${state.multiplayerGameId}`);
     return;
   }
   
@@ -6457,6 +6489,7 @@ function startGameSync() {
   }
   
   console.log('🔄 Starting game synchronization...');
+  showDebugInfo('🔄 Синхронизация', `Начинаем опрос каждые 2 секунды`);
   
   // Синхронизируем каждые 2 секунды
   state.syncInterval = setInterval(syncGameState, 2000);
@@ -6476,17 +6509,29 @@ function stopGameSync() {
 
 // Синхронизировать состояние игры
 async function syncGameState() {
-  if (!state.multiplayerGameId) return;
+  if (!state.multiplayerGameId) {
+    console.log('❌ syncGameState: No multiplayerGameId');
+    return;
+  }
   
   try {
     const tg = window.Telegram?.WebApp;
     const user = tg?.initDataUnsafe?.user;
     
+    console.log('🔄 syncGameState called:', {
+      multiplayerGameId: state.multiplayerGameId,
+      hasTelegram: !!tg,
+      hasUser: !!user,
+      userId: user?.id
+    });
+    
     if (!user || !user.id) {
       console.warn('⚠️ No Telegram user for sync');
+      showDebugInfo('❌ Ошибка синхронизации', 'Нет данных Telegram пользователя');
       return;
     }
     
+    console.log('📤 Fetching game state for user:', user.id);
     const response = await fetch(`https://durak-miniapp-production.up.railway.app/api/games/${state.multiplayerGameId}/state?telegram_user_id=${user.id}`);
     
     if (!response.ok) {
